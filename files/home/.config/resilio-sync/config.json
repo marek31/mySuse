@@ -1,0 +1,13 @@
+{
+  "device_name": "@HOSTNAME@",
+  "storage_path": "@HOME@/.local/share/resilio-sync/",
+  "pid_file": "@HOME@/.local/share/resilio-sync/rslsync.pid",
+  "listening_port": @RESILIO_PORT@,   // fixed so the firewall can allow it
+  "use_upnp": false,                  // do not open router ports
+  "download_limit": 0,
+  "upload_limit": 0,
+  "directory_root": "@HOME@/",
+  "webui": {
+    "listen": "127.0.0.1:8888"        // WebUI reachable from this laptop only
+  }
+}

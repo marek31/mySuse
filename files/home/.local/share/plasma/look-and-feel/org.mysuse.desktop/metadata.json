@@ -1,0 +1,11 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Id": "org.mysuse.desktop",
+        "Name": "mySuse",
+        "Description": "Breeze with one thin panel on the left edge",
+        "License": "MIT",
+        "Authors": [{ "Name": "Marek" }]
+    },
+    "X-Plasma-APIVersion": "2"
+}

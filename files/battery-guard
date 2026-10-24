@@ -1,0 +1,10 @@
+#!/bin/sh
+# Run by cron every 2 min: hibernate at 5 % while discharging, before the battery dies and takes
+# unsaved work with it. elogind has no suspend-then-hibernate, so this is the safety net.
+for b in /sys/class/power_supply/BAT*; do
+    [ -r "$b/capacity" ] || continue
+    if [ "$(cat "$b/status")" = Discharging ] && [ "$(cat "$b/capacity")" -le 5 ]; then
+        logger -t battery-guard "battery at $(cat "$b/capacity") %, hibernating"
+        exec loginctl hibernate
+    fi
+done

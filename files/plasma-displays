@@ -1,0 +1,17 @@
+#!/bin/sh
+# Plasma autostart: native mode on every connected screen and the same scales as niri (laptop panel @SCALE@,
+# 4K monitors @SCALE_4K@, others 1). Each connector only once (stamp), so changes made later in System Settings stick;
+# delete ~/.local/state/mysuse/plasma-displays to apply again.
+dir=${XDG_STATE_HOME:-$HOME/.local/state}/mysuse/plasma-displays
+mkdir -p "$dir"
+tab=$(printf '\t')
+kscreen-doctor -j | jq -r '.outputs[] | select(.connected)
+    | [.name, (.preferredModes[0] // .currentModeId), ([.modes[] | select(.size.width >= 3840)] | length)] | @tsv' |
+while IFS=$tab read -r name mode big; do
+    [ -e "$dir/$name" ] && continue
+    case $name in
+    eDP*) scale=@SCALE@ ;;
+    *) if [ "$big" -gt 0 ]; then scale=@SCALE_4K@; else scale=1; fi ;;
+    esac
+    kscreen-doctor "output.$name.mode.$mode" "output.$name.scale.$scale" && touch "$dir/$name"
+done

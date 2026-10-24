@@ -1,0 +1,14 @@
+#!/bin/sh
+# resilio [start|stop|status] - Resilio Sync is never autostarted; this starts it and opens the WebUI.
+conf="$HOME/.config/resilio-sync/config.json"
+case "${1:-start}" in
+    start)
+        mkdir -p "$HOME/.local/share/resilio-sync"
+        pgrep -u "$(id -u)" -x rslsync >/dev/null || /opt/resilio/rslsync --config "$conf"
+        sleep 1
+        xdg-open http://127.0.0.1:8888 >/dev/null 2>&1 &
+        ;;
+    stop) pkill -u "$(id -u)" -x rslsync && echo "stopped" ;;
+    status) pgrep -u "$(id -u)" -ax rslsync || echo "not running" ;;
+    *) echo "usage: resilio [start|stop|status]" >&2; exit 2 ;;
+esac

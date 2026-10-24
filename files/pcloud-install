@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# pcloud-install [path/to/pcloud AppImage] - install or update pCloud Drive into /opt/pcloud.
+# pCloud only offers a per-session download link, so the file has to come from the browser first.
+# The AppImage is unpacked (no AppImage runtime or FUSE2 shim needed) and never autostarted: run `pcloud`.
+set -euo pipefail
+PAGE=https://www.pcloud.com/download-free-online-cloud-file-storage.html
+img=${1:-$(find "$HOME/Downloads" -maxdepth 1 -iname 'pcloud*' -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -n1 | cut -d' ' -f2-)}
+if [[ -z $img || ! -f $img ]]; then
+    echo "Download 'pCloud Drive for Linux' into ~/Downloads, then run pcloud-install again."
+    xdg-open "$PAGE" >/dev/null 2>&1 &
+    exit 1
+fi
+echo "Installing pCloud from $img"
+tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
+cp "$img" "$tmp/pcloud.AppImage"; chmod +x "$tmp/pcloud.AppImage"
+(cd "$tmp" && ./pcloud.AppImage --appimage-extract >/dev/null)
+[[ -x $tmp/squashfs-root/AppRun ]] || { echo "not a pCloud AppImage: $img" >&2; exit 1; }
+sudo rm -rf /opt/pcloud.new
+sudo cp -a "$tmp/squashfs-root" /opt/pcloud.new
+sudo chown -R root:root /opt/pcloud.new
+sudo chmod -R a+rX /opt/pcloud.new
+if [[ -f /opt/pcloud.new/chrome-sandbox ]]; then sudo chmod 4755 /opt/pcloud.new/chrome-sandbox; fi
+sudo rm -rf /opt/pcloud; sudo mv /opt/pcloud.new /opt/pcloud
+sudo ln -sf /opt/pcloud/AppRun /usr/local/bin/pcloud
+icon=$(find /opt/pcloud -maxdepth 1 -name '*.png' | head -n1)
+sudo tee /usr/local/share/applications/pcloud.desktop >/dev/null <<EOF
+[Desktop Entry]
+Type=Application
+Name=pCloud Drive
+Exec=pcloud
+Icon=${icon:-folder-cloud}
+Categories=Network;FileTransfer;
+Terminal=false
+EOF
+rm -f "$HOME/.config/autostart/pcloud.desktop"
+echo "Done. Start it with: pcloud"

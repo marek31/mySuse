@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# cloud - pCloud through rclone, instead of the pCloud app. Nothing runs in the background.
+#   cloud setup              one-time: log in to pCloud in the browser (region EU/US is detected)
+#   cloud open               pCloud as a folder (~/pCloud) in the file manager; files download when opened
+#   cloud mount | umount     the same without opening a window
+#   cloud sync [-n]          two-way sync of the folder pairs in ~/.config/cloud-sync.conf (-n = dry run)
+#   cloud send FILE|DIR...   upload to pCloud:/Send, share link(s) copied to the clipboard
+#   cloud status             mount, storage used, last log
+set -euo pipefail
+REMOTE=pcloud
+MNT=$HOME/pCloud
+CONF=${XDG_CONFIG_HOME:-$HOME/.config}/cloud-sync.conf
+STATE=${XDG_STATE_HOME:-$HOME/.local/state}/cloud
+mkdir -p "$STATE/logs"
+LOG=$STATE/logs/$(date +%F)-cloud.log
+die() { printf '\e[1;31m!! %s\e[0m\n' "$*" >&2; exit 1; }
+notify() { notify-send -a pCloud "$@" 2>/dev/null || true; }
+connected() { rclone listremotes | grep -qx "$REMOTE:"; }
+need_remote() { connected || die "not connected yet - run: cloud setup"; }
+mount_it() {
+    mountpoint -q "$MNT" && return 0
+    mkdir -p "$MNT"
+    # full VFS cache: apps can seek and write normally; cache lives in ~/.cache (never snapshotted)
+    rclone mount "$REMOTE:" "$MNT" --vfs-cache-mode full --vfs-cache-max-size 10G \
+        --dir-cache-time 5m --daemon --log-file "$LOG"
+}
+
+case "${1:-}" in
+setup)
+    if connected; then echo "already connected as '$REMOTE:'"; exit 0; fi
+    rclone config create "$REMOTE" pcloud   # opens the browser for the pCloud login
+    rclone about "$REMOTE:"
+    ;;
+open)
+    need_remote
+    mount_it
+    xdg-open "$MNT" >/dev/null 2>&1 &
+    ;;
+mount)
+    need_remote
+    mount_it
+    echo "pCloud is at $MNT"
+    ;;
+umount|unmount)
+    if mountpoint -q "$MNT"; then fusermount3 -u "$MNT" && echo "unmounted"; else echo "not mounted"; fi
+    ;;
+sync)
+    need_remote
+    [[ -f $CONF ]] || die "list the folders to sync in $CONF first"
+    dry=()
+    [[ ${2:-} == -n ]] && dry=(--dry-run)
+    rc=0
+    while read -r dir remote _; do
+        [[ -z ${dir:-} || $dir == \#* ]] && continue
+        dir=${dir/#\~/$HOME}
+        if [[ -z ${remote:-} ]]; then echo "!! $dir: no pCloud folder on that line"; rc=1; continue; fi
+        [[ $remote == *:* ]] || remote="$REMOTE:$remote"
+        mkdir -p "$dir"
+        rclone mkdir "$remote" </dev/null   # bisync needs both sides to exist
+        id=$(printf '%s|%s' "$dir" "$remote" | md5sum | cut -c1-12)
+        first=()
+        [[ -f $STATE/$id.ok ]] || first=(--resync)   # first run: merge both sides, delete nothing
+        echo "==> $dir <-> $remote${first:+  (first run: merging)}"
+        if rclone bisync "$dir" "$remote" "${first[@]}" "${dry[@]}" \
+            --resilient --recover --max-lock 2m --conflict-resolve newer --max-delete 25 \
+            --create-empty-src-dirs --exclude '.~lock.*#' --exclude '~$*' --exclude '*.tmp' \
+            -v --log-file "$LOG" </dev/null; then
+            [[ ${#dry[@]} -gt 0 ]] || touch "$STATE/$id.ok"
+        else
+            rc=1
+            echo "!! $dir failed - details in $LOG"
+        fi
+    done < "$CONF"
+    if (( rc )); then notify "Sync failed" "Details: $LOG"; else notify "Sync done"; fi
+    exit "$rc"
+    ;;
+send)
+    need_remote
+    shift
+    [[ $# -gt 0 ]] || die "usage: cloud send FILE|DIR..."
+    links=()
+    for f; do
+        [[ -e $f ]] || die "no such file: $f"
+        name=$(basename -- "$f")
+        if [[ -d $f ]]; then rclone copy "$f" "$REMOTE:Send/$name"; else rclone copyto "$f" "$REMOTE:Send/$name"; fi
+        links+=("$(rclone link "$REMOTE:Send/$name")")
+    done
+    printf '%s\n' "${links[@]}" | tee >(wl-copy 2>/dev/null || true)
+    notify "Uploaded ${#links[@]} item(s)" "Share link copied to the clipboard"
+    ;;
+status)
+    if mountpoint -q "$MNT"; then echo "mounted at $MNT"; else echo "not mounted"; fi
+    if connected; then rclone about "$REMOTE:"; else echo "not connected - run: cloud setup"; fi
+    echo "log: $LOG"
+    ;;
+*)
+    sed -n '2,8s/^# \{0,1\}//p' "$0"
+    [[ -z ${1:-} ]] || exit 2
+    ;;
+esac

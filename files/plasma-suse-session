@@ -1,0 +1,10 @@
+#!/bin/sh
+# KDE Plasma session for mySuse: startplasma-wayland.
+# Started by the greeter (greetd). Log: ~/.local/state/plasma/<date>-plasma.log, 14 days kept.
+export XDG_SESSION_TYPE=wayland
+logdir=${XDG_STATE_HOME:-$HOME/.local/state}/plasma
+mkdir -p "$logdir"
+find "$logdir" -name '*-plasma.log' -mtime +14 -delete 2>/dev/null
+log=$logdir/$(date +%F)-plasma.log
+plasma-suse-config >>"$log" 2>&1 || echo "plasma-suse-config failed" >>"$log"   # look + shortcuts, once per version
+exec dbus-run-session startplasma-wayland >>"$log" 2>&1

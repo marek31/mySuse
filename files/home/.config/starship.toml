@@ -1,0 +1,39 @@
+# Minimal prompt: folder, git, toolchain, slow-command time, then the prompt character on its own line.
+# Colours are terminal ANSI names, so they follow the Noctalia palette (it adds its palette block below).
+"$schema" = 'https://starship.rs/config-schema.json'
+add_newline = true
+format = "$directory$git_branch$git_status$python$rust$golang$cmd_duration$line_break$character"
+
+[directory]
+style = "bold blue"
+truncation_length = 3
+truncate_to_repo = true
+
+[git_branch]
+format = "[$branch]($style) "
+style = "purple"
+
+[git_status]
+format = '([$all_status$ahead_behind]($style) )'
+style = "yellow"
+
+[python]
+format = '[$virtualenv]($style) '
+style = "bright-black"
+
+[rust]
+format = '[rs $version]($style) '
+style = "bright-black"
+
+[golang]
+format = '[go $version]($style) '
+style = "bright-black"
+
+[cmd_duration]
+min_time = 2000
+format = "[$duration]($style) "
+style = "bright-black"
+
+[character]
+success_symbol = "[❯](green)"
+error_symbol = "[❯](red)"

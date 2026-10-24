@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=PipeWire
+Comment=Audio server (niri starts it itself; without systemd nothing else does)
+Exec=pipewire
+OnlyShowIn=KDE;
+NoDisplay=true

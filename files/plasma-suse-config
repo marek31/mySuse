@@ -1,0 +1,83 @@
+#!/bin/sh
+# Plasma settings for the minimal look, merged into the user's KDE config with kwriteconfig6: only these keys
+# are written, everything else in the files stays (kdeglobals is shared with KDE apps under niri and Noctalia).
+# Run by plasma-suse-session before Plasma starts, once per VERSION, so later changes made in System Settings
+# are kept. Bump VERSION after changing a value here.
+VERSION=4   # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
+            # 4: screen lock after 60 min idle
+stamp=${XDG_STATE_HOME:-$HOME/.local/state}/mysuse/plasma-config.version
+[ "$(cat "$stamp" 2>/dev/null)" = "$VERSION" ] && exit 0
+set -e
+w() { f=$1; shift; kwriteconfig6 --file "$f" "$@"; }
+T=$(printf '\t')
+font() { echo "$1,$2,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"; }
+
+# fonts, icons, terminal, the mysuse look-and-feel (its layout script builds the left panel), no animations
+w kdeglobals --group General --key font "$(font Inter 10)"
+w kdeglobals --group General --key menuFont "$(font Inter 10)"
+w kdeglobals --group General --key toolBarFont "$(font Inter 10)"
+w kdeglobals --group General --key smallestReadableFont "$(font Inter 8)"
+w kdeglobals --group General --key fixed "$(font 'JetBrains Mono' 10)"
+w kdeglobals --group General --key TerminalApplication foot
+w kdeglobals --group General --key TerminalService org.codeberg.dnkl.foot.desktop
+w kdeglobals --group Icons --key Theme Papirus-Dark
+w kdeglobals --group KDE --key LookAndFeelPackage org.mysuse.desktop
+w kdeglobals --group KDE --key AnimationDurationFactor 0
+
+# windows: no borders, no border on maximised windows, minimise/maximise/close only, 4 desktops
+w kwinrc --group Windows --key BorderlessMaximizedWindows --type bool true
+w kwinrc --group org.kde.kdecoration2 --key BorderSize None
+w kwinrc --group org.kde.kdecoration2 --key BorderSizeAuto --type bool false
+w kwinrc --group org.kde.kdecoration2 --key ButtonsOnLeft ""
+w kwinrc --group org.kde.kdecoration2 --key ButtonsOnRight IAX
+w kwinrc --group Desktops --key Number 4
+w kwinrc --group Desktops --key Rows 1
+w kwinrc --group Plugins --key shakecursorEnabled --type bool false
+
+# keyboard (same as niri), cursor
+w kxkbrc --group Layout --key LayoutList "@XKB@"
+w kxkbrc --group Layout --key Use --type bool true
+w kcminputrc --group Keyboard --key RepeatDelay 300
+w kcminputrc --group Keyboard --key RepeatRate 40
+w kcminputrc --group Mouse --key cursorTheme Bibata-Modern-Classic
+w kcminputrc --group Mouse --key cursorSize 24
+
+# lock after 60 min idle, as Noctalia does in niri (Timeout is in minutes); also lock when waking from sleep
+w kscreenlockerrc --group Daemon --key Autolock --type bool true
+w kscreenlockerrc --group Daemon --key Timeout 60
+w kscreenlockerrc --group Daemon --key LockOnResume --type bool true
+
+# one password store for both sessions: gnome-keyring (started by autostart), KWallet off
+w kwalletrc --group Wallet --key Enabled --type bool false
+w kwalletrc --group org.freedesktop.secrets --key apiEnabled --type bool false
+
+# shortcuts mirroring niri; "active,default,description", several keys separated by a tab.
+# Plasma defaults on the same keys are set to none, otherwise whoever registers first wins.
+k() { w kglobalshortcutsrc --group "$1" --key "$2" "$3"; }
+k kwin "Window Close" "Meta+Q${T}Alt+F4,Alt+F4,Close Window"
+k kwin "Window Maximize" "Meta+F${T}Meta+PgUp,Meta+PgUp,Maximize Window"
+k kwin "Window Fullscreen" "Meta+Shift+F,,Make Window Fullscreen"
+k kwin "Overview" "Meta+O${T}Meta+W,Meta+W,Toggle Overview"
+k kwin "Show Desktop" "Meta+Shift+D,Meta+D,Peek at Desktop"   # Meta+D is KRunner, as in niri
+k plasmashell "manage activities" "none,Meta+Q,Show Activity Switcher"
+for n in 1 2 3 4; do
+    k kwin "Switch to Desktop $n" "Meta+$n${T}Ctrl+F$n,Ctrl+F$n,Switch to Desktop $n"
+    k kwin "Window to Desktop $n" "Meta+Shift+$n,,Window to Desktop $n"
+    k plasmashell "activate task manager entry $n" "none,Meta+$n,Activate Task Manager Entry $n"
+done
+k ksmserver "Lock Session" "Meta+Escape${T}Meta+L${T}Screensaver,Meta+L${T}Screensaver,Lock Session"
+k ksmserver "Log Out" "Meta+Shift+E${T}Ctrl+Alt+Del,Ctrl+Alt+Del,Show Logout Prompt"
+app() { w kglobalshortcutsrc --group services --group "$1" --key _launch "$2"; }
+app org.kde.krunner.desktop "Meta+D${T}Meta+Space${T}Alt+Space${T}Alt+F2${T}Search"
+app org.codeberg.dnkl.foot.desktop Meta+Return
+app helium.desktop Meta+B
+app floorp.desktop Meta+Shift+B
+app thunar.desktop Meta+E
+app org.pulseaudio.pavucontrol.desktop Meta+A
+# key cheat sheet full screen, like niri's hotkey overlay; Qt names Shift+/ "?" on the US/Polish layout
+app plasma-keys.desktop "Meta+?${T}Meta+Shift+/"
+# Meta+P stays Plasma's screen switcher (extend / mirror); KeePassXC has no key here. Version 1 had it there:
+app org.keepassxc.KeePassXC.desktop none
+
+mkdir -p "${stamp%/*}"
+echo "$VERSION" > "$stamp"

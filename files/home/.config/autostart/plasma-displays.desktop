@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Native screen modes and scale
+Exec=plasma-displays
+OnlyShowIn=KDE;
+NoDisplay=true

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Update notices
+Exec=update-notify
+OnlyShowIn=KDE;
+NoDisplay=true

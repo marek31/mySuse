@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Key cheat sheet as wallpaper
+Exec=plasma-keys --wallpaper
+OnlyShowIn=KDE;
+NoDisplay=true

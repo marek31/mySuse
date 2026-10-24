@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Keyboard shortcuts
+Comment=Key cheat sheet full screen (Meta+Shift+/)
+Exec=plasma-keys
+Icon=preferences-desktop-keyboard-shortcuts
+OnlyShowIn=KDE;

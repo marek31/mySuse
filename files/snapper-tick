@@ -1,0 +1,14 @@
+#!/bin/sh
+# Run periodically: timeline snapshot of every snapper config, then prune by the
+# TIMELINE_LIMIT_* / NUMBER_LIMIT values. Once an hour also refresh the grub snapshot menu.
+[ -f /etc/sysconfig/snapper ] && . /etc/sysconfig/snapper
+[ -f /etc/conf.d/snapper ] && . /etc/conf.d/snapper
+configs=${SNAPPER_CONFIGS:-"root home"}
+for c in $configs; do
+    snapper --no-dbus -c "$c" create -c timeline -d "timeline" || logger -t snapper-tick "create $c failed"
+    snapper --no-dbus -c "$c" cleanup timeline || logger -t snapper-tick "timeline cleanup $c failed"
+    snapper --no-dbus -c "$c" cleanup number || logger -t snapper-tick "number cleanup $c failed"
+done
+if [ "$(date +%M)" -lt 15 ]; then
+    grub2-mkconfig -o /boot/grub2/grub.cfg >/dev/null 2>&1 || update-bootloader >/dev/null 2>&1 || logger -t snapper-tick "grub-mkconfig failed"
+fi

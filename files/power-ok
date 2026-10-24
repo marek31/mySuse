@@ -1,0 +1,16 @@
+#!/bin/sh
+# power-ok [MIN_PERCENT]: exit 0 when background work (updates) is fine right now: on mains power AND
+# every battery above MIN_PERCENT (default 80), so you can unplug and go at any time.
+# No battery at all (desktop, VM) counts as fine.
+min=${1:-80}
+set -- /sys/class/power_supply/BAT*
+[ -e "$1" ] || exit 0
+mains=no
+for p in /sys/class/power_supply/*; do
+    [ "$(cat "$p/type" 2>/dev/null)" = Mains ] && [ "$(cat "$p/online" 2>/dev/null)" = 1 ] && mains=yes
+done
+[ "$mains" = yes ] || exit 1
+for b in /sys/class/power_supply/BAT*; do
+    [ "$(cat "$b/capacity" 2>/dev/null || echo 0)" -gt "$min" ] || exit 1
+done
+exit 0

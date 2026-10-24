@@ -1,0 +1,11 @@
+#!/bin/sh
+# Started by niri: desktop notice when zypper has pending updates. The package index is refreshed
+# periodically; `zu` (sudo zypper dup) installs them inside a snapper snapshot pair.
+sleep 60
+while :; do
+    n=$(zypper -q lu 2>/dev/null | grep -c '^v ' || true)
+    if [ "$n" -gt 0 ]; then
+        notify-send -a Updates -i system-software-update "$n package updates available" "Run 'zu' (sudo zypper dup) in a terminal"
+    fi
+    sleep 21600
+done

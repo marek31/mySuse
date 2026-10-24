@@ -1,0 +1,71 @@
+# openSUSE Tumbleweed packages for x1-suse (ThinkPad X1 Carbon Gen 10).
+# One or more names per line, '#' starts a comment.
+
+# --- base, boot, filesystem ---
+kernel-default kernel-firmware-intel kernel-firmware-bluetooth kernel-firmware-network sof-firmware alsa-firmware
+grub2-x86_64-efi efibootmgr cryptsetup btrfs-progs compsize dracut
+snapper snapper-zypp-plugin grub2-snapper-plugin inotify-tools os-prober
+chrony cronie
+
+# --- session: niri on Wayland, greetd login ---
+greetd tuigreet polkit polkit-gnome dbus-1
+niri xwayland-satellite xdg-desktop-portal xdg-desktop-portal-gnome xdg-desktop-portal-gtk
+gnome-keyring seahorse dconf xdg-user-dirs xdg-utils wl-clipboard libnotify-tools udiskie earlyoom
+adwaita-icon-theme papirus-icon-theme qt6ct qt5ct breeze6-icons
+
+# --- noctalia shell build deps (from noctalia BUILDING.md, openSUSE section) ---
+meson ninja gcc gcc-c++ just git pkg-config
+wayland-devel wayland-protocols-devel Mesa-libEGL-devel Mesa-libGLESv2-devel
+freetype2-devel fontconfig-devel cairo-devel pango-devel harfbuzz-devel
+libxkbcommon-devel glib2-devel libsecret-devel libsodium-devel
+sdbus-cpp-devel pipewire-devel wireplumber-devel pam-devel polkit-devel
+libcurl-devel libwebp-devel libjxl-devel libsndfile-devel librsvg-devel
+libqalculate-devel libxml2-devel md4c-devel tomlplusplus-devel libical-devel
+nlohmann_json-devel stb-image-resize2-devel stb-image-write-devel jemalloc-devel
+upower-devel libinput-devel accountsservice-devel
+
+# --- second session: KDE Plasma 6 (Wayland), picked at login with F3 in tuigreet ---
+patterns-kde-kde_plasma spectacle
+
+# --- hardware: Intel Iris Xe, AX211 wifi, SOF audio, Synaptics 06cb:00fc fingerprint, USB4 ---
+Mesa-dri vulkan-intel intel-media-driver vulkan-tools libva-utils
+thermald fwupd fprintd fprintd-pam libfprint-2-2 bolt brightnessctl playerctl
+tlp tlp-rdw powertop
+
+# --- audio, network, bluetooth ---
+pipewire wireplumber pipewire-pulseaudio pipewire-alsa alsa-ucm-conf pavucontrol qpwgraph
+easyeffects lsp-plugins python3-numpy python3-scipy python3-rich
+NetworkManager NetworkManager-applet bluez blueman wireguard-tools firewalld nftables apparmor-utils
+tailscale
+
+# --- printing (wifi/IPP Everywhere) and scanning (eSCL/AirScan) ---
+cups cups-filters system-config-printer gutenprint hplip
+sane-backends sane-airscan simple-scan avahi nss-mdns
+
+# --- office ---
+libreoffice libreoffice-l10n-pl myspell-pl_PL myspell-en_US hyphen-pl mythes-pl
+
+# --- browsers & media runtime ---
+MozillaFirefox
+libXfixes3 libva2 fuse fuse3
+
+# --- fonts ---
+noto-sans-fonts noto-serif-fonts noto-coloremoji-fonts noto-sans-cjk-fonts
+dejavu-fonts liberation-fonts croscore-fonts
+google-roboto-fonts symbols-only-nerd-fonts
+
+# --- files, media, desktop apps ---
+foot thunar thunar-volman thunar-plugin-archive gvfs file-roller
+udisks2 ntfs-3g dosfstools
+okular zathura zathura-plugin-pdf-poppler sioyek xournalpp pdfarranger poppler-tools qpdf ghostwriter glow
+geeqie qimgv imv mpv vlc strawberry gimp kolourpaint krita audacity ffmpeg yt-dlp
+remmina kdeconnect-kde qbittorrent calibre kate qalculate-qt fsearch qdirstat gparted
+meld kdiff3 krename ncmpcpp keepassxc restic rclone
+
+# --- shell and CLI tools ---
+fish bash-completion starship eza bat ripgrep fd fzf zoxide tmux vim neovim mc nnn
+htop btop nmon iftop nmap speedtest-cli duf plocate lsof strace usbutils pciutils smartmontools
+curl wget rsync jq unzip zip p7zip-full xz zstd man-pages tealdeer trash-cli acl bind-utils fastfetch
+
+# --- development ---
+patterns-devel-base-devel_basis git git-lfs gh cmake python3 python3-pip go typst sbcl

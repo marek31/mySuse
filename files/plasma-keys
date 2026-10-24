@@ -1,0 +1,16 @@
+#!/bin/sh
+# Plasma's answer to niri's Super+Shift+/ overlay: the key cheat sheet full screen (imv), the same key or Esc closes it.
+#   plasma-keys              toggle the overlay (bound to Meta+Shift+/ by plasma-suse-config)
+#   plasma-keys --wallpaper  autostart: make the cheat sheet the wallpaper once per image version, also on a
+#                            Plasma that was set up before it existed (the layout script only runs on first start)
+img=$HOME/Pictures/Wallpapers/keys-plasma.png
+if [ "$1" = --wallpaper ]; then
+    stamp=${XDG_STATE_HOME:-$HOME/.local/state}/mysuse/plasma-wallpaper.stamp
+    [ -f "$img" ] || exit 0
+    [ -f "$stamp" ] && [ ! "$img" -nt "$stamp" ] && exit 0
+    plasma-apply-wallpaperimage "$img" && mkdir -p "${stamp%/*}" && touch "$stamp"
+    exit
+fi
+pkill -f "imv -f .*keys-plasma\.png" && exit 0
+[ -f "$img" ] || { notify-send "Key cheat sheet missing" "sudo ~/mySuse/setup.sh dotfiles renders it"; exit 1; }
+exec imv -f -c 'bind <Escape> quit' "$img"

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Noctalia palette for Plasma
+Exec=plasma-noctalia-colors
+OnlyShowIn=KDE;
+NoDisplay=true

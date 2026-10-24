@@ -1,0 +1,333 @@
+﻿// niri - x1-suse. Reference: https://yalter.github.io/niri/Configuration:-Introduction
+// Reload is automatic on save; check syntax with: niri validate
+
+input {
+    keyboard {
+        xkb {
+            layout "@XKB@"          // Polish (programmer's)
+        }
+        repeat-delay 300
+        repeat-rate 40
+    }
+    touchpad {
+        tap
+        natural-scroll
+        dwt
+        accel-speed 0.2
+    }
+    trackpoint {
+        accel-speed 0.3
+    }
+    focus-follows-mouse max-scroll-amount="0%"
+    warp-mouse-to-focus
+}
+
+// Native modes (read from the X1's EDIDs in Windows, 2026-10-16). Check names/modes: niri msg outputs
+output "eDP-1" {                            // X1 panel: 14" 1920x1200 (LEN403A)
+    mode "1920x1200"                        // no refresh given = the highest one at this size
+    scale @SCALE@
+}
+output "Dell Inc. DELL G3223Q 5CM14P3" {    // 32" 4K, matched by make/model/serial on any port
+    mode "3840x2160"                        // 60 Hz over the X1's HDMI 2.0; more only over DP/USB-C
+    scale @SCALE_4K@
+}
+
+// Look: one accent colour, thin ring, no borders, soft shadow, generous gaps.
+// Colours come from Noctalia (it appends `include "noctalia.kdl"` below and keeps it in sync
+// with the palette), so the values here are only the fallback before its first run.
+layout {
+    gaps 14
+    center-focused-column "never"
+    always-center-single-column
+    background-color "transparent"
+
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+    default-column-width { proportion 0.5; }
+
+    focus-ring {
+        width 2
+        active-color "#7e9cd8"
+        inactive-color "#2a2a37"
+    }
+    border { off; }
+    shadow {
+        on
+        softness 40
+        spread 2
+        offset x=0 y=8
+        color "#0000005a"
+    }
+    tab-indicator {
+        width 4
+        gap 6
+        corner-radius 4
+    }
+}
+
+overview {
+    zoom 0.5
+}
+
+prefer-no-csd
+screenshot-path "~/Pictures/Screenshots/%Y-%m-%d %H-%M-%S.png"
+hotkey-overlay { skip-at-startup; }
+
+cursor {
+    xcursor-theme "Bibata-Modern-Classic"
+    xcursor-size 24
+    hide-when-typing
+}
+
+environment {
+    ELECTRON_OZONE_PLATFORM_HINT "auto"
+    QT_QPA_PLATFORM "wayland;xcb"
+    QT_QPA_PLATFORMTHEME "qt6ct"        // Qt/KDE apps take the Noctalia palette via qt6ct
+    MOZ_ENABLE_WAYLAND "1"
+    _JAVA_AWT_WM_NONREPARENTING "1"     // Java/Swing apps (IBKR TWS) are blank under xwayland-satellite without it
+}
+
+// pipewire pulls in wireplumber + pipewire-pulse (see /etc/pipewire/pipewire.conf.d)
+spawn-at-startup "pipewire"
+// PAM already unlocked the keyring; this registers it on the session bus (dbus-run-session starts later)
+spawn-at-startup "gnome-keyring-daemon" "--start" "--components=secrets"
+spawn-at-startup "noctalia"
+spawn-at-startup "udiskie" "--automount" "--notify"   // USB drives mount on plug-in
+spawn-at-startup "update-notify"
+spawn-at-startup "easyeffects" "--service-mode" "--hide-window"   // speaker tuning (Dolby preset), no window
+spawn-at-startup "kdeconnect-indicator"   // KDE Connect daemon + tray icon (phone link)
+
+// No animations. For fast ones instead: replace `off` with `slowdown 0.25` (~4x quicker than default).
+animations {
+    off
+}
+
+debug {
+    // lets Noctalia notifications activate windows
+    honor-xdg-activation-with-invalid-serial
+}
+
+// --- Noctalia surfaces and blur (niri >= 26.04) ---
+layer-rule {
+    match namespace="^noctalia-backdrop"
+    place-within-backdrop true
+}
+layer-rule {
+    match namespace="^noctalia-(bar-[^\"]+|notification|dock|panel|attached-panel|osd)$"
+    background-effect {
+        xray false
+    }
+}
+
+// --- windows ---
+window-rule {
+    geometry-corner-radius 12
+    clip-to-geometry true
+    background-effect {
+        blur true
+        xray false
+    }
+}
+window-rule {
+    match app-id="dev.noctalia.Noctalia"
+    open-floating true
+    default-column-width { fixed 1080; }
+    default-window-height { fixed 920; }
+}
+window-rule {
+    match app-id="^(pavucontrol|org.pulseaudio.pavucontrol|blueman-manager|nm-connection-editor|qalculate-qt|system-config-printer)$"
+    match title="^(Picture-in-Picture|Open File|Save File|File Upload)"
+    open-floating true
+}
+window-rule {
+    match app-id="^(org.keepassxc.KeePassXC|signal|Signal)$"
+    block-out-from "screencast"
+}
+
+// --- Floating scratch terminal (Mod+Shift+Return) ---
+window-rule {
+    match app-id="^foot-float$"
+    open-floating true
+    default-column-width { fixed 1100; }
+    default-window-height { fixed 680; }
+}
+
+// Key bindings. One grammar for everything (Mod = Super), with H/J/K/L and the arrow keys interchangeable:
+//   Mod + dir             focus            (crosses into the next workspace / monitor at the edge)
+//   Mod + Ctrl + dir      move the window  (same crossing)
+//   Mod + Shift + dir     send the column: J/K or Down/Up = workspace below/above, H/L or Left/Right = other monitor
+//   Mod + Alt + dir       resize: H/L = narrower/wider, J/K = shorter/taller
+//   Mod + N / Shift+N / Ctrl+N    go to workspace N / send column there / send only the window there
+// Windows habits kept where they don't clash: Super+V clipboard, Super+. emoji,
+// Ctrl+Shift+Esc task manager, Alt+Tab switcher. No Ctrl+Alt+<key> binds: IDEs use those.
+// Mod+Shift+/ shows the full list on screen.
+binds {
+    Mod+Shift+Slash { show-hotkey-overlay; }
+
+    // --- apps ---
+    Mod+Return       hotkey-overlay-title="Terminal" { spawn "foot"; }
+    Mod+Shift+Return hotkey-overlay-title="Floating terminal" { spawn "foot" "--app-id=foot-float"; }
+    Mod+B            hotkey-overlay-title="Helium" { spawn "helium"; }
+    Mod+Shift+B      hotkey-overlay-title="Floorp" { spawn "floorp"; }
+    Mod+E            hotkey-overlay-title="Files" { spawn "thunar"; }
+    Mod+A            hotkey-overlay-title="Audio mixer" { spawn "pavucontrol"; }
+    Mod+P            hotkey-overlay-title="Passwords (KeePassXC)" { spawn "keepassxc"; }
+    Ctrl+Shift+Escape hotkey-overlay-title="Task manager (btop)" { spawn "foot" "--app-id=foot-float" "btop"; }
+
+    // --- shell (Noctalia) ---
+    Mod+Space        hotkey-overlay-title="Launcher" { spawn-sh "noctalia msg panel-toggle launcher"; }
+    Mod+D            { spawn-sh "noctalia msg panel-toggle launcher"; }   // Windows hosts grab Super+Space
+    Mod+Period       hotkey-overlay-title="Emoji" { spawn-sh "noctalia msg panel-toggle launcher /emo"; }
+    Mod+V            hotkey-overlay-title="Clipboard history" { spawn-sh "noctalia msg panel-toggle clipboard"; }
+    Mod+S            hotkey-overlay-title="Control center" { spawn-sh "noctalia msg panel-toggle control-center"; }
+    Mod+Comma        hotkey-overlay-title="Settings" { spawn-sh "noctalia msg settings-toggle"; }
+    Mod+N            hotkey-overlay-title="Do not disturb" { spawn-sh "noctalia msg notification-dnd-toggle"; }
+    Mod+Shift+N      hotkey-overlay-title="Dismiss notifications" { spawn-sh "noctalia msg notification-clear-active"; }
+    Mod+Ctrl+N       hotkey-overlay-title="Night light" { spawn-sh "noctalia msg nightlight-toggle"; }
+    Mod+Ctrl+W       hotkey-overlay-title="Next wallpaper" { spawn-sh "noctalia msg wallpaper-next"; }
+    Mod+Ctrl+T       hotkey-overlay-title="Dark / light theme" { spawn-sh "noctalia msg theme-mode-toggle"; }
+    Alt+Tab          { spawn-sh "noctalia msg window-switcher hold"; }
+
+    // --- session ---
+    Mod+Escape       hotkey-overlay-title="Lock" { spawn-sh "noctalia msg session lock"; }
+    Mod+Shift+Escape hotkey-overlay-title="Power menu" { spawn-sh "noctalia msg panel-toggle session"; }
+    Mod+Ctrl+Escape  allow-inhibiting=false hotkey-overlay-title="Pass shortcuts to app (VM, remote desktop)" { toggle-keyboard-shortcuts-inhibit; }
+    Mod+Shift+P      { power-off-monitors; }
+    Mod+Shift+E      { quit; }
+
+    // --- screenshots and recording: all on PrtSc ---
+    Print            hotkey-overlay-title="Screenshot whole screen" { screenshot-screen; }
+    Shift+Print      hotkey-overlay-title="Screenshot region" { screenshot; }
+    Alt+Print        hotkey-overlay-title="Screenshot window" { screenshot-window; }
+    Ctrl+Print       hotkey-overlay-title="Screenshot + annotate" { spawn-sh "noctalia msg screenshot-annotate"; }
+    // screen recording (Noctalia Screen Recorder plugin, gpu-screen-recorder); saved to the plugin's output folder
+    Mod+Print        hotkey-overlay-title="Record screen start/stop" { spawn-sh "noctalia msg plugin noctalia/screen_recorder:service all toggle"; }
+    Mod+Shift+Print  hotkey-overlay-title="Record region" { spawn-sh "noctalia msg plugin noctalia/screen_recorder:service all start region"; }
+
+    // --- focus: Mod + dir ---
+    Mod+H     { focus-column-or-monitor-left; }
+    Mod+L     { focus-column-or-monitor-right; }
+    Mod+J     { focus-window-or-workspace-down; }
+    Mod+K     { focus-window-or-workspace-up; }
+    Mod+Left  { focus-column-or-monitor-left; }
+    Mod+Right { focus-column-or-monitor-right; }
+    Mod+Down  { focus-window-or-workspace-down; }
+    Mod+Up    { focus-window-or-workspace-up; }
+    Mod+Home  { focus-column-first; }
+    Mod+End   { focus-column-last; }
+    Mod+Grave { focus-window-previous; }
+    Mod+Shift+T { switch-focus-between-floating-and-tiling; }
+
+    // --- move window: Mod + Ctrl + dir ---
+    Mod+Ctrl+H     { move-column-left-or-to-monitor-left; }
+    Mod+Ctrl+L     { move-column-right-or-to-monitor-right; }
+    Mod+Ctrl+J     { move-window-down-or-to-workspace-down; }
+    Mod+Ctrl+K     { move-window-up-or-to-workspace-up; }
+    Mod+Ctrl+Left  { move-column-left-or-to-monitor-left; }
+    Mod+Ctrl+Right { move-column-right-or-to-monitor-right; }
+    Mod+Ctrl+Down  { move-window-down-or-to-workspace-down; }
+    Mod+Ctrl+Up    { move-window-up-or-to-workspace-up; }
+    Mod+Ctrl+Home  { move-column-to-first; }
+    Mod+Ctrl+End   { move-column-to-last; }
+
+    // --- send column: Mod + Shift + dir ---
+    Mod+Shift+J     { move-column-to-workspace-down; }
+    Mod+Shift+K     { move-column-to-workspace-up; }
+    Mod+Shift+H     { move-column-to-monitor-left; }
+    Mod+Shift+L     { move-column-to-monitor-right; }
+    Mod+Shift+Down  { move-column-to-workspace-down; }
+    Mod+Shift+Up    { move-column-to-workspace-up; }
+    Mod+Shift+Left  { move-column-to-monitor-left; }
+    Mod+Shift+Right { move-column-to-monitor-right; }
+
+    // --- resize: Mod + Alt + dir, presets, maximise ---
+    Mod+Alt+H     { set-column-width "-5%"; }
+    Mod+Alt+L     { set-column-width "+5%"; }
+    Mod+Alt+J     { set-window-height "+5%"; }
+    Mod+Alt+K     { set-window-height "-5%"; }
+    Mod+Alt+Left  { set-column-width "-5%"; }
+    Mod+Alt+Right { set-column-width "+5%"; }
+    Mod+Alt+Down  { set-window-height "+5%"; }
+    Mod+Alt+Up    { set-window-height "-5%"; }
+    Mod+Minus       { set-column-width "-10%"; }
+    Mod+Equal       { set-column-width "+10%"; }
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+Equal { set-window-height "+10%"; }
+    Mod+R           { switch-preset-column-width; }
+    Mod+Shift+R     { switch-preset-window-height; }
+    Mod+Ctrl+R      { reset-window-height; }
+    Mod+F           { maximize-window-to-edges; }   // whole screen except the bar: no gaps, no ring
+    Mod+Ctrl+F      { expand-column-to-available-width; }
+    Mod+M           { maximize-column; }            // full-width column, gaps kept
+    Mod+Shift+F     { fullscreen-window; }
+    Mod+Alt+F       { toggle-windowed-fullscreen; }   // app thinks it's fullscreen, stays in its column
+    Mod+C           { center-column; }
+    Mod+Ctrl+C      { center-visible-columns; }
+
+    // --- columns, tabs, floating ---
+    Mod+BracketLeft  { consume-or-expel-window-left; }
+    Mod+BracketRight { consume-or-expel-window-right; }
+    Mod+W            { toggle-column-tabbed-display; }
+    Mod+T            { toggle-window-floating; }
+    Mod+Q repeat=false { close-window; }
+    Mod+O repeat=false { toggle-overview; }
+
+    // --- workspaces ---
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+    Mod+Shift+1 { move-column-to-workspace 1; }
+    Mod+Shift+2 { move-column-to-workspace 2; }
+    Mod+Shift+3 { move-column-to-workspace 3; }
+    Mod+Shift+4 { move-column-to-workspace 4; }
+    Mod+Shift+5 { move-column-to-workspace 5; }
+    Mod+Shift+6 { move-column-to-workspace 6; }
+    Mod+Shift+7 { move-column-to-workspace 7; }
+    Mod+Shift+8 { move-column-to-workspace 8; }
+    Mod+Shift+9 { move-column-to-workspace 9; }
+    Mod+Ctrl+1 { move-window-to-workspace 1; }
+    Mod+Ctrl+2 { move-window-to-workspace 2; }
+    Mod+Ctrl+3 { move-window-to-workspace 3; }
+    Mod+Ctrl+4 { move-window-to-workspace 4; }
+    Mod+Ctrl+5 { move-window-to-workspace 5; }
+    Mod+Ctrl+6 { move-window-to-workspace 6; }
+    Mod+Ctrl+7 { move-window-to-workspace 7; }
+    Mod+Ctrl+8 { move-window-to-workspace 8; }
+    Mod+Ctrl+9 { move-window-to-workspace 9; }
+    Mod+Tab             { focus-workspace-previous; }
+    Mod+U               { focus-workspace-down; }
+    Mod+I               { focus-workspace-up; }
+    Mod+Page_Down       { focus-workspace-down; }
+    Mod+Page_Up         { focus-workspace-up; }
+    Mod+Shift+Page_Down { move-workspace-down; }   // reorder workspaces
+    Mod+Shift+Page_Up   { move-workspace-up; }
+
+    // --- mouse / touchpad (Mod+drag moves, Mod+right-drag resizes: built into niri) ---
+    Mod+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
+    Mod+WheelScrollUp   cooldown-ms=150 { focus-workspace-up; }
+    Mod+WheelScrollRight { focus-column-right; }
+    Mod+WheelScrollLeft  { focus-column-left; }
+    Mod+Shift+WheelScrollDown { focus-column-right; }
+    Mod+Shift+WheelScrollUp   { focus-column-left; }
+
+    // --- hardware keys (work on the lock screen too) ---
+    XF86AudioRaiseVolume  allow-when-locked=true { spawn-sh "noctalia msg volume-up"; }
+    XF86AudioLowerVolume  allow-when-locked=true { spawn-sh "noctalia msg volume-down"; }
+    XF86AudioMute         allow-when-locked=true { spawn-sh "noctalia msg volume-mute"; }
+    XF86AudioMicMute      allow-when-locked=true { spawn-sh "noctalia msg mic-mute"; }
+    XF86MonBrightnessUp   allow-when-locked=true { spawn-sh "noctalia msg brightness-up"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn-sh "noctalia msg brightness-down"; }
+    XF86AudioPlay         allow-when-locked=true { spawn "playerctl" "play-pause"; }
+    XF86AudioPause        allow-when-locked=true { spawn "playerctl" "play-pause"; }
+    XF86AudioNext         allow-when-locked=true { spawn "playerctl" "next"; }
+    XF86AudioPrev         allow-when-locked=true { spawn "playerctl" "previous"; }
+}
