@@ -33,7 +33,7 @@ ping -c1 -W5 download.opensuse.org >/dev/null || die "no network connection avai
 
 mapfile -t DISKS < <(lsblk -dnpo NAME,TYPE,RO | awk '$2 == "disk" && $3 == 0 {print $1}' |
     while read -r d; do lsblk -nrpo MOUNTPOINT "$d" | grep -q . || echo "$d"; done)
-[[ ${#DISKS[@]} -gt 0 ]] || die "no usable disk found"
+[[ ${#DISKS[@]} -gt 0 ]] || die "no usable unmounted disk found (disks with active mountpoints are skipped).\nIf you already installed openSUSE and are configuring this system, run:\n  sudo ./setup.sh all"
 lsblk -po NAME,SIZE,FSTYPE,LABEL,PARTLABEL "${DISKS[@]}"
 FREE=$(free_areas | head -n1)
 if [[ -z $INSTALL_MODE ]]; then
