@@ -149,24 +149,27 @@ step_packages() {
 }
 
 step_user() {
-    log "user account, groups, sudo timeout, fingerprint"
+    log "user account, groups, sudo timeout, privileges"
     if ! id "$USERNAME" >/dev/null 2>&1; then
-        useradd -m -s /bin/fish -c "$FULLNAME" "$USERNAME"
+        useradd -m -s /bin/bash -c "$FULLNAME" "$USERNAME"
     fi
     for g in wheel audio video input disk storage network; do
         getent group "$g" >/dev/null && usermod -aG "$g" "$USERNAME" || true
     done
 
+    mkdir -p /etc/sudoers.d
+    chmod 750 /etc/sudoers.d
+
+    # Guarantee sudo always uses the user's password, never rootpw or targetpw
     put 440 /etc/sudoers.d/10-mysuse <<EOF
 Defaults timestamp_timeout=$SUDO_TIMEOUT_MIN, timestamp_type=global
 Defaults !targetpw
 Defaults:ALL !targetpw
+Defaults !rootpw
+Defaults:ALL !rootpw
 %wheel ALL=(ALL:ALL) ALL
+$USERNAME ALL=(ALL:ALL) ALL
 EOF
-
-    if command -v fish >/dev/null 2>&1; then
-        chsh -s "$(command -v fish)" "$USERNAME" 2>/dev/null || true
-    fi
 }
 
 step_security() {
@@ -292,10 +295,9 @@ step_dotfiles() {
         chown "$USERNAME:$USERNAME" "$UHOME/Pictures/Wallpapers"/keys-*.png 2>/dev/null || true
     fi
 
-    if [[ $HERE != "$UHOME/mySuse" ]]; then
-        rm -rf "$UHOME/mySuse"
+    if [[ $HERE != "$UHOME/mySuse" && ! -d "$UHOME/mySuse" ]]; then
         cp -r "$HERE" "$UHOME/mySuse"
-        chown -R "$USERNAME:$USERNAME" "$UHOME/mySuse"
+        chown -R "$USERNAME:$USERNAME" "$UHOME/mySuse" 2>/dev/null || true
     fi
 }
 
@@ -446,8 +448,12 @@ EOF
     # Ensure greetd user exists
     id greetd >/dev/null 2>&1 || useradd -r -s /bin/false -d /var/lib/greetd -m greetd 2>/dev/null || true
 
-    systemctl disable sddm gdm lightdm 2>/dev/null || true
-    systemctl enable greetd 2>/dev/null || true
+    if command -v greetd >/dev/null 2>&1 && command -v tuigreet >/dev/null 2>&1; then
+        systemctl disable sddm gdm lightdm 2>/dev/null || true
+        systemctl enable greetd 2>/dev/null || true
+    else
+        warn "greetd/tuigreet not found; keeping current display manager"
+    fi
 }
 
 step_devtools() {

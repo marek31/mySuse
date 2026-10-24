@@ -1,7 +1,7 @@
 if status is-interactive
     set -g fish_greeting
-    zoxide init fish | source
-    starship init fish | source
+    command -v zoxide >/dev/null && zoxide init fish | source
+    command -v starship >/dev/null && starship init fish | source
 
     alias ls 'eza -al --color=always --group-directories-first'
     alias la 'eza -a --color=always --group-directories-first'
