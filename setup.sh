@@ -159,6 +159,8 @@ step_user() {
 
     put 440 /etc/sudoers.d/10-mysuse <<EOF
 Defaults timestamp_timeout=$SUDO_TIMEOUT_MIN, timestamp_type=global
+Defaults !targetpw
+Defaults:ALL !targetpw
 %wheel ALL=(ALL:ALL) ALL
 EOF
 
@@ -167,8 +169,7 @@ EOF
 }
 
 step_security() {
-    log "security hardening: sysctl, apparmor, firewall, root lock"
-    passwd -l root >/dev/null 2>&1 || true
+    log "security hardening: sysctl, apparmor, firewall"
 
     put 644 /etc/sysctl.d/99-mysuse-hardening.conf < "$FILES/sysctl-hardening.conf"
     sysctl --system >/dev/null 2>&1 || true
