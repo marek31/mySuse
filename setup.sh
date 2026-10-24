@@ -168,7 +168,7 @@ EOF
 
 step_security() {
     log "security hardening: sysctl, apparmor, firewall, root lock"
-    passwd -l root 2>/dev/null || true
+    passwd -l root >/dev/null 2>&1 || true
 
     put 644 /etc/sysctl.d/99-mysuse-hardening.conf < "$FILES/sysctl-hardening.conf"
     sysctl --system >/dev/null 2>&1 || true
@@ -198,8 +198,8 @@ step_security() {
 
 step_snapper() {
     log "snapper snapshot configuration"
-    snapper -c root get-config >/dev/null 2>&1 || snapper create-config /
-    snapper -c home get-config >/dev/null 2>&1 || snapper create-config /home
+    [[ -f /etc/snapper/configs/root ]] || snapper create-config / 2>/dev/null || true
+    [[ -f /etc/snapper/configs/home ]] || snapper create-config /home 2>/dev/null || true
 
     for cfg in root home; do
         if [[ -f /etc/snapper/configs/$cfg ]]; then
