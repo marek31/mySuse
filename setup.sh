@@ -164,8 +164,9 @@ Defaults:ALL !targetpw
 %wheel ALL=(ALL:ALL) ALL
 EOF
 
-    pam-config -a --fprintd 2>/dev/null || true
-    chsh -s /bin/fish "$USERNAME" 2>/dev/null || true
+    if command -v fish >/dev/null 2>&1; then
+        chsh -s "$(command -v fish)" "$USERNAME" 2>/dev/null || true
+    fi
 }
 
 step_security() {
