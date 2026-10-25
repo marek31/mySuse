@@ -3,8 +3,8 @@
 # are written, everything else in the files stays (kdeglobals is shared with KDE apps under niri and Noctalia).
 # Run by plasma-suse-session before Plasma starts, once per VERSION, so later changes made in System Settings
 # are kept. Bump VERSION after changing a value here.
-VERSION=4   # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
-            # 4: screen lock after 60 min idle
+VERSION=5   # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
+            # 4: screen lock after 60 min idle; 5: auto-apply look-and-feel layout & icon fallback
 stamp=${XDG_STATE_HOME:-$HOME/.local/state}/mysuse/plasma-config.version
 [ "${1:-}" = "-f" ] || [ "${1:-}" = "--force" ] && rm -f "$stamp"
 [ "$(cat "$stamp" 2>/dev/null)" = "$VERSION" ] && exit 0
@@ -21,7 +21,16 @@ w kdeglobals --group General --key smallestReadableFont "$(font Inter 8)"
 w kdeglobals --group General --key fixed "$(font 'JetBrains Mono' 10)"
 w kdeglobals --group General --key TerminalApplication foot
 w kdeglobals --group General --key TerminalService org.codeberg.dnkl.foot.desktop
-w kdeglobals --group Icons --key Theme Papirus-Dark
+
+# icons: use Papirus-Dark if installed, fallback cleanly to breeze-dark so icons are never blank
+if [ -d /usr/share/icons/Papirus-Dark ] || [ -d "$HOME/.local/share/icons/Papirus-Dark" ]; then
+    w kdeglobals --group Icons --key Theme Papirus-Dark
+elif [ -d /usr/share/icons/breeze-dark ] || [ -d /usr/share/icons/kf6-breeze-icons ]; then
+    w kdeglobals --group Icons --key Theme breeze-dark
+else
+    w kdeglobals --group Icons --key Theme breeze
+fi
+
 w kdeglobals --group KDE --key LookAndFeelPackage org.mysuse.desktop
 w kdeglobals --group KDE --key AnimationDurationFactor 0
 
@@ -79,6 +88,32 @@ app org.pulseaudio.pavucontrol.desktop Meta+A
 app plasma-keys.desktop "Meta+?${T}Meta+Shift+/"
 # Meta+P stays Plasma's screen switcher (extend / mirror); KeePassXC has no key here. Version 1 had it there:
 app org.keepassxc.KeePassXC.desktop none
+
+# Apply the look-and-feel package layout (left vertical panel, kickoff, pager, icontasks, tray, clock)
+if command -v plasma-apply-lookandfeel >/dev/null 2>&1; then
+    plasma-apply-lookandfeel -a org.mysuse.desktop --resetLayout >/dev/null 2>&1 || true
+fi
+
+# Clean desktop without icons (switch from Folder view to standard Desktop view)
+appletsrc=${XDG_CONFIG_HOME:-$HOME/.config}/plasma-org.kde.plasma.desktop-appletsrc
+if [ -f "$appletsrc" ]; then
+    sed -i 's/plugin=org.kde.plasma.folder/plugin=org.kde.desktopcontainment/g' "$appletsrc"
+fi
+
+# Wallpaper: keys cheat sheet or Hokusai wave
+wp=$HOME/Pictures/Wallpapers/keys-plasma.png
+[ ! -f "$wp" ] && wp=$HOME/Pictures/Wallpapers/great-wave.jpg
+if [ -f "$wp" ] && command -v plasma-apply-wallpaperimage >/dev/null 2>&1; then
+    plasma-apply-wallpaperimage "$wp" >/dev/null 2>&1 || true
+fi
+
+# Reload KWin and Plasma if running so changes take effect immediately
+if command -v qdbus6 >/dev/null 2>&1; then
+    qdbus6 org.kde.KWin /KWin reconfigure 2>/dev/null || true
+fi
+if pgrep -x plasmashell >/dev/null 2>&1; then
+    kquitapp6 plasmashell 2>/dev/null && kstart plasmashell >/dev/null 2>&1 &
+fi
 
 mkdir -p "${stamp%/*}"
 echo "$VERSION" > "$stamp"

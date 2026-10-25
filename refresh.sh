@@ -90,6 +90,11 @@ trap finish EXIT
 
 sudo ./setup.sh packages security apps login devtools speakers dotfiles
 
+# If in Plasma, apply Plasma configuration immediately
+if [ "$XDG_CURRENT_DESKTOP" = "KDE" ] || pgrep -x plasmashell >/dev/null 2>&1; then
+    plasma-suse-config -f 2>/dev/null || true
+fi
+
 grep -Eqs '^\[(bar|widget)' ~/.local/state/noctalia/settings.toml &&
     echo "note: ~/.local/state/noctalia/settings.toml overrides the bar; remove its [bar...]/[widget...] sections to get the repo look"
 

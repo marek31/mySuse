@@ -265,12 +265,21 @@ step_desktop() {
     put 755 /usr/local/bin/cloud < "$FILES/cloud"
     put 755 /usr/local/bin/resilio < "$FILES/resilio"
     put 755 /usr/local/bin/pcloud-install < "$FILES/pcloud-install"
-    put 755 /usr/local/bin/plasma-displays < "$FILES/plasma-displays"
+    tpl "$FILES/plasma-displays" | put 755 /usr/local/bin/plasma-displays
     put 755 /usr/local/bin/plasma-keys < "$FILES/plasma-keys"
     put 755 /usr/local/bin/plasma-noctalia-colors < "$FILES/plasma-noctalia-colors"
-    put 755 /usr/local/bin/plasma-suse-config < "$FILES/plasma-suse-config"
+    tpl "$FILES/plasma-suse-config" | put 755 /usr/local/bin/plasma-suse-config
     put 755 /usr/local/bin/plasma-suse-session < "$FILES/plasma-suse-session"
     put 755 /usr/local/bin/niri-suse-session < "$FILES/niri-suse-session"
+
+    # Install mySuse look-and-feel package system-wide so plasma-apply-lookandfeel finds it
+    local lnf_src=$FILES/home/.local/share/plasma/look-and-feel/org.mysuse.desktop
+    local lnf_dst=/usr/share/plasma/look-and-feel/org.mysuse.desktop
+    if [[ -d $lnf_src ]]; then
+        mkdir -p "$lnf_dst"
+        cp -r "$lnf_src"/* "$lnf_dst/"
+        tpl "$lnf_src/contents/layouts/org.kde.plasma.desktop-layout.js" | put 644 "$lnf_dst/contents/layouts/org.kde.plasma.desktop-layout.js"
+    fi
 
     if [[ $HERE != /usr/local/lib/mysuse ]]; then
         rm -rf /usr/local/lib/mysuse.new
