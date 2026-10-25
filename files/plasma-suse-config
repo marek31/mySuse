@@ -6,6 +6,7 @@
 VERSION=4   # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
             # 4: screen lock after 60 min idle
 stamp=${XDG_STATE_HOME:-$HOME/.local/state}/mysuse/plasma-config.version
+[ "${1:-}" = "-f" ] || [ "${1:-}" = "--force" ] && rm -f "$stamp"
 [ "$(cat "$stamp" 2>/dev/null)" = "$VERSION" ] && exit 0
 set -e
 w() { f=$1; shift; kwriteconfig6 --file "$f" "$@"; }
