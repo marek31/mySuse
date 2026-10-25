@@ -7,6 +7,7 @@ panel.location = "left";
 panel.height = 40;          // thickness of a vertical panel
 panel.floating = false;
 panel.hiding = "none";
+panel.opacity = "opaque";
 
 panel.addWidget("org.kde.plasma.kickoff");
 panel.addWidget("org.kde.plasma.pager");

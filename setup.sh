@@ -93,7 +93,7 @@ ensure_swap() {
     cur_swap_mb=$(awk '/SwapTotal/ {print int($2/1024)}' /proc/meminfo 2>/dev/null || echo 0)
     if [[ $cur_swap_mb -lt $target_min_mb || ! -f /swap/swapfile ]]; then
         log "ensuring ${target_gib}GB on-disk swapfile on /swap/swapfile (currently $((cur_swap_mb / 1024))GB)..."
-        "$FILES/set-swap" "$target_gib"
+        bash "$FILES/set-swap" "$target_gib"
     fi
 
     if [[ -f /swap/swapfile ]]; then
@@ -142,6 +142,11 @@ EOF
 
     ensure_swap
     setkv /etc/default/grub GRUB_DISABLE_OS_PROBER false
+}
+
+step_swap() {
+    log "swap configuration: checking on-disk swapfile"
+    ensure_swap
 }
 
 step_packages() {
@@ -628,7 +633,7 @@ ensure_tools() {
 ensure_tools
 
 steps=("$@")
-[[ ${#steps[@]} -eq 0 || ${steps[0]} == all ]] && steps=(base packages user security snapper desktop apps login devtools speakers finish)
+[[ ${#steps[@]} -eq 0 || ${steps[0]} == all ]] && steps=(base swap packages user security snapper desktop apps login devtools speakers finish)
 for s in "${steps[@]}"; do
     declare -F "step_$s" >/dev/null || die "unknown step '$s'"
     "step_$s"

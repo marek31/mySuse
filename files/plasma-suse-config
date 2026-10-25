@@ -3,9 +3,9 @@
 # are written, everything else in the files stays.
 # Run by plasma-suse-session before Plasma starts, once per VERSION, so later changes made in System Settings
 # are kept. Bump VERSION after changing a value here.
-VERSION=7   # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
+VERSION=8   # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
             # 4: screen lock after 60 min idle; 5: auto-apply look-and-feel layout & icon fallback; 6: pure Plasma 6;
-            # 7: disable weather reports (lock screen, KRunner, Digital Clock)
+            # 7: disable weather reports; 8: turn off all transparency effects (blur, translucency, opaque panel/menus)
 stamp=${XDG_STATE_HOME:-$HOME/.local/state}/mysuse/plasma-config.version
 [ "${1:-}" = "-f" ] || [ "${1:-}" = "--force" ] && rm -f "$stamp"
 [ "$(cat "$stamp" 2>/dev/null)" = "$VERSION" ] && exit 0
@@ -34,6 +34,14 @@ fi
 
 w kdeglobals --group KDE --key LookAndFeelPackage org.mysuse.desktop
 w kdeglobals --group KDE --key AnimationDurationFactor 0
+w kdeglobals --group KDE --key OpaqueMenus --type bool true
+
+# disable all transparency, blur, contrast, and translucency effects
+w kwinrc --group Plugins --key blurEnabled --type bool false
+w kwinrc --group Plugins --key contrastEnabled --type bool false
+w kwinrc --group Plugins --key translucencyEnabled --type bool false
+w kwinrc --group Windows --key InactiveOpacity 100
+w kwinrc --group Windows --key ActiveOpacity 100
 
 # windows: no borders, no border on maximised windows, minimise/maximise/close only, 4 desktops
 w kwinrc --group Windows --key BorderlessMaximizedWindows --type bool true
@@ -100,11 +108,13 @@ if command -v plasma-apply-lookandfeel >/dev/null 2>&1; then
     plasma-apply-lookandfeel -a org.mysuse.desktop --resetLayout >/dev/null 2>&1 || true
 fi
 
-# Clean desktop without icons (switch from Folder view to standard Desktop view) and disable weather
+# Clean desktop without icons, disable weather, and force opaque panel
 appletsrc=${XDG_CONFIG_HOME:-$HOME/.config}/plasma-org.kde.plasma.desktop-appletsrc
 if [ -f "$appletsrc" ]; then
     sed -i 's/plugin=org.kde.plasma.folder/plugin=org.kde.desktopcontainment/g' "$appletsrc"
     sed -i 's/showWeather=true/showWeather=false/g' "$appletsrc"
+    sed -i 's/panelOpacity=0/panelOpacity=1/g' "$appletsrc"
+    sed -i 's/panelOpacity=2/panelOpacity=1/g' "$appletsrc"
 fi
 
 # Wallpaper: keys cheat sheet or Hokusai wave
