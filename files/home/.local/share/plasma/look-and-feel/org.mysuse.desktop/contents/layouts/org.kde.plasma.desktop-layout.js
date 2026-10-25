@@ -17,6 +17,7 @@ panel.addWidget("org.kde.plasma.systemtray");
 var clock = panel.addWidget("org.kde.plasma.digitalclock");
 clock.currentConfigGroup = ["Appearance"];
 clock.writeConfig("showDate", false);
+clock.writeConfig("showWeather", false);
 
 desktopsForActivity(currentActivity()).forEach(function (d) {
     d.wallpaperPlugin = "org.kde.image";

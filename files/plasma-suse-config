@@ -3,8 +3,9 @@
 # are written, everything else in the files stays.
 # Run by plasma-suse-session before Plasma starts, once per VERSION, so later changes made in System Settings
 # are kept. Bump VERSION after changing a value here.
-VERSION=6   # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
-            # 4: screen lock after 60 min idle; 5: auto-apply look-and-feel layout & icon fallback; 6: pure Plasma 6
+VERSION=7   # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
+            # 4: screen lock after 60 min idle; 5: auto-apply look-and-feel layout & icon fallback; 6: pure Plasma 6;
+            # 7: disable weather reports (lock screen, KRunner, Digital Clock)
 stamp=${XDG_STATE_HOME:-$HOME/.local/state}/mysuse/plasma-config.version
 [ "${1:-}" = "-f" ] || [ "${1:-}" = "--force" ] && rm -f "$stamp"
 [ "$(cat "$stamp" 2>/dev/null)" = "$VERSION" ] && exit 0
@@ -52,10 +53,15 @@ w kcminputrc --group Keyboard --key RepeatRate 40
 w kcminputrc --group Mouse --key cursorTheme Bibata-Modern-Classic
 w kcminputrc --group Mouse --key cursorSize 24
 
-# lock after 60 min idle; also lock when waking from sleep
+# lock after 60 min idle; also lock when waking from sleep; no weather on lock screen
 w kscreenlockerrc --group Daemon --key Autolock --type bool true
 w kscreenlockerrc --group Daemon --key Timeout 60
 w kscreenlockerrc --group Daemon --key LockOnResume --type bool true
+w kscreenlockerrc --group Greeter --key ShowWeather --type bool false
+
+# disable weather report in KRunner search
+w krunnerrc --group Plugins --key weatherEnabled --type bool false
+w krunnerrc --group Plugins --key krunner_weatherEnabled --type bool false
 
 # password store: gnome-keyring, KWallet off
 w kwalletrc --group Wallet --key Enabled --type bool false
@@ -94,10 +100,11 @@ if command -v plasma-apply-lookandfeel >/dev/null 2>&1; then
     plasma-apply-lookandfeel -a org.mysuse.desktop --resetLayout >/dev/null 2>&1 || true
 fi
 
-# Clean desktop without icons (switch from Folder view to standard Desktop view)
+# Clean desktop without icons (switch from Folder view to standard Desktop view) and disable weather
 appletsrc=${XDG_CONFIG_HOME:-$HOME/.config}/plasma-org.kde.plasma.desktop-appletsrc
 if [ -f "$appletsrc" ]; then
     sed -i 's/plugin=org.kde.plasma.folder/plugin=org.kde.desktopcontainment/g' "$appletsrc"
+    sed -i 's/showWeather=true/showWeather=false/g' "$appletsrc"
 fi
 
 # Wallpaper: keys cheat sheet or Hokusai wave

@@ -146,13 +146,19 @@ step_packages() {
         zypper --non-interactive rm -y power-profiles-daemon 2>/dev/null || true
     fi
 
-    # Kick out unwanted vendor packages (HP Device Manager)
-    if rpm -q hplip >/dev/null 2>&1 || rpm -q hplip-hp-plugin >/dev/null 2>&1; then
-        log "purging hplip (HP Device Manager)..."
-        zypper --non-interactive rm -u -y hplip hplip-hp-plugin hplip-sane 2>/dev/null || true
+    # Kick out unwanted vendor or bloat packages (HP Device Manager, Weather Report)
+    local bloat=(hplip hplip-hp-plugin hplip-sane kweather)
+    local to_rm=()
+    for p in "${bloat[@]}"; do
+        rpm -q "$p" >/dev/null 2>&1 && to_rm+=("$p")
+    done
+    if [[ ${#to_rm[@]} -gt 0 ]]; then
+        log "purging unwanted packages: ${to_rm[*]}..."
+        zypper --non-interactive rm -u -y "${to_rm[@]}" 2>/dev/null || true
         rm -f /etc/xdg/autostart/hp-systray.desktop \
               /usr/share/applications/hp-toolbox.desktop \
-              /usr/share/applications/hp-*.desktop 2>/dev/null || true
+              /usr/share/applications/hp-*.desktop \
+              /usr/share/applications/*kweather*.desktop 2>/dev/null || true
         pkill -f hp-systray 2>/dev/null || true
         pkill -f hp-toolbox 2>/dev/null || true
         command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database /usr/share/applications 2>/dev/null || true
