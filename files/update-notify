@@ -1,5 +1,5 @@
 #!/bin/sh
-# Started by niri: desktop notice when zypper has pending updates. The package index is refreshed
+# Desktop notice when zypper has pending updates. The package index is refreshed
 # periodically; `zu` (sudo zypper dup) installs them inside a snapper snapshot pair.
 sleep 60
 while :; do

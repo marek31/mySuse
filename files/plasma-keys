@@ -1,5 +1,5 @@
 #!/bin/sh
-# Plasma's answer to niri's Super+Shift+/ overlay: the key cheat sheet full screen (imv), the same key or Esc closes it.
+# Key cheat sheet full screen (imv), the same key (Meta+Shift+/) or Esc closes it.
 #   plasma-keys              toggle the overlay (bound to Meta+Shift+/ by plasma-suse-config)
 #   plasma-keys --wallpaper  autostart: make the cheat sheet the wallpaper once per image version, also on a
 #                            Plasma that was set up before it existed (the layout script only runs on first start)

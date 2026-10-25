@@ -1,5 +1,5 @@
 # Minimal prompt: folder, git, toolchain, slow-command time, then the prompt character on its own line.
-# Colours are terminal ANSI names, so they follow the Noctalia palette (it adds its palette block below).
+# Colours use terminal ANSI names.
 "$schema" = 'https://starship.rs/config-schema.json'
 add_newline = true
 format = "$directory$git_branch$git_status$python$rust$golang$cmd_duration$line_break$character"

@@ -1,6 +1,6 @@
 # mySuse
 
-Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots every 15 min, niri + Noctalia on Wayland (KDE Plasma 6 as second session), Helium, Floorp, Firefox, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
+Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots every 15 min, KDE Plasma 6 on Wayland, Helium, Floorp, Firefox, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
 
 All decisions and hardware options are defined in [config.sh](config.sh).
 
@@ -93,12 +93,10 @@ If an installation or setup run ever gets interrupted (e.g. Wi-Fi drop), simply 
 
 ---
 
-## Desktop Sessions: Niri and KDE Plasma
+## Desktop Environment: KDE Plasma 6
 
-Both sessions are pre-configured:
-- At the login screen (`tuigreet`), press **F3** to choose between **Niri (mySuse)** and **Plasma (mySuse)**. Your choice is remembered for subsequent logins.
-- **Niri + Noctalia:** Minimal scrollable tiling compositor on Wayland with Kanagawa palette, unified status bar, and native touchpad gestures.
-- **Plasma 6:** Re-styled to match Niri's design language: a single 40 px left panel, borderless maximized windows, animations disabled, identical fonts (Inter and JetBrains Mono), Papirus icons, and matching keybindings.
+- **KDE Plasma 6 (Wayland):** Powered by the custom look-and-feel package (`org.mysuse.desktop`). Features a sleek 40 px vertical panel on the left edge, borderless maximized windows, animations disabled for zero latency, Inter + JetBrains Mono typography, Papirus icons, and intuitive tiling/desktop shortcuts.
+- **Display Manager:** Native SDDM configured with automatic session handling.
 
 ---
 
@@ -110,7 +108,7 @@ Both sessions are pre-configured:
   ```bash
   ~/mySuse/refresh.sh
   ```
-  This creates safety snapshots, updates dotfiles, and restarts Noctalia in place.
+  This creates safety snapshots, updates dotfiles, and re-applies Plasma configuration in place.
 - **Undo last change:**
   ```bash
   ~/mySuse/refresh.sh undo

@@ -82,15 +82,6 @@ tpl() {
         "$1"
 }
 
-build_jobs() {
-    local free_kb jobs
-    free_kb=$(awk '/MemAvailable/{print $2}' /proc/meminfo)
-    jobs=$(( free_kb / 1572864 ))
-    (( jobs < 1 )) && jobs=1
-    (( jobs > $(nproc) )) && jobs=$(nproc)
-    echo "$jobs"
-}
-
 step_base() {
     log "base configuration: hostname, locale, console, grub command line"
     echo "$HOSTNAME" > /etc/hostname
@@ -277,10 +268,8 @@ step_desktop() {
     put 755 /usr/local/bin/pcloud-install < "$FILES/pcloud-install"
     tpl "$FILES/plasma-displays" | put 755 /usr/local/bin/plasma-displays
     put 755 /usr/local/bin/plasma-keys < "$FILES/plasma-keys"
-    put 755 /usr/local/bin/plasma-noctalia-colors < "$FILES/plasma-noctalia-colors"
     tpl "$FILES/plasma-suse-config" | put 755 /usr/local/bin/plasma-suse-config
     put 755 /usr/local/bin/plasma-suse-session < "$FILES/plasma-suse-session"
-    put 755 /usr/local/bin/niri-suse-session < "$FILES/niri-suse-session"
 
     # Install mySuse look-and-feel package system-wide so plasma-apply-lookandfeel finds it
     local lnf_src=$FILES/home/.local/share/plasma/look-and-feel/org.mysuse.desktop
@@ -303,7 +292,7 @@ step_desktop() {
 PATH=/usr/local/bin:/usr/bin:/usr/sbin:/bin
 # package index refresh so update-notify can count updates
 17 */6 * * * root zypper refresh >/dev/null 2>&1
-# Helium, Floorp, Resilio, RustDesk, fonts, cursor, Noctalia: daily upkeep
+# Helium, Floorp, Resilio, RustDesk, fonts, cursor: daily upkeep
 47 * * * * root power-ok 80 && ! find /var/lib/mysuse/apps.stamp -mmin -1440 2>/dev/null | grep -q . && /usr/local/lib/mysuse/setup.sh apps >/dev/null 2>&1 && touch /var/lib/mysuse/apps.stamp
 # monthly btrfs scrub
 0 11 1 * * root btrfs scrub start -Bd / >/dev/null 2>&1 || logger -t mysuse "btrfs scrub reported errors"
@@ -344,7 +333,6 @@ step_dotfiles() {
     fi
 
     if command -v typst >/dev/null 2>&1; then
-        (cd "$FILES/wallpaper" && typst compile keys-niri.typ "$UHOME/Pictures/Wallpapers/keys-niri.png" 2>/dev/null) || true
         (cd "$FILES/wallpaper" && typst compile keys-plasma.typ "$UHOME/Pictures/Wallpapers/keys-plasma.png" 2>/dev/null) || true
         chown "$USERNAME:$USERNAME" "$UHOME/Pictures/Wallpapers"/keys-*.png 2>/dev/null || true
     fi
@@ -448,7 +436,7 @@ font_zip() {
 }
 
 step_apps() {
-    log "upstream applications: Helium, Floorp, Resilio, Noctalia, fonts"
+    log "upstream applications: Helium, Floorp, Resilio, fonts"
     local h_url f_url
     h_url=$(gh_asset "imputnet/helium-linux" '.*-x86_64_linux\.tar\.xz$') || true
     if [[ -n $h_url ]]; then
@@ -495,55 +483,11 @@ EOF
 
     font_zip "jetbrains-mono" "JetBrains/JetBrainsMono"
     font_zip "cascadia-code" "microsoft/cascadia-code"
-
-    # Noctalia shell build from git release
-    local tag src=/var/cache/noctalia
-    if command -v jq >/dev/null 2>&1; then
-        tag=$(curl -fsSL --max-time 30 https://api.github.com/repos/noctalia-dev/noctalia/releases/latest 2>/dev/null | jq -r '.tag_name // empty') || tag=""
-    elif command -v python3 >/dev/null 2>&1; then
-        tag=$(curl -fsSL --max-time 30 https://api.github.com/repos/noctalia-dev/noctalia/releases/latest 2>/dev/null | python3 -c 'import sys, json; print(json.load(sys.stdin).get("tag_name", ""))' 2>/dev/null) || tag=""
-    fi
-    if [[ -z $tag ]]; then warn "could not determine Noctalia version"; return 0; fi
-    if [[ -x /usr/local/bin/noctalia && $(cat /usr/local/share/noctalia/.version 2>/dev/null) == "$tag" ]]; then
-        log "Noctalia $tag is current"
-    else
-        log "building Noctalia $tag..."
-        rm -rf "$src"
-        if git clone -q --depth 1 --branch "$tag" https://github.com/noctalia-dev/noctalia "$src"; then
-            local jobs; jobs=$(build_jobs)
-            local lto_opts=("-Db_lto_threads=$jobs")
-            if in_vmware; then
-                log "VMware detected: disabling LTO to speed up Noctalia build and prevent OOM"
-                lto_opts=("-Db_lto=false")
-            fi
-            if (cd "$src" && just configure release &&
-                meson configure build-release "${lto_opts[@]}" &&
-                meson compile -C build-release -j "$jobs" noctalia &&
-                rm -f /usr/local/bin/noctalia &&
-                just install release); then
-                mkdir -p /usr/local/share/noctalia
-                echo "$tag" > /usr/local/share/noctalia/.version
-            else
-                warn "Noctalia compilation failed; continuing setup"
-            fi
-        else
-            warn "could not clone Noctalia repository"
-        fi
-    fi
 }
 
 step_login() {
-    log "login screen: greetd + tuigreet"
+    log "login screen: SDDM (KDE Plasma 6)"
     mkdir -p /usr/share/wayland-sessions
-    put 644 /usr/share/wayland-sessions/niri-suse.desktop <<EOF
-[Desktop Entry]
-Name=Niri (mySuse)
-Comment=Scrollable-tiling Wayland compositor
-Exec=/usr/local/bin/niri-suse-session
-Type=Application
-DesktopNames=niri
-EOF
-
     put 644 /usr/share/wayland-sessions/plasma-suse.desktop <<EOF
 [Desktop Entry]
 Name=Plasma (mySuse)
@@ -553,24 +497,14 @@ Type=Application
 DesktopNames=KDE
 EOF
 
-    mkdir -p /etc/greetd
-    put 644 /etc/greetd/config.toml <<EOF
-[terminal]
-vt = 1
+    # Clean up greetd / niri session if previously enabled
+    systemctl disable greetd 2>/dev/null || true
+    rm -f /usr/share/wayland-sessions/niri-suse.desktop
 
-[default_session]
-command = "tuigreet --time --remember --remember-user-session --sessions /usr/share/wayland-sessions"
-user = "greetd"
-EOF
-
-    # Ensure greetd user exists
-    id greetd >/dev/null 2>&1 || useradd -r -s /bin/false -d /var/lib/greetd -m greetd 2>/dev/null || true
-
-    if command -v greetd >/dev/null 2>&1 && command -v tuigreet >/dev/null 2>&1; then
-        systemctl disable sddm gdm lightdm 2>/dev/null || true
-        systemctl enable greetd 2>/dev/null || true
-    else
-        warn "greetd/tuigreet not found; keeping current display manager"
+    # Enable SDDM display manager
+    systemctl enable sddm 2>/dev/null || true
+    if command -v update-alternatives >/dev/null 2>&1; then
+        update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/sddm 2>/dev/null || true
     fi
 }
 

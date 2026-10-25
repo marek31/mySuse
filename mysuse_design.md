@@ -19,23 +19,17 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ---
 
-## Desktop Environments
+## Desktop Environment
 
-### 1. Niri + Noctalia Shell (Primary)
-- **Compositor:** Niri scrollable-tiling Wayland compositor. Runs on native Wayland with `xwayland-satellite` for rootless X11 legacy support.
-- **Shell & Theming:** Noctalia shell built from source using release tags. Provides the Kanagawa palette, unified status bar on the left edge, and theme distribution to Foot, GTK 3/4, Qt 5/6, KDE, btop, and Starship.
-- **Keybindings:** 140 consistent shortcuts documented in the desktop cheat sheet.
-
-### 2. KDE Plasma 6 (Secondary)
-- **Look & Feel:** Configured via look-and-feel package `org.mysuse.desktop` to mirror Niri's design:
-  - One 40 px vertical panel on the left edge (launcher, desktop pager, icon tasks, tray, clock).
-  - No window decorations or borders on maximized windows.
-  - Animations disabled for instantaneous response.
-  - Font and palette synchronization with Noctalia.
-- **Shortcuts:** Mapped to match Niri equivalents (Super+Return terminal, Super+D KRunner, Super+Q close, Super+F maximize, Super+1..4 desktops).
-
-### 3. Display Manager
-- **Greeter:** `greetd` running `tuigreet` on VT 1. Text-based, fast, and light. Pressing **F3** switches between Niri and Plasma.
+### KDE Plasma 6 (Wayland)
+- **Look & Feel:** Configured via the custom look-and-feel package `org.mysuse.desktop`:
+  - Single 40 px vertical panel on the left edge (application launcher, desktop pager, icon-only tasks, system tray, clock).
+  - Borderless maximized windows and no window borders.
+  - Zero latency: animations disabled (`AnimationDurationFactor 0`).
+  - Dark theme with Papirus-Dark / Breeze-Dark icons and typography set to Inter (UI) and JetBrains Mono (fixed-width).
+  - Clean desktop containment without desktop icons.
+- **Shortcuts:** Clean, ergonomic shortcuts (Super+Return terminal, Super+D KRunner, Super+Q close, Super+F maximize, Super+1..4 desktops, Meta+Shift+/ key cheat sheet).
+- **Display Manager:** Native SDDM display manager with automatic Wayland session handling.
 
 ---
 
@@ -62,5 +56,6 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Changelog
 
+- 2026-10-25: Transitioned to pure KDE Plasma 6 desktop environment. Removed Noctalia and Niri build dependencies, configured native SDDM display manager, and refined custom left-panel look-and-feel package.
 - 2026-10-24: Initial release of `mySuse` configuration suite adapted for openSUSE Tumbleweed.
 - Added native systemd services, Zypper package manifests with Packman codecs, and Snapper integration.

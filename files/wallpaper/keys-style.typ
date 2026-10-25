@@ -1,4 +1,4 @@
-// Shared look of the key cheat-sheet wallpapers (keys-niri.typ, keys-plasma.typ). Kanagawa palette, like Noctalia.
+// Look of the key cheat-sheet wallpaper (keys-plasma.typ). Kanagawa dark palette.
 // One 16:10 image, 3840x2400 (page 1280x800 pt at 216 ppi): fills the 1920x1200 X1 panel exactly; on 16:9
 // screens (Dell 4K) crop mode cuts ~40 pt off top and bottom, so the margins keep text clear of that and of the left bar.
 // Each sheet picks its text size and column count so it fills the page: raise `size` until the last column is full,

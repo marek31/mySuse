@@ -1,29 +1,13 @@
 #!/bin/sh
-# Run as yourself inside niri: pull the repo, install packages/apps/dev tools added since,
-# take its dotfiles (your old ones go to ~/.backup), and restart Noctalia.
+# Run as yourself inside KDE Plasma: pull the repo, install packages/apps/dev tools added since,
+# take its dotfiles (your old ones go to ~/.backup), and apply Plasma configuration.
 #
 # Every run is wrapped in snapper pre/post snapshots of / and /home. If something breaks afterwards:
 #   ~/mySuse/refresh.sh undo     (also works from a text console: Ctrl+Alt+F2, log in)
-# reverts everything the last run changed in your home plus /usr/local and /etc/greetd.
+# reverts everything the last run changed in your home plus /usr/local.
 set -e
 [ "$(id -u)" -ne 0 ] || { echo "run refresh.sh as yourself, not root (it calls sudo itself)"; exit 1; }
 state=${XDG_STATE_HOME:-$HOME/.local/state}/mysuse/refresh-snapshots
-
-restart_noctalia() {
-    if [ "$XDG_CURRENT_DESKTOP" != niri ] || [ -z "$WAYLAND_DISPLAY" ]; then
-        echo "not inside niri, so Noctalia was not restarted (log out and back in to see changes)"
-        return 0
-    fi
-    log=~/.local/state/noctalia/$(date '+%F')-noctalia.log
-    mkdir -p "$(dirname "$log")"
-    pkill -x noctalia || true
-    i=0
-    while pgrep -x noctalia >/dev/null && [ $i -lt 50 ]; do sleep 0.1; i=$((i + 1)); done
-    pkill -KILL -x noctalia 2>/dev/null || true
-    setsid -f noctalia >>"$log" 2>&1
-    sleep 3
-    pgrep -x noctalia >/dev/null || { echo "Noctalia did not start - last lines of $log:"; tail -n 20 "$log"; return 1; }
-}
 
 has_cfg() {
     sudo snapper --no-dbus list-configs 2>/dev/null | awk -v c="$1" '$1 == c {found=1} END {exit !found}'
@@ -44,11 +28,11 @@ EOF
         sudo snapper --no-dbus -c home undochange "$hpre..$hpost" || true
     fi
     if [ "$rpre" != "none" ] && [ "$rpost" != "none" ] && has_cfg root; then
-        sudo snapper --no-dbus -c root status "$rpre..$rpost" | sed 's/^[^ ]* //' | grep -E '^/(usr/local|etc/greetd)(/|$)' |
+        sudo snapper --no-dbus -c root status "$rpre..$rpost" | sed 's/^[^ ]* //' | grep -E '^/(usr/local)(/|$)' |
             xargs -r -d '\n' sudo snapper --no-dbus -c root undochange "$rpre..$rpost"
     fi
     sed -i '$d' "$state"
-    restart_noctalia || true
+    plasma-suse-config -f 2>/dev/null || true
     rm -f "$REFRESH_UNDO_COPY"
     echo "done - log out and back in if the desktop still looks wrong"
     exit 0
@@ -90,15 +74,9 @@ trap finish EXIT
 
 sudo ./setup.sh packages security apps login devtools speakers dotfiles
 
-# If in Plasma, apply Plasma configuration immediately
-if [ "$XDG_CURRENT_DESKTOP" = "KDE" ] || pgrep -x plasmashell >/dev/null 2>&1; then
-    plasma-suse-config -f 2>/dev/null || true
-fi
-
-grep -Eqs '^\[(bar|widget)' ~/.local/state/noctalia/settings.toml &&
-    echo "note: ~/.local/state/noctalia/settings.toml overrides the bar; remove its [bar...]/[widget...] sections to get the repo look"
+# Re-apply Plasma configuration (layout, theme, icons, shortcuts)
+plasma-suse-config -f 2>/dev/null || true
 
 if ! gh auth status >/dev/null 2>&1 || ! git config --global --get credential.https://github.com.helper >/dev/null; then
     echo "note: git can't push to GitHub yet - run once: gh auth login, then: gh auth setup-git"
 fi
-restart_noctalia

@@ -3,7 +3,7 @@
 #import "keys-style.typ": *
 
 #show: sheet.with("Plasma  ·  x1-suse",
-  [Meta = Super  ·  keys mirror niri where they can  ·  Meta+Shift+/ shows this sheet (Esc closes)  ·  Meta+Shift+D shows the desktop], size: 14.6pt, cols: 3)
+  [Meta = Super  ·  Meta+Shift+/ shows this sheet (Esc closes)  ·  Meta+Shift+D shows the desktop], size: 14.6pt, cols: 3)
 
 #section(blue, "Apps",
   ("Meta", "application menu"),
@@ -28,7 +28,7 @@
 
 #section(pink, "Session",
   ("Meta+Esc / Meta+L", "lock"),
-  ("Meta+Shift+E", "log out (F3 at login: niri)"),
+  ("Meta+Shift+E", "log out"),
   ("Ctrl+Alt+Del", "log out too"),
 )
 
@@ -76,7 +76,7 @@
 
 #cmd(yellow, "Plasma",
   ("plasma-apply-wallpaperimage <file>", "wallpaper"),
-  ("plasma-apply-colorscheme <name>", "colours (noctalia = niri palette)"),
+  ("plasma-apply-colorscheme <name>", "colours (e.g. BreezeDark)"),
   ("plasma-apply-lookandfeel -a org.mysuse.desktop --resetLayout", "panel back to the repo layout"),
   ("kquitapp6 plasmashell; kstart plasmashell", "restart the panel / desktop"),
 )

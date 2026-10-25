@@ -7,25 +7,11 @@ grub2-x86_64-efi efibootmgr cryptsetup btrfs-progs compsize dracut
 snapper snapper-zypp-plugin grub2-snapper-plugin inotify-tools os-prober
 chrony cronie
 
-# --- session: niri on Wayland, greetd login ---
-greetd tuigreet polkit polkit-gnome dbus-1
-niri xwayland xwayland-satellite xdg-desktop-portal xdg-desktop-portal-gnome xdg-desktop-portal-gtk
+# --- desktop: KDE Plasma 6 (Wayland) ---
+patterns-kde-kde_plasma spectacle sddm
+polkit polkit-default-privs dbus-1 xwayland
 gnome-keyring seahorse dconf xdg-user-dirs xdg-utils wl-clipboard libnotify-tools udiskie earlyoom
-adwaita-icon-theme papirus-icon-theme qt6ct qt5ct kf6-breeze-icons breeze5-icons
-
-# --- noctalia shell build deps (from noctalia BUILDING.md, openSUSE section) ---
-meson ninja gcc gcc-c++ just git pkg-config
-wayland-devel wayland-protocols-devel Mesa-libEGL-devel Mesa-libGLESv2-devel
-freetype2-devel fontconfig-devel cairo-devel pango-devel harfbuzz-devel
-libxkbcommon-devel glib2-devel libsecret-devel libsodium-devel
-sdbus-cpp-devel pipewire-devel wireplumber-devel pam-devel polkit-devel
-libcurl-devel libwebp-devel libjxl-devel libsndfile-devel librsvg-devel
-libqalculate-devel libxml2-devel md4c-devel tomlplusplus-devel libical-devel
-nlohmann_json-devel stb-devel jemalloc-devel
-upower-devel libinput-devel accountsservice-devel
-
-# --- second session: KDE Plasma 6 (Wayland), picked at login with F3 in tuigreet ---
-patterns-kde-kde_plasma spectacle
+adwaita-icon-theme papirus-icon-theme kf6-breeze-icons breeze5-icons
 
 # --- hardware: Intel Iris Xe, AX211 wifi, SOF audio, Synaptics 06cb:00fc fingerprint, USB4 ---
 Mesa-dri vulkan-intel intel-media-driver vulkan-tools libva-utils

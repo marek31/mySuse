@@ -14,13 +14,12 @@
 #   btrfs       @ / @home / @snapshots / @var_log / @var_cache / @var_tmp / @swap, /tmp is tmpfs
 #   snapshots   snapper, root + home every 15 min; caches, logs, temp, swap, snapshots are separate
 #               subvolumes so they are never snapshotted; grub2-snapper-plugin lists snapshots in the boot menu
-#   desktop     Wayland only: niri + Noctalia shell (built from source), greetd + tuigreet login
-#   look        minimal: Kanagawa palette pushed by Noctalia to niri/foot/GTK/Qt/KDE/btop/starship,
-#               thin bar glued to the left edge, single-accent focus ring, no borders, Inter + JetBrains Mono,
+#   desktop     Wayland only: KDE Plasma 6 with mySuse look-and-feel (left panel, dark theme), SDDM login
+#   look        minimal: dark palette, thin vertical panel on the left edge, Inter + JetBrains Mono,
 #               Bibata cursor, Hokusai "Great Wave" wallpaper (public domain)
 #   dev         Go, Rust (rustup), Common Lisp (SBCL), Deno, Claude Code, Antigravity CLI (agy), oh-my-pi (omp)
 #   remote      RustDesk (upstream package), Remmina; KDE Connect for the phone (LAN-only firewall rule)
-#   upkeep      browsers/Noctalia auto-update once a day, update notifications, monthly btrfs scrub,
+#   upkeep      browsers auto-update once a day, update notifications, monthly btrfs scrub,
 #               smartd, earlyoom, hibernate at 5 % battery, USB automount (udiskie)
 #   browsers    Helium (default) + Floorp: upstream tarballs in /opt, updated by `setup.sh apps`;
 #               Firefox from zypper
@@ -30,7 +29,7 @@
 #               the official pCloud app stays available through pcloud-install
 #   kernel      openSUSE Tumbleweed rolling stock kernel (kernel-default)
 #   init        systemd
-#   power       TLP (+ tlp-pd so Noctalia's power-profile switch works), thermald
+#   power       TLP, thermald
 #   security    firewalld / nftables default-deny inbound, sysctl hardening, AppArmor enforce, root locked,
 #               no sshd, wifi MAC randomisation, Resilio WebUI on localhost only, UPnP off
 #   sudo        password once per day, shared across terminals; fingerprint accepted for sudo
@@ -46,7 +45,7 @@ LANG_FORMATS=pl_PL.UTF-8 # dates, money, paper (A4), units
 CONSOLE_KEYMAP=pl2
 CONSOLE_FONT=eurlatgr   # readable console font
 XKB_LAYOUT=pl           # "pl" basic variant == Polish (programmer's)
-DISPLAY_SCALE=1.25      # laptop panel (eDP-1, 1920x1200 14") in niri and Plasma; 1.0-1.5 are sane
+DISPLAY_SCALE=1.25      # laptop panel (eDP-1, 1920x1200 14") in Plasma; 1.0-1.5 are sane
 DISPLAY_SCALE_4K=1.5    # external 4K monitors (Dell G3223Q 32"); Windows uses 150 % on it
 
 INSTALL_MODE=""         # free = new partition in the largest unallocated area, keep Windows (dual boot)
@@ -71,7 +70,7 @@ SNAP_KEEP_MONTHLY=3
 # Paths under /home/$USERNAME turned into nested subvolumes = excluded from home snapshots.
 HOME_NOSNAP=(.cache .local/share/Trash .local/share/resilio-sync .pcloud)
 
-GREETER=tuigreet        # login screen: tuigreet (text, default) or noctalia
+GREETER=sddm            # login screen: sddm (graphical display manager)
 
 SUDO_TIMEOUT_MIN=1440   # ask for the sudo password once per day
 RESILIO_PORT=55555      # fixed listening port, opened in the firewall

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Plasma autostart: native mode on every connected screen and the same scales as niri (laptop panel @SCALE@,
+# Plasma autostart: native mode on every connected screen and default scales (laptop panel @SCALE@,
 # 4K monitors @SCALE_4K@, others 1). Each connector only once (stamp), so changes made later in System Settings stick;
 # delete ~/.local/state/mysuse/plasma-displays to apply again.
 dir=${XDG_STATE_HOME:-$HOME/.local/state}/mysuse/plasma-displays

@@ -1,10 +1,10 @@
 #!/bin/sh
 # Plasma settings for the minimal look, merged into the user's KDE config with kwriteconfig6: only these keys
-# are written, everything else in the files stays (kdeglobals is shared with KDE apps under niri and Noctalia).
+# are written, everything else in the files stays.
 # Run by plasma-suse-session before Plasma starts, once per VERSION, so later changes made in System Settings
 # are kept. Bump VERSION after changing a value here.
-VERSION=5   # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
-            # 4: screen lock after 60 min idle; 5: auto-apply look-and-feel layout & icon fallback
+VERSION=6   # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
+            # 4: screen lock after 60 min idle; 5: auto-apply look-and-feel layout & icon fallback; 6: pure Plasma 6
 stamp=${XDG_STATE_HOME:-$HOME/.local/state}/mysuse/plasma-config.version
 [ "${1:-}" = "-f" ] || [ "${1:-}" = "--force" ] && rm -f "$stamp"
 [ "$(cat "$stamp" 2>/dev/null)" = "$VERSION" ] && exit 0
@@ -44,7 +44,7 @@ w kwinrc --group Desktops --key Number 4
 w kwinrc --group Desktops --key Rows 1
 w kwinrc --group Plugins --key shakecursorEnabled --type bool false
 
-# keyboard (same as niri), cursor
+# keyboard, cursor
 w kxkbrc --group Layout --key LayoutList "@XKB@"
 w kxkbrc --group Layout --key Use --type bool true
 w kcminputrc --group Keyboard --key RepeatDelay 300
@@ -52,23 +52,23 @@ w kcminputrc --group Keyboard --key RepeatRate 40
 w kcminputrc --group Mouse --key cursorTheme Bibata-Modern-Classic
 w kcminputrc --group Mouse --key cursorSize 24
 
-# lock after 60 min idle, as Noctalia does in niri (Timeout is in minutes); also lock when waking from sleep
+# lock after 60 min idle; also lock when waking from sleep
 w kscreenlockerrc --group Daemon --key Autolock --type bool true
 w kscreenlockerrc --group Daemon --key Timeout 60
 w kscreenlockerrc --group Daemon --key LockOnResume --type bool true
 
-# one password store for both sessions: gnome-keyring (started by autostart), KWallet off
+# password store: gnome-keyring, KWallet off
 w kwalletrc --group Wallet --key Enabled --type bool false
 w kwalletrc --group org.freedesktop.secrets --key apiEnabled --type bool false
 
-# shortcuts mirroring niri; "active,default,description", several keys separated by a tab.
+# shortcuts; "active,default,description", several keys separated by a tab.
 # Plasma defaults on the same keys are set to none, otherwise whoever registers first wins.
 k() { w kglobalshortcutsrc --group "$1" --key "$2" "$3"; }
 k kwin "Window Close" "Meta+Q${T}Alt+F4,Alt+F4,Close Window"
 k kwin "Window Maximize" "Meta+F${T}Meta+PgUp,Meta+PgUp,Maximize Window"
 k kwin "Window Fullscreen" "Meta+Shift+F,,Make Window Fullscreen"
 k kwin "Overview" "Meta+O${T}Meta+W,Meta+W,Toggle Overview"
-k kwin "Show Desktop" "Meta+Shift+D,Meta+D,Peek at Desktop"   # Meta+D is KRunner, as in niri
+k kwin "Show Desktop" "Meta+Shift+D,Meta+D,Peek at Desktop"   # Meta+D is KRunner
 k plasmashell "manage activities" "none,Meta+Q,Show Activity Switcher"
 for n in 1 2 3 4; do
     k kwin "Switch to Desktop $n" "Meta+$n${T}Ctrl+F$n,Ctrl+F$n,Switch to Desktop $n"
@@ -84,7 +84,7 @@ app helium.desktop Meta+B
 app floorp.desktop Meta+Shift+B
 app thunar.desktop Meta+E
 app org.pulseaudio.pavucontrol.desktop Meta+A
-# key cheat sheet full screen, like niri's hotkey overlay; Qt names Shift+/ "?" on the US/Polish layout
+# key cheat sheet full screen; Qt names Shift+/ "?" on the US/Polish layout
 app plasma-keys.desktop "Meta+?${T}Meta+Shift+/"
 # Meta+P stays Plasma's screen switcher (extend / mirror); KeePassXC has no key here. Version 1 had it there:
 app org.keepassxc.KeePassXC.desktop none
