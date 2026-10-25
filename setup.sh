@@ -159,6 +159,17 @@ step_packages() {
         command -v kbuildsycoca6 >/dev/null 2>&1 && kbuildsycoca6 2>/dev/null || true
     fi
 
+    # Kick out niri and obsolete session packages if installed
+    local obsolete_pkgs=(niri xwayland-satellite greetd tuigreet polkit-gnome)
+    local to_rm=()
+    for p in "${obsolete_pkgs[@]}"; do
+        rpm -q "$p" >/dev/null 2>&1 && to_rm+=("$p")
+    done
+    if [[ ${#to_rm[@]} -gt 0 ]]; then
+        log "purging obsolete packages: ${to_rm[*]}..."
+        zypper --non-interactive rm -u -y "${to_rm[@]}" 2>/dev/null || true
+    fi
+
     # Install base utilities first so downstream tools never fail for missing jq/curl
     zypper --ignore-unknown in -y --no-recommends jq curl ca-certificates-mozilla tar xz unzip
 
@@ -361,6 +372,11 @@ step_dotfiles() {
         cp -r "$HERE" "$UHOME/mySuse"
         chown -R "$USERNAME:$USERNAME" "$UHOME/mySuse" 2>/dev/null || true
     fi
+
+    # Clean up obsolete niri and noctalia configs from home directory
+    rm -rf "$UHOME/.config/niri" "$UHOME/.config/noctalia" "$UHOME/.local/state/noctalia" \
+           "$UHOME/.config/qt5ct" "$UHOME/.config/qt6ct" \
+           "$UHOME/Pictures/Wallpapers/keys-niri.png" 2>/dev/null || true
 }
 
 gh_asset() {
@@ -517,9 +533,14 @@ Type=Application
 DesktopNames=KDE
 EOF
 
-    # Clean up greetd / niri session if previously enabled
+    # Clean up greetd / niri session and binaries if previously enabled
     systemctl disable greetd 2>/dev/null || true
-    rm -f /usr/share/wayland-sessions/niri-suse.desktop
+    rm -f /usr/share/wayland-sessions/niri*.desktop \
+          /usr/local/bin/niri-suse-session \
+          /usr/local/bin/noctalia \
+          /usr/local/bin/plasma-noctalia-colors \
+          /etc/greetd/config.toml 2>/dev/null || true
+    rm -rf /usr/local/share/noctalia /var/cache/noctalia 2>/dev/null || true
 
     # Enable SDDM display manager
     systemctl enable sddm 2>/dev/null || true
