@@ -4,7 +4,7 @@ conf="$HOME/.config/resilio-sync/config.json"
 case "${1:-start}" in
     start)
         mkdir -p "$HOME/.local/share/resilio-sync"
-        pgrep -u "$(id -u)" -x rslsync >/dev/null || /opt/resilio/rslsync --config "$conf"
+        pgrep -u "$(id -u)" -x rslsync >/dev/null || rslsync --config "$conf"
         sleep 1
         xdg-open http://127.0.0.1:8888 >/dev/null 2>&1 &
         ;;

@@ -134,6 +134,9 @@ step_packages() {
     fi
     zypper --gpg-auto-import-keys refresh
 
+    # Install base utilities first so downstream tools never fail for missing jq/curl
+    zypper --ignore-unknown in -y --no-recommends jq curl ca-certificates-mozilla tar xz unzip
+
     local pkgs=() line
     while IFS= read -r line || [[ -n $line ]]; do
         line="${line%%#*}"
@@ -144,7 +147,7 @@ step_packages() {
     done < "$HERE/packages.txt"
 
     log "installing ${#pkgs[@]} packages..."
-    zypper in -y --no-recommends --auto-agree-with-licenses "${pkgs[@]}" || warn "some packages could not be installed"
+    zypper --ignore-unknown in -y --no-recommends --auto-agree-with-licenses "${pkgs[@]}" || warn "some packages could not be installed"
     zypper dup -y --from packman --allow-vendor-change || true
 }
 
@@ -245,6 +248,14 @@ step_desktop() {
     put 755 /usr/local/bin/plasma-suse-session < "$FILES/plasma-suse-session"
     put 755 /usr/local/bin/niri-suse-session < "$FILES/niri-suse-session"
 
+    if [[ $HERE != /usr/local/lib/mysuse ]]; then
+        rm -rf /usr/local/lib/mysuse.new
+        cp -r "$HERE" /usr/local/lib/mysuse.new
+        chown -R root:root /usr/local/lib/mysuse.new
+        rm -rf /usr/local/lib/mysuse
+        mv /usr/local/lib/mysuse.new /usr/local/lib/mysuse
+    fi
+
     put 644 /etc/cron.d/mysuse <<'EOF'
 PATH=/usr/local/bin:/usr/bin:/usr/sbin:/bin
 # package index refresh so update-notify can count updates
@@ -302,22 +313,53 @@ step_dotfiles() {
 }
 
 gh_asset() {
-    curl -fsSL --max-time 30 "https://api.github.com/repos/$1/releases/latest" |
-        jq -r --arg re "$2" '[.assets[] | select(.name | test($re))][0].browser_download_url // empty' ||
-        die "GitHub API request failed for $1"
+    local repo=$1 re=$2 json url=""
+    json=$(curl -fsSL --max-time 30 "https://api.github.com/repos/$repo/releases/latest" 2>/dev/null) || {
+        warn "GitHub API request failed for $repo"
+        return 1
+    }
+    if command -v jq >/dev/null 2>&1; then
+        url=$(echo "$json" | jq -r --arg re "$re" '[.assets[]? | select(.name | test($re))][0].browser_download_url // empty' 2>/dev/null)
+    elif command -v python3 >/dev/null 2>&1; then
+        url=$(echo "$json" | python3 -c '
+import sys, json, re
+try:
+    data = json.load(sys.stdin)
+    rgx = re.compile(sys.argv[1])
+    for a in data.get("assets", []):
+        if rgx.search(a.get("name", "")):
+            print(a.get("browser_download_url", ""))
+            sys.exit(0)
+except Exception:
+    pass
+' "$re" 2>/dev/null)
+    fi
+    if [[ -z $url ]]; then
+        warn "no asset matching '$re' found for $repo"
+        return 1
+    fi
+    echo "$url"
 }
 
 opt_install() {
     local dest=$1 url=$2 strip=$3 ver=$4 tmp
-    [[ -n $url ]] || die "no download URL for $dest"
+    [[ -n $url ]] || { warn "no download URL for $dest"; return 1; }
     if [[ $(cat "$dest/.version" 2>/dev/null) == "$ver" ]]; then log "$dest is current"; return 0; fi
     if pgrep -f "^$dest/" >/dev/null; then warn "$dest is in use - update postponed"; return 0; fi
     log "installing $dest from $url"
     mkdir -p "$(dirname "$dest")"
     tmp=$(mktemp -d "$(dirname "$dest")/.install.XXXXXX")
-    curl -fL --retry 3 --max-time 900 -o "$tmp/pkg" "$url"
+    if ! curl -fL --retry 3 --max-time 900 -o "$tmp/pkg" "$url"; then
+        rm -rf "$tmp"
+        warn "download failed for $dest"
+        return 1
+    fi
     mkdir "$tmp/root"
-    tar -xf "$tmp/pkg" -C "$tmp/root" --strip-components="$strip" --no-same-owner
+    if ! tar -xf "$tmp/pkg" -C "$tmp/root" --strip-components="$strip" --no-same-owner; then
+        rm -rf "$tmp"
+        warn "extraction failed for $dest"
+        return 1
+    fi
     echo "$ver" > "$tmp/root/.version"
     rm -rf "$dest.old"
     [[ -d $dest ]] && mv "$dest" "$dest.old"
@@ -340,36 +382,47 @@ EOF
 
 font_zip() {
     local url dest=/usr/local/share/fonts/$1 tmp
-    url=$(gh_asset "$2" '\.zip$')
+    url=$(gh_asset "$2" '\.zip$') || true
     [[ -n $url ]] || { warn "no font zip URL for $2"; return 0; }
     if [[ $(cat "$dest/.version" 2>/dev/null) == "$url" ]]; then return 0; fi
     log "font: $1 from $url"
     tmp=$(mktemp -d /tmp/font.XXXXXX)
-    curl -fsSL --max-time 180 -o "$tmp/font.zip" "$url"
-    mkdir -p "$dest"
-    unzip -q -o "$tmp/font.zip" -d "$tmp/unpacked"
-    find "$tmp/unpacked" -type f \( -name '*.ttf' -o -name '*.otf' \) -exec cp -f {} "$dest/" \;
-    echo "$url" > "$dest/.version"
+    if curl -fsSL --max-time 180 -o "$tmp/font.zip" "$url"; then
+        mkdir -p "$dest"
+        unzip -q -o "$tmp/font.zip" -d "$tmp/unpacked"
+        find "$tmp/unpacked" -type f \( -name '*.ttf' -o -name '*.otf' \) -exec cp -f {} "$dest/" \;
+        echo "$url" > "$dest/.version"
+        fc-cache -f "$dest" 2>/dev/null || true
+    else
+        warn "failed to download font zip for $1"
+    fi
     rm -rf "$tmp"
-    fc-cache -f "$dest" 2>/dev/null || true
 }
 
 step_apps() {
     log "upstream applications: Helium, Floorp, Resilio, Noctalia, fonts"
     local h_url f_url
-    h_url=$(gh_asset "helium-browser/browser" 'Helium-.*-linux-x86_64\.tar\.xz$')
-    opt_install /opt/helium "$h_url" 1 "$h_url"
-    put 755 /usr/local/bin/helium <<'EOF'
+    h_url=$(gh_asset "imputnet/helium-linux" '.*-x86_64_linux\.tar\.xz$') || true
+    if [[ -n $h_url ]]; then
+        opt_install /opt/helium "$h_url" 1 "$h_url"
+        put 755 /usr/local/bin/helium <<'EOF'
 #!/bin/sh
 exec /opt/helium/helium --password-store=gnome-libsecret --enable-features=VaapiVideoDecodeLinuxGL "$@"
 EOF
-    desktop_entry helium "Helium" /usr/local/bin/helium /opt/helium/product_logo_128.png \
-        "Network;WebBrowser;" "text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;"
+        desktop_entry helium "Helium" /usr/local/bin/helium /opt/helium/product_logo_128.png \
+            "Network;WebBrowser;" "text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;"
+    else
+        warn "Helium installation skipped (could not fetch release asset)"
+    fi
 
-    f_url=$(gh_asset "floorp-heritage/Floorp" 'floorp-.*\.linux-x86_64\.tar\.bz2$')
-    opt_install /opt/floorp "$f_url" 1 "$f_url"
-    desktop_entry floorp "Floorp" /opt/floorp/floorp /opt/floorp/browser/chrome/icons/default/default128.png \
-        "Network;WebBrowser;" "text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;"
+    f_url=$(gh_asset "Floorp-Projects/Floorp" 'floorp.*linux-x86_64\.tar\.xz$') || true
+    if [[ -n $f_url ]]; then
+        opt_install /opt/floorp "$f_url" 1 "$f_url"
+        desktop_entry floorp "Floorp" /opt/floorp/floorp /opt/floorp/browser/chrome/icons/default/default128.png \
+            "Network;WebBrowser;" "text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;"
+    else
+        warn "Floorp installation skipped (could not fetch release asset)"
+    fi
 
     # Resilio Sync
     if [[ ! -x /usr/local/bin/rslsync ]]; then
@@ -378,16 +431,18 @@ EOF
         if curl -fsSL --max-time 300 -o "$rtmp/sync.tar.gz" "https://download-cdn.resilio.com/stable/linux-x64/resilio-sync_x64.tar.gz"; then
             tar -xf "$rtmp/sync.tar.gz" -C "$rtmp" rslsync
             put 755 /usr/local/bin/rslsync < "$rtmp/rslsync"
+        else
+            warn "Resilio download failed"
         fi
         rm -rf "$rtmp"
     fi
 
     # Bibata cursor
     local bibata_url
-    bibata_url=$(gh_asset "ful1e5/Bibata_Cursor" 'Bibata-Modern-Classic\.tar\.xz$')
+    bibata_url=$(gh_asset "ful1e5/Bibata_Cursor" 'Bibata-Modern-Classic\.tar\.xz$') || true
     if [[ -n $bibata_url ]] && [[ ! -d /usr/local/share/icons/Bibata-Modern-Classic ]]; then
         mkdir -p /usr/local/share/icons
-        curl -fsSL "$bibata_url" | tar -xJ -C /usr/local/share/icons/
+        curl -fsSL "$bibata_url" | tar -xJ -C /usr/local/share/icons/ 2>/dev/null || warn "Bibata cursor installation failed"
     fi
 
     font_zip "jetbrains-mono" "JetBrains/JetBrainsMono"
@@ -395,22 +450,32 @@ EOF
 
     # Noctalia shell build from git release
     local tag src=/var/cache/noctalia
-    tag=$(curl -fsSL --max-time 30 https://api.github.com/repos/noctalia-dev/noctalia/releases/latest | jq -r .tag_name // empty)
+    if command -v jq >/dev/null 2>&1; then
+        tag=$(curl -fsSL --max-time 30 https://api.github.com/repos/noctalia-dev/noctalia/releases/latest 2>/dev/null | jq -r .tag_name // empty) || tag=""
+    elif command -v python3 >/dev/null 2>&1; then
+        tag=$(curl -fsSL --max-time 30 https://api.github.com/repos/noctalia-dev/noctalia/releases/latest 2>/dev/null | python3 -c 'import sys, json; print(json.load(sys.stdin).get("tag_name", ""))' 2>/dev/null) || tag=""
+    fi
     if [[ -z $tag ]]; then warn "could not determine Noctalia version"; return 0; fi
     if [[ -x /usr/local/bin/noctalia && $(cat /usr/local/share/noctalia/.version 2>/dev/null) == "$tag" ]]; then
         log "Noctalia $tag is current"
     else
         log "building Noctalia $tag..."
         rm -rf "$src"
-        git clone -q --depth 1 --branch "$tag" https://github.com/noctalia-dev/noctalia "$src"
-        local jobs; jobs=$(build_jobs)
-        (cd "$src" && just configure release &&
-            meson configure build-release -Db_lto_threads="$jobs" &&
-            meson compile -C build-release -j "$jobs" noctalia &&
-            rm -f /usr/local/bin/noctalia &&
-            just install release)
-        mkdir -p /usr/local/share/noctalia
-        echo "$tag" > /usr/local/share/noctalia/.version
+        if git clone -q --depth 1 --branch "$tag" https://github.com/noctalia-dev/noctalia "$src"; then
+            local jobs; jobs=$(build_jobs)
+            if (cd "$src" && just configure release &&
+                meson configure build-release -Db_lto_threads="$jobs" &&
+                meson compile -C build-release -j "$jobs" noctalia &&
+                rm -f /usr/local/bin/noctalia &&
+                just install release); then
+                mkdir -p /usr/local/share/noctalia
+                echo "$tag" > /usr/local/share/noctalia/.version
+            else
+                warn "Noctalia compilation failed; continuing setup"
+            fi
+        else
+            warn "could not clone Noctalia repository"
+        fi
     fi
 }
 
@@ -501,6 +566,15 @@ step_finish() {
     dracut --force --hostonly 2>/dev/null || true
     grub2-mkconfig -o /boot/grub2/grub.cfg 2>/dev/null || update-bootloader 2>/dev/null || true
 }
+
+ensure_tools() {
+    if ! command -v jq >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1 || ! command -v tar >/dev/null 2>&1; then
+        log "installing core setup utilities (jq, curl, tar, xz, unzip)..."
+        zypper --ignore-unknown in -y --no-recommends jq curl ca-certificates-mozilla tar xz unzip 2>/dev/null || true
+    fi
+}
+
+ensure_tools
 
 steps=("$@")
 [[ ${#steps[@]} -eq 0 || ${steps[0]} == all ]] && steps=(base packages user security snapper desktop apps login devtools speakers finish)
