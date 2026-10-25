@@ -266,6 +266,7 @@ step_desktop() {
     put 755 /usr/local/bin/cloud < "$FILES/cloud"
     put 755 /usr/local/bin/resilio < "$FILES/resilio"
     put 755 /usr/local/bin/pcloud-install < "$FILES/pcloud-install"
+    put 755 /usr/local/bin/set-swap < "$FILES/set-swap"
     tpl "$FILES/plasma-displays" | put 755 /usr/local/bin/plasma-displays
     put 755 /usr/local/bin/plasma-keys < "$FILES/plasma-keys"
     tpl "$FILES/plasma-suse-config" | put 755 /usr/local/bin/plasma-suse-config
