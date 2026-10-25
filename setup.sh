@@ -506,8 +506,13 @@ EOF
         rm -rf "$src"
         if git clone -q --depth 1 --branch "$tag" https://github.com/noctalia-dev/noctalia "$src"; then
             local jobs; jobs=$(build_jobs)
+            local lto_opts=("-Db_lto_threads=$jobs")
+            if in_vmware; then
+                log "VMware detected: disabling LTO to speed up Noctalia build and prevent OOM"
+                lto_opts=("-Db_lto=false")
+            fi
             if (cd "$src" && just configure release &&
-                meson configure build-release -Db_lto_threads="$jobs" &&
+                meson configure build-release "${lto_opts[@]}" &&
                 meson compile -C build-release -j "$jobs" noctalia &&
                 rm -f /usr/local/bin/noctalia &&
                 just install release); then
