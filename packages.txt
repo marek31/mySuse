@@ -25,7 +25,7 @@ NetworkManager NetworkManager-applet bluez blueman wireguard-tools firewalld nft
 tailscale
 
 # --- printing (wifi/IPP Everywhere) and scanning (eSCL/AirScan) ---
-cups cups-filters system-config-printer gutenprint hplip
+cups cups-filters system-config-printer gutenprint
 sane-backends sane-airscan simple-scan avahi nss-mdns
 
 # --- office ---
