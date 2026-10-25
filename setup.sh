@@ -46,6 +46,7 @@ setkv() {
 }
 
 in_chroot() { [[ $(stat -c %d:%i /) != "$(stat -c %d:%i /proc/1/root/. 2>/dev/null)" ]]; }
+in_vmware() { grep -qi vmware /sys/class/dmi/id/sys_vendor 2>/dev/null || [[ $(systemd-detect-virt 2>/dev/null) == "vmware" ]]; }
 as_user() {
     local vars=(HOME="$UHOME" USER="$USERNAME" LOGNAME="$USERNAME"
         PATH="$UHOME/.local/bin:$UHOME/.cargo/bin:/usr/local/bin:/usr/bin:/usr/sbin:/bin")
@@ -160,6 +161,11 @@ step_packages() {
         pkgs+=($line)
     done < "$HERE/packages.txt"
 
+    if in_vmware; then
+        log "VMware detected: adding open-vm-tools-desktop"
+        pkgs+=(open-vm-tools-desktop)
+    fi
+
     log "installing ${#pkgs[@]} packages..."
     zypper --non-interactive --ignore-unknown in -y --no-recommends --auto-agree-with-licenses --force-resolution "${pkgs[@]}" || warn "some packages could not be installed"
     zypper dup -y --from packman --allow-vendor-change || true
@@ -247,8 +253,12 @@ step_snapper() {
 
 step_desktop() {
     log "desktop environment: TLP, thermald, PipeWire, helper scripts, dotfiles"
-    systemctl enable --now tlp 2>/dev/null || true
-    systemctl enable --now thermald 2>/dev/null || true
+    if ! in_vmware; then
+        systemctl enable --now tlp thermald 2>/dev/null || true
+    else
+        log "VMware detected: enabling vmtoolsd"
+        systemctl enable --now vmtoolsd 2>/dev/null || true
+    fi
     systemctl enable --now earlyoom 2>/dev/null || true
     systemctl enable --now udisks2 2>/dev/null || true
     systemctl enable --now bluetooth 2>/dev/null || true
