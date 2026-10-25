@@ -411,7 +411,9 @@ opt_install() {
 }
 
 desktop_entry() {
-    put 644 "/usr/local/share/applications/$1.desktop" <<EOF
+    local f
+    for f in "/usr/local/share/applications/$1.desktop" "/usr/share/applications/$1.desktop"; do
+        put 644 "$f" <<EOF
 [Desktop Entry]
 Type=Application
 Name=$2
@@ -421,6 +423,9 @@ Categories=$5
 ${6:+MimeType=$6}
 Terminal=false
 EOF
+    done
+    command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database /usr/share/applications /usr/local/share/applications 2>/dev/null || true
+    command -v kbuildsycoca6 >/dev/null 2>&1 && kbuildsycoca6 2>/dev/null || true
 }
 
 font_zip() {
