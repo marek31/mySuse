@@ -46,7 +46,15 @@ setkv() {
 }
 
 in_chroot() { [[ $(stat -c %d:%i /) != "$(stat -c %d:%i /proc/1/root/. 2>/dev/null)" ]]; }
-as_user() { su - "$USERNAME" -c "$*"; }
+as_user() {
+    local vars=(HOME="$UHOME" USER="$USERNAME" LOGNAME="$USERNAME"
+        PATH="$UHOME/.local/bin:$UHOME/.cargo/bin:/usr/local/bin:/usr/bin:/usr/sbin:/bin")
+    local rt
+    rt=/run/user/$(id -u "$USERNAME" 2>/dev/null || true)
+    [[ -d $rt ]] && vars+=(XDG_RUNTIME_DIR="$rt")
+    (cd "$UHOME" && runuser -u "$USERNAME" -- env -u SUDO_USER -u SUDO_UID -u SUDO_GID -u SUDO_COMMAND \
+        "${vars[@]}" "$@")
+}
 
 cmdline_set() {
     local key=$1 val=${2:-} line out=() word found=0
@@ -207,7 +215,17 @@ step_security() {
 step_snapper() {
     log "snapper snapshot configuration"
     [[ -f /etc/snapper/configs/root ]] || snapper create-config / 2>/dev/null || true
-    [[ -f /etc/snapper/configs/home ]] || snapper create-config /home 2>/dev/null || true
+
+    if [[ ! -f /etc/snapper/configs/home ]]; then
+        local home_fs
+        home_fs=$(findmnt -no FSTYPE /home 2>/dev/null || true)
+        if [[ $home_fs == "btrfs" ]]; then
+            if [[ -d /home/.snapshots && ! -d /home/.snapshots/1 ]]; then
+                btrfs subvolume delete /home/.snapshots 2>/dev/null || rm -rf /home/.snapshots 2>/dev/null || true
+            fi
+            snapper -c home create-config /home 2>/dev/null || true
+        fi
+    fi
 
     for cfg in root home; do
         if [[ -f /etc/snapper/configs/$cfg ]]; then
@@ -523,21 +541,24 @@ EOF
 
 step_devtools() {
     log "developer tools: rustup, Claude Code, Antigravity CLI, Deno, oh-my-pi"
+    if ! command -v cc >/dev/null 2>&1 && ! command -v gcc >/dev/null 2>&1; then
+        zypper --ignore-unknown in -y --no-recommends gcc gcc-c++ 2>/dev/null || true
+    fi
     as_user mkdir -p "$UHOME/.local/bin"
     if [[ ! -x $UHOME/.cargo/bin/rustc ]]; then
-        as_user curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | as_user sh -s -- -y --no-modify-path || warn "rustup failed"
+        as_user bash -o pipefail -c 'curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path' || warn "rustup failed"
     fi
     if [[ ! -x $UHOME/.local/bin/claude ]]; then
-        as_user bash -c 'curl -fsSL https://claude.ai/install.sh | bash' || warn "Claude install failed"
+        as_user bash -o pipefail -c 'curl -fsSL https://claude.ai/install.sh | bash' || warn "Claude install failed"
     fi
     if [[ ! -x $UHOME/.local/bin/agy ]]; then
-        as_user bash -c 'curl -fsSL https://antigravity.google/cli/install.sh | bash' || warn "agy install failed"
+        as_user bash -o pipefail -c 'curl -fsSL https://antigravity.google/cli/install.sh | bash' || warn "agy install failed"
     fi
     if [[ ! -x $UHOME/.deno/bin/deno ]]; then
-        as_user bash -c 'curl -fsSL https://deno.land/install.sh | sh -s -- -y' || warn "Deno install failed"
+        as_user bash -o pipefail -c 'curl -fsSL https://deno.land/install.sh | sh -s -- -y' || warn "Deno install failed"
     fi
     if [[ ! -x $UHOME/.local/bin/omp ]]; then
-        as_user bash -c 'curl -fsSL https://omp.sh/install | sh -s -- --binary' || warn "omp install failed"
+        as_user bash -o pipefail -c 'curl -fsSL https://omp.sh/install | sh -s -- --binary' || warn "omp install failed"
     fi
 }
 

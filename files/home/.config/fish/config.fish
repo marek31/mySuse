@@ -14,6 +14,6 @@ if status is-interactive
     abbr zi 'sudo zypper in'
     abbr zr 'sudo zypper rm'
     abbr zq 'zypper se'
-    abbr snaps 'snapper -c root list; snapper -c home list'
+    abbr snaps 'snapper -c root list; [ -f /etc/snapper/configs/home ] && snapper -c home list'
     abbr suse-update 'sudo ~/mySuse/setup.sh apps'
 end

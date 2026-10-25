@@ -25,6 +25,10 @@ restart_noctalia() {
     pgrep -x noctalia >/dev/null || { echo "Noctalia did not start - last lines of $log:"; tail -n 20 "$log"; return 1; }
 }
 
+has_cfg() {
+    sudo snapper --no-dbus list-configs 2>/dev/null | awk -v c="$1" '$1 == c {found=1} END {exit !found}'
+}
+
 if [ "$1" = undo ]; then
     if [ -z "$REFRESH_UNDO_COPY" ]; then
         copy=$(mktemp "${TMPDIR:-/tmp}/refresh-undo.XXXXXX")
@@ -36,9 +40,13 @@ if [ "$1" = undo ]; then
 $(tail -n 1 "$state")
 EOF
     echo "undoing the last refresh: home snapshots $hpre..$hpost, / snapshots $rpre..$rpost"
-    sudo snapper --no-dbus -c home undochange "$hpre..$hpost"
-    sudo snapper --no-dbus -c root status "$rpre..$rpost" | sed 's/^[^ ]* //' | grep -E '^/(usr/local|etc/greetd)(/|$)' |
-        xargs -r -d '\n' sudo snapper --no-dbus -c root undochange "$rpre..$rpost"
+    if [ "$hpre" != "none" ] && [ "$hpost" != "none" ] && has_cfg home; then
+        sudo snapper --no-dbus -c home undochange "$hpre..$hpost" || true
+    fi
+    if [ "$rpre" != "none" ] && [ "$rpost" != "none" ] && has_cfg root; then
+        sudo snapper --no-dbus -c root status "$rpre..$rpost" | sed 's/^[^ ]* //' | grep -E '^/(usr/local|etc/greetd)(/|$)' |
+            xargs -r -d '\n' sudo snapper --no-dbus -c root undochange "$rpre..$rpost"
+    fi
     sed -i '$d' "$state"
     restart_noctalia || true
     rm -f "$REFRESH_UNDO_COPY"
@@ -47,21 +55,39 @@ EOF
 fi
 
 cd "$(dirname "$0")"
-rpre=$(sudo snapper --no-dbus -c root create -t pre -p -c number -d "refresh.sh")
-hpre=$(sudo snapper --no-dbus -c home create -t pre -p -c number -d "refresh.sh")
+
+# Pull latest repository changes
+git pull --ff-only || true
+
+rpre="none"
+hpre="none"
+if has_cfg root; then
+    rpre=$(sudo snapper --no-dbus -c root create -t pre -p -c number -d "refresh.sh" 2>/dev/null || echo "none")
+fi
+if has_cfg home; then
+    hpre=$(sudo snapper --no-dbus -c home create -t pre -p -c number -d "refresh.sh" 2>/dev/null || echo "none")
+fi
+
 finish() {
     rc=$?
-    rpost=$(sudo snapper --no-dbus -c root create -t post --pre-number "$rpre" -p -c number -d "refresh.sh")
-    hpost=$(sudo snapper --no-dbus -c home create -t post --pre-number "$hpre" -p -c number -d "refresh.sh")
-    mkdir -p "${state%/*}"
-    echo "$rpre $rpost $hpre $hpost" >> "$state"
+    rpost="none"
+    hpost="none"
+    if [ "$rpre" != "none" ] && has_cfg root; then
+        rpost=$(sudo snapper --no-dbus -c root create -t post --pre-number "$rpre" -p -c number -d "refresh.sh" 2>/dev/null || echo "none")
+    fi
+    if [ "$hpre" != "none" ] && has_cfg home; then
+        hpost=$(sudo snapper --no-dbus -c home create -t post --pre-number "$hpre" -p -c number -d "refresh.sh" 2>/dev/null || echo "none")
+    fi
+    if [ "$rpre" != "none" ] || [ "$hpre" != "none" ]; then
+        mkdir -p "${state%/*}"
+        echo "$rpre $rpost $hpre $hpost" >> "$state"
+    fi
     [ $rc -eq 0 ] && echo "done" || echo "refresh.sh failed (exit $rc)"
     echo "something wrong now? ~/mySuse/refresh.sh undo"
     exit $rc
 }
 trap finish EXIT
 
-git pull --ff-only
 sudo ./setup.sh packages security apps login devtools speakers dotfiles
 
 grep -Eqs '^\[(bar|widget)' ~/.local/state/noctalia/settings.toml &&
