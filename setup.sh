@@ -142,6 +142,12 @@ step_packages() {
     fi
     zypper --gpg-auto-import-keys refresh
 
+    # Remove conflicting power-profiles-daemon if present so TLP installs without prompts
+    if rpm -q power-profiles-daemon >/dev/null 2>&1; then
+        log "removing power-profiles-daemon (conflicts with TLP)"
+        zypper --non-interactive rm -y power-profiles-daemon 2>/dev/null || true
+    fi
+
     # Install base utilities first so downstream tools never fail for missing jq/curl
     zypper --ignore-unknown in -y --no-recommends jq curl ca-certificates-mozilla tar xz unzip
 
@@ -155,7 +161,7 @@ step_packages() {
     done < "$HERE/packages.txt"
 
     log "installing ${#pkgs[@]} packages..."
-    zypper --ignore-unknown in -y --no-recommends --auto-agree-with-licenses "${pkgs[@]}" || warn "some packages could not be installed"
+    zypper --non-interactive --ignore-unknown in -y --no-recommends --auto-agree-with-licenses --force-resolution "${pkgs[@]}" || warn "some packages could not be installed"
     zypper dup -y --from packman --allow-vendor-change || true
 }
 
@@ -446,7 +452,7 @@ EOF
     if [[ ! -x /usr/local/bin/rslsync ]]; then
         local rtmp
         rtmp=$(mktemp -d /tmp/resilio.XXXXXX)
-        if curl -fsSL --max-time 300 -o "$rtmp/sync.tar.gz" "https://download-cdn.resilio.com/stable/linux-x64/resilio-sync_x64.tar.gz"; then
+        if curl -fsSL --max-time 300 -o "$rtmp/sync.tar.gz" "https://download-cdn.resilio.com/stable/linux/x64/0/resilio-sync_x64.tar.gz"; then
             tar -xf "$rtmp/sync.tar.gz" -C "$rtmp" rslsync
             put 755 /usr/local/bin/rslsync < "$rtmp/rslsync"
         else
@@ -469,7 +475,7 @@ EOF
     # Noctalia shell build from git release
     local tag src=/var/cache/noctalia
     if command -v jq >/dev/null 2>&1; then
-        tag=$(curl -fsSL --max-time 30 https://api.github.com/repos/noctalia-dev/noctalia/releases/latest 2>/dev/null | jq -r .tag_name // empty) || tag=""
+        tag=$(curl -fsSL --max-time 30 https://api.github.com/repos/noctalia-dev/noctalia/releases/latest 2>/dev/null | jq -r '.tag_name // empty') || tag=""
     elif command -v python3 >/dev/null 2>&1; then
         tag=$(curl -fsSL --max-time 30 https://api.github.com/repos/noctalia-dev/noctalia/releases/latest 2>/dev/null | python3 -c 'import sys, json; print(json.load(sys.stdin).get("tag_name", ""))' 2>/dev/null) || tag=""
     fi
