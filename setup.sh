@@ -146,6 +146,19 @@ step_packages() {
         zypper --non-interactive rm -y power-profiles-daemon 2>/dev/null || true
     fi
 
+    # Kick out unwanted vendor packages (HP Device Manager)
+    if rpm -q hplip >/dev/null 2>&1 || rpm -q hplip-hp-plugin >/dev/null 2>&1; then
+        log "purging hplip (HP Device Manager)..."
+        zypper --non-interactive rm -u -y hplip hplip-hp-plugin hplip-sane 2>/dev/null || true
+        rm -f /etc/xdg/autostart/hp-systray.desktop \
+              /usr/share/applications/hp-toolbox.desktop \
+              /usr/share/applications/hp-*.desktop 2>/dev/null || true
+        pkill -f hp-systray 2>/dev/null || true
+        pkill -f hp-toolbox 2>/dev/null || true
+        command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database /usr/share/applications 2>/dev/null || true
+        command -v kbuildsycoca6 >/dev/null 2>&1 && kbuildsycoca6 2>/dev/null || true
+    fi
+
     # Install base utilities first so downstream tools never fail for missing jq/curl
     zypper --ignore-unknown in -y --no-recommends jq curl ca-certificates-mozilla tar xz unzip
 

@@ -33,6 +33,7 @@ EOF
     fi
     sed -i '$d' "$state"
     plasma-suse-config -f 2>/dev/null || true
+    plasma-displays -f 2>/dev/null || true
     rm -f "$REFRESH_UNDO_COPY"
     echo "done - log out and back in if the desktop still looks wrong"
     exit 0
@@ -74,8 +75,9 @@ trap finish EXIT
 
 sudo ./setup.sh packages security apps login devtools speakers dotfiles
 
-# Re-apply Plasma configuration (layout, theme, icons, shortcuts)
+# Re-apply Plasma configuration (layout, theme, icons, shortcuts, displays)
 plasma-suse-config -f 2>/dev/null || true
+plasma-displays -f 2>/dev/null || true
 
 if ! gh auth status >/dev/null 2>&1 || ! git config --global --get credential.https://github.com.helper >/dev/null; then
     echo "note: git can't push to GitHub yet - run once: gh auth login, then: gh auth setup-git"
