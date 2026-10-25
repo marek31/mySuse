@@ -10,12 +10,18 @@ echo "Setting swap to ${SIZE} GB on /swap/swapfile..."
 swapoff -a 2>/dev/null || true
 
 if ! btrfs subvolume show /swap >/dev/null 2>&1; then
-    [[ -d /swap ]] && rm -rf /swap
     btrfs subvolume create /swap 2>/dev/null || mkdir -p /swap
 fi
 
 rm -f /swap/swapfile
-btrfs filesystem mkswapfile --size "${SIZE}g" /swap/swapfile
+if ! btrfs filesystem mkswapfile --size "${SIZE}g" /swap/swapfile 2>/dev/null; then
+    truncate -s 0 /swap/swapfile
+    chattr +C /swap/swapfile 2>/dev/null || true
+    btrfs property set /swap/swapfile compression none 2>/dev/null || true
+    fallocate -l "${SIZE}G" /swap/swapfile || dd if=/dev/zero of=/swap/swapfile bs=1M count=$((SIZE * 1024)) status=none
+    chmod 600 /swap/swapfile
+    mkswap /swap/swapfile
+fi
 swapon /swap/swapfile
 
 # Update /etc/fstab

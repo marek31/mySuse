@@ -47,6 +47,7 @@ setkv() {
 
 in_chroot() { [[ $(stat -c %d:%i /) != "$(stat -c %d:%i /proc/1/root/. 2>/dev/null)" ]]; }
 in_vmware() { grep -qi vmware /sys/class/dmi/id/sys_vendor 2>/dev/null || [[ $(systemd-detect-virt 2>/dev/null) == "vmware" ]]; }
+in_vm() { in_vmware || systemd-detect-virt --quiet 2>/dev/null; }
 as_user() {
     local vars=(HOME="$UHOME" USER="$USERNAME" LOGNAME="$USERNAME"
         PATH="$UHOME/.local/bin:$UHOME/.cargo/bin:/usr/local/bin:/usr/bin:/usr/sbin:/bin")
@@ -82,6 +83,33 @@ tpl() {
         "$1"
 }
 
+ensure_swap() {
+    local target_gib=$SWAP_GIB
+    if in_vm; then
+        target_gib=8
+    fi
+    local target_min_mb=$(( (target_gib * 1024) - 256 ))
+    local cur_swap_mb
+    cur_swap_mb=$(awk '/SwapTotal/ {print int($2/1024)}' /proc/meminfo 2>/dev/null || echo 0)
+    if [[ $cur_swap_mb -lt $target_min_mb || ! -f /swap/swapfile ]]; then
+        log "ensuring ${target_gib}GB on-disk swapfile on /swap/swapfile (currently $((cur_swap_mb / 1024))GB)..."
+        "$FILES/set-swap" "$target_gib"
+    fi
+
+    if [[ -f /swap/swapfile ]]; then
+        local uuid dev off
+        dev=$(findmnt -no SOURCE /swap 2>/dev/null || true)
+        if [[ -n $dev ]]; then
+            uuid=$(blkid -s UUID -o value "$dev" 2>/dev/null || true)
+            off=$(btrfs inspect-internal map-swapfile -r /swap/swapfile 2>/dev/null || true)
+            if [[ -n $uuid && -n $off ]]; then
+                cmdline_set resume "UUID=$uuid"
+                cmdline_set resume_offset "$off"
+            fi
+        fi
+    fi
+}
+
 step_base() {
     log "base configuration: hostname, locale, console, grub command line"
     echo "$HOSTNAME" > /etc/hostname
@@ -112,23 +140,7 @@ EOF
     cmdline_set i915.enable_fbc 1
     cmdline_set nvme.noacpi 1
 
-    # Ensure plain on-disk swapfile exists (no zram, zswap disabled)
-    if [[ ! -f /swap/swapfile ]] && ! in_vmware; then
-        log "creating ${SWAP_GIB}GB on-disk swapfile on /swap/swapfile"
-        "$FILES/set-swap" "$SWAP_GIB"
-    fi
-
-    if [[ -f /swap/swapfile ]]; then
-        local uuid dev off
-        dev=$(findmnt -no SOURCE /swap)
-        uuid=$(blkid -s UUID -o value "$dev")
-        off=$(btrfs inspect-internal map-swapfile -r /swap/swapfile 2>/dev/null || true)
-        if [[ -n $uuid && -n $off ]]; then
-            cmdline_set resume "UUID=$uuid"
-            cmdline_set resume_offset "$off"
-        fi
-    fi
-
+    ensure_swap
     setkv /etc/default/grub GRUB_DISABLE_OS_PROBER false
 }
 
@@ -249,6 +261,8 @@ step_security() {
     for s in smartd cups-browsed ipp-usb; do
         systemctl disable --now "$s" 2>/dev/null || true
     done
+
+    ensure_swap
 }
 
 step_snapper() {
