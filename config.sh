@@ -20,7 +20,7 @@
 #   dev         Go, Rust (rustup), Common Lisp (SBCL), Deno, Claude Code, Antigravity CLI (agy), oh-my-pi (omp)
 #   remote      RustDesk (upstream package), Remmina; KDE Connect for the phone (LAN-only firewall rule)
 #   upkeep      browsers auto-update once a day, update notifications, monthly btrfs scrub,
-#               smartd, earlyoom, hibernate at 5 % battery, USB automount (udiskie)
+#               smartd, earlyoom, hibernate at 5 % battery, USB automount (udisks2)
 #   browsers    Helium (default) + Floorp: upstream tarballs in /opt, updated by `setup.sh apps`;
 #               Firefox from zypper
 #   office      LibreOffice (Polish UI pack + spelling)

@@ -163,8 +163,8 @@ step_packages() {
         zypper --non-interactive rm -y power-profiles-daemon 2>/dev/null || true
     fi
 
-    # Kick out unwanted vendor or bloat packages (HP Device Manager, Weather Report)
-    local bloat=(hplip hplip-hp-plugin hplip-sane kweather)
+    # Kick out unwanted vendor, bloat, or obsolete packages
+    local bloat=(hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman NetworkManager-applet file-roller niri xwayland-satellite greetd tuigreet polkit-gnome)
     local to_rm=()
     for p in "${bloat[@]}"; do
         rpm -q "$p" >/dev/null 2>&1 && to_rm+=("$p")
@@ -173,24 +173,18 @@ step_packages() {
         log "purging unwanted packages: ${to_rm[*]}..."
         zypper --non-interactive rm -u -y "${to_rm[@]}" 2>/dev/null || true
         rm -f /etc/xdg/autostart/hp-systray.desktop \
+              /etc/xdg/autostart/nm-applet.desktop \
+              /etc/xdg/autostart/blueman.desktop \
               /usr/share/applications/hp-toolbox.desktop \
               /usr/share/applications/hp-*.desktop \
               /usr/share/applications/*kweather*.desktop 2>/dev/null || true
         pkill -f hp-systray 2>/dev/null || true
         pkill -f hp-toolbox 2>/dev/null || true
+        pkill -f nm-applet 2>/dev/null || true
+        pkill -f blueman-applet 2>/dev/null || true
+        pkill -f udiskie 2>/dev/null || true
         command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database /usr/share/applications 2>/dev/null || true
         command -v kbuildsycoca6 >/dev/null 2>&1 && kbuildsycoca6 2>/dev/null || true
-    fi
-
-    # Kick out niri and obsolete session packages if installed
-    local obsolete_pkgs=(niri xwayland-satellite greetd tuigreet polkit-gnome)
-    local to_rm=()
-    for p in "${obsolete_pkgs[@]}"; do
-        rpm -q "$p" >/dev/null 2>&1 && to_rm+=("$p")
-    done
-    if [[ ${#to_rm[@]} -gt 0 ]]; then
-        log "purging obsolete packages: ${to_rm[*]}..."
-        zypper --non-interactive rm -u -y "${to_rm[@]}" 2>/dev/null || true
     fi
 
     # Install base utilities first so downstream tools never fail for missing jq/curl
