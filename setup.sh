@@ -112,6 +112,12 @@ EOF
     cmdline_set i915.enable_fbc 1
     cmdline_set nvme.noacpi 1
 
+    # Ensure plain on-disk swapfile exists (no zram, zswap disabled)
+    if [[ ! -f /swap/swapfile ]] && ! in_vmware; then
+        log "creating ${SWAP_GIB}GB on-disk swapfile on /swap/swapfile"
+        "$FILES/set-swap" "$SWAP_GIB"
+    fi
+
     if [[ -f /swap/swapfile ]]; then
         local uuid dev off
         dev=$(findmnt -no SOURCE /swap)
