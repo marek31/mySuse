@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Helium
+Exec=/opt/helium/helium --password-store=gnome-libsecret --enable-features=VaapiVideoDecodeLinuxGL %U
+Icon=/opt/helium/product_logo_128.png
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
+Terminal=false
+StartupWMClass=Helium

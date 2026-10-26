@@ -524,8 +524,26 @@ EOF
         desktop_entry helium "Helium" /usr/local/bin/helium /opt/helium/product_logo_128.png \
             "Network;WebBrowser;" "text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;"
 
-        # Helium extension policies (Bitwarden, Consent-O-Matic, Ghostery, Raindrop, uBlock, Unhook, Video Downloader, Volume Scroll)
+        # Helium default search provider (Google) and system default browser
         mkdir -p /etc/chromium/policies/managed /etc/opt/chrome/policies/managed
+        put 644 /etc/chromium/policies/managed/default_search.json <<'SRCH_EOF'
+{
+  "DefaultSearchProviderEnabled": true,
+  "DefaultSearchProviderName": "Google",
+  "DefaultSearchProviderKeyword": "google.com",
+  "DefaultSearchProviderSearchURL": "https://www.google.com/search?q={searchTerms}",
+  "DefaultSearchProviderSuggestURL": "https://www.google.com/complete/search?output=chrome&q={searchTerms}",
+  "DefaultSearchProviderIconURL": "https://www.google.com/favicon.ico",
+  "DefaultSearchProviderNewTabURL": "https://www.google.com",
+  "HomepageLocation": "https://www.google.com",
+  "HomepageIsNewTabPage": false,
+  "NewTabPageLocation": "https://www.google.com"
+}
+SRCH_EOF
+        cp /etc/chromium/policies/managed/default_search.json /etc/opt/chrome/policies/managed/default_search.json 2>/dev/null || true
+        as_user xdg-settings set default-web-browser helium.desktop 2>/dev/null || true
+
+        # Helium extension policies (Bitwarden, Consent-O-Matic, Ghostery, Raindrop, uBlock, Unhook, Video Downloader, Volume Scroll)
         put 644 /etc/chromium/policies/managed/extensions.json <<'EXT_EOF'
 {
   "ExtensionInstallForcelist": [
