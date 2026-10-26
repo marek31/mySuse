@@ -3,9 +3,10 @@
 # are written, everything else in the files stays.
 # Run by plasma-suse-session before Plasma starts, once per VERSION, so later changes made in System Settings
 # are kept. Bump VERSION after changing a value here.
-VERSION=8   # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
+VERSION=9   # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
             # 4: screen lock after 60 min idle; 5: auto-apply look-and-feel layout & icon fallback; 6: pure Plasma 6;
-            # 7: disable weather reports; 8: turn off all transparency effects (blur, translucency, opaque panel/menus)
+            # 7: disable weather reports; 8: turn off all transparency effects (blur, translucency, opaque panel/menus);
+            # 9: shift+esc opens btop, fast keyboard, low friction touchpad, volume boost up to 150%
 stamp=${XDG_STATE_HOME:-$HOME/.local/state}/mysuse/plasma-config.version
 [ "${1:-}" = "-f" ] || [ "${1:-}" = "--force" ] && rm -f "$stamp"
 [ "$(cat "$stamp" 2>/dev/null)" = "$VERSION" ] && exit 0
@@ -53,13 +54,26 @@ w kwinrc --group Desktops --key Number 4
 w kwinrc --group Desktops --key Rows 1
 w kwinrc --group Plugins --key shakecursorEnabled --type bool false
 
-# keyboard, cursor
+# keyboard, cursor, touchpad (fast keyboard & low friction touchpad from Windows settings)
 w kxkbrc --group Layout --key LayoutList "@XKB@"
 w kxkbrc --group Layout --key Use --type bool true
-w kcminputrc --group Keyboard --key RepeatDelay 300
-w kcminputrc --group Keyboard --key RepeatRate 40
+w kxkbrc --group Layout --key ResetOldOptions --type bool true
+w kxkbrc --group Layout --key NumLock 0
+w kcminputrc --group Keyboard --key RepeatDelay 200
+w kcminputrc --group Keyboard --key RepeatRate 50
 w kcminputrc --group Mouse --key cursorTheme Bibata-Modern-Classic
 w kcminputrc --group Mouse --key cursorSize 24
+
+# touchpad & mouse (low friction / inertia scrolling)
+w kcminputrc --group Libinput --key ScrollFactor 1.5
+for dev in "ELAN067B:00 04F3:31F8 Touchpad" "ELAN067B:00 04F3:31F8 Mouse"; do
+    w kcminputrc --group "Libinput/1267/12792/$dev" --key ScrollFactor 1.5
+    w kcminputrc --group "Libinput/1267/12792/$dev" --key NaturalScroll --type bool false
+    w kcminputrc --group "Libinput/1267/12792/$dev" --key TapToClick --type bool true
+done
+
+# audio volume: allow volume boost up to 150%
+w plasmaparc --group General --key RaiseMaximumVolume --type bool true
 
 # lock after 60 min idle; also lock when waking from sleep; no weather on lock screen
 w kscreenlockerrc --group Daemon --key Autolock --type bool true
@@ -94,6 +108,7 @@ k ksmserver "Log Out" "Meta+Shift+E${T}Ctrl+Alt+Del,Ctrl+Alt+Del,Show Logout Pro
 app() { w kglobalshortcutsrc --group services --group "$1" --key _launch "$2"; }
 app org.kde.krunner.desktop "Meta+D${T}Meta+Space${T}Alt+Space${T}Alt+F2${T}Search"
 app org.codeberg.dnkl.foot.desktop Meta+Return
+app btop.desktop "Shift+Escape${T}Ctrl+Shift+Escape"
 app helium.desktop Meta+B
 app floorp.desktop Meta+Shift+B
 app thunar.desktop Meta+E

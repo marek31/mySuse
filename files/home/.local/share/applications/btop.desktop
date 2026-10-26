@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=btop
+GenericName=System Monitor
+Comment=Resource monitor that shows usage and stats for processor, memory, disks, network and processes
+Icon=btop
+Exec=foot -T btop -a btop btop
+Terminal=false
+Categories=System;Monitor;
+Keywords=system;process;task;btop;

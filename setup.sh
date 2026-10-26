@@ -261,6 +261,14 @@ step_security() {
         systemctl disable --now "$s" 2>/dev/null || true
     done
 
+    # printer defaults (Brother DCP-L2530DW series: 600 dpi, simplex, 1 copy, collate)
+    if command -v lpadmin >/dev/null 2>&1; then
+        lpadmin -p "Brother_DCP-L2530DW_series" -E -v "ipp://Brother%20DCP-L2530DW%20series._ipp._tcp.local/" -m everywhere 2>/dev/null || true
+        lpadmin -d "Brother_DCP-L2530DW_series" 2>/dev/null || true
+        lpadmin -p "Brother_DCP-L2530DW_series" -o Duplex=None -o sides=one-sided -o cupsPrintQuality=Normal -o Collate=True 2>/dev/null || true
+        as_user lpoptions -d "Brother_DCP-L2530DW_series" -o Duplex=None -o sides=one-sided -o cupsPrintQuality=Normal -o Collate=True -o copies=1 2>/dev/null || true
+    fi
+
     ensure_swap
 }
 
@@ -502,6 +510,25 @@ exec /opt/helium/helium --password-store=gnome-libsecret --enable-features=Vaapi
 EOF
         desktop_entry helium "Helium" /usr/local/bin/helium /opt/helium/product_logo_128.png \
             "Network;WebBrowser;" "text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;"
+
+        # Helium extension policies (Bitwarden, Consent-O-Matic, Ghostery, Raindrop, uBlock, Unhook, Video Downloader, Volume Scroll)
+        mkdir -p /etc/chromium/policies/managed /etc/opt/chrome/policies/managed
+        put 644 /etc/chromium/policies/managed/extensions.json <<'EXT_EOF'
+{
+  "ExtensionInstallForcelist": [
+    "nngceckbapebfimnlniiiahkandclblb;https://clients2.google.com/service/update2/crx",
+    "mdjildafknihdffpkfmmpnpoiajfjnjd;https://clients2.google.com/service/update2/crx",
+    "mlomiejdfkolichcflejclcbmpeaniij;https://clients2.google.com/service/update2/crx",
+    "ldgfbffkinooeloadekpmfoklnobpien;https://clients2.google.com/service/update2/crx",
+    "cjpalhdlnbpafiamejdnhcphjbkeiagm;https://clients2.google.com/service/update2/crx",
+    "blockjmkbacgjkknlgpkjjiijinjdanf;https://clients2.google.com/service/update2/crx",
+    "khncfooichmfjbepaaaebmommgaepoid;https://clients2.google.com/service/update2/crx",
+    "penndbmahnpapepljikkjmakcobdahne;https://clients2.google.com/service/update2/crx",
+    "agadcopafaojndinhloilcanpfpbonbk;https://clients2.google.com/service/update2/crx"
+  ]
+}
+EXT_EOF
+        cp /etc/chromium/policies/managed/extensions.json /etc/opt/chrome/policies/managed/extensions.json 2>/dev/null || true
     else
         warn "Helium installation skipped (could not fetch release asset)"
     fi
@@ -595,19 +622,27 @@ step_speakers() {
     log "Lenovo X1 Carbon Gen 10 speaker tuning"
     if in_chroot; then log "speakers: tuned after the first boot (sudo ~/mySuse/setup.sh speakers)"; return 0; fi
     local win=/run/mysuse-windows part found="" src=/var/cache/speaker-tuning
+    local bundled_xml=$FILES/audio/DEV_0287_SUBSYS_17AA22E7_PCI_SUBSYS_22E717AA.xml
+
+    install -d -o "$USERNAME" -g "$USERNAME" "$src"
+    if [[ -d $src/.git ]]; then as_user git -C "$src" pull -q --ff-only || true
+    else as_user git clone -q --depth 1 https://github.com/antoinecellerier/speaker-tuning-to-easyeffects "$src"; fi
+
+    if [[ -f $bundled_xml ]]; then
+        as_user python3 "$src/dolby_to_easyeffects.py" "$bundled_xml" --all-profiles --enable autogain --autoload || warn "speakers: conversion failed"
+        return 0
+    fi
+
     mkdir -p "$win"
     while read -r part; do
-        mountpoint -q "$win" || mount -t ntfs3 -o ro "$part" "$win" 2>/dev/null ||
-            mount -t ntfs-3g -o ro "$part" "$win" 2>/dev/null || continue
+        mountpoint -q "$win" || mount -t ntfs-3g -o ro "$part" "$win" 2>/dev/null ||
+            mount -t ntfs3 -o ro "$part" "$win" 2>/dev/null || continue
         if [[ -d $win/Windows/System32/DriverStore ]]; then found=$part; break; fi
         umount "$win" 2>/dev/null || true
     done < <(lsblk -lnpo NAME,FSTYPE | awk '$2 == "ntfs" {print $1}')
     if [[ -z $found ]]; then warn "speakers: no Windows partition with Lenovo audio driver found"; return 0; fi
 
-    install -d -o "$USERNAME" -g "$USERNAME" "$src"
-    if [[ -d $src/.git ]]; then as_user git -C "$src" pull -q --ff-only || true
-    else as_user git clone -q --depth 1 https://github.com/antoinecellerier/speaker-tuning-to-easyeffects "$src"; fi
-    as_user python3 "$src/dolby_to_easyeffects.py" --windows "$win" --autoload || warn "speakers: conversion failed"
+    as_user python3 "$src/dolby_to_easyeffects.py" --windows "$win" --all-profiles --enable autogain --autoload || warn "speakers: conversion failed"
     umount "$win" 2>/dev/null || true
 }
 

@@ -73,7 +73,7 @@ finish() {
 }
 trap finish EXIT
 
-sudo ./setup.sh swap packages security apps login devtools speakers dotfiles
+sudo ./setup.sh swap packages security desktop apps login devtools speakers dotfiles
 
 # Re-apply Plasma configuration (layout, theme, icons, shortcuts, displays)
 plasma-suse-config -f 2>/dev/null || true

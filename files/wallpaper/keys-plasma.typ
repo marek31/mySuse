@@ -13,7 +13,7 @@
   ("Meta+B / Shift+B", "Helium / Floorp"),
   ("Meta+E", "files (Thunar)"),
   ("Meta+A", "audio mixer"),
-  ("Ctrl+Esc", "system monitor"),
+  ("Shift+Esc", "btop (system monitor)"),
 )
 
 #section(violet, "Desktop",
