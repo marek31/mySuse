@@ -569,6 +569,11 @@ EXT_EOF
         opt_install /opt/floorp "$f_url" 1 "$f_url"
         desktop_entry floorp "Floorp" /opt/floorp/floorp /opt/floorp/browser/chrome/icons/default/default128.png \
             "Network;WebBrowser;" "text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;"
+        # Prevent Floorp from staying resident in background when window is closed
+        put 644 /opt/floorp/browser/defaults/preferences/nobackground.js <<'EOF'
+pref("browser.tabs.closeWindowWithLastTab", true);
+pref("floorp.workspaces.v4.config", "{\"manageOnBms\":false,\"showWorkspaceNameOnToolbar\":true,\"closePopupAfterClick\":false,\"exitOnLastTabClose\":true}");
+EOF
     else
         warn "Floorp installation skipped (could not fetch release asset)"
     fi
