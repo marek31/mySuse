@@ -315,7 +315,7 @@ step_snapper() {
 step_desktop() {
     log "desktop environment: TLP, thermald, PipeWire, helper scripts, dotfiles"
     if ! in_vmware; then
-        systemctl enable --now tlp thermald 2>/dev/null || true
+        systemctl enable --now tlp tlp-pd thermald 2>/dev/null || true
     else
         log "VMware detected: enabling vmtoolsd"
         systemctl enable --now vmtoolsd 2>/dev/null || true

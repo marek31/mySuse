@@ -16,7 +16,7 @@ adwaita-icon-theme papirus-icon-theme kf6-breeze-icons breeze5-icons
 # --- hardware: Intel Iris Xe, AX211 wifi, SOF audio, Synaptics 06cb:00fc fingerprint, USB4 ---
 Mesa-dri vulkan-intel intel-media-driver vulkan-tools libva-utils
 thermald fwupd fprintd fprintd-pam libfprint-2-2 bolt brightnessctl playerctl
-tlp tlp-rdw powertop
+tlp tlp-rdw tlp-pd powertop
 
 # --- audio, network, bluetooth ---
 pipewire wireplumber pipewire-pulseaudio pipewire-alsa alsa-ucm-conf pavucontrol qpwgraph
