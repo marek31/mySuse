@@ -155,6 +155,19 @@ step_packages() {
         log "adding Packman repository for full multimedia codecs"
         zypper ar -cfp 90 "$REPO_PACKMAN" packman
     fi
+    if ! zypper lr mwt-packages >/dev/null 2>&1; then
+        log "adding GitHub Desktop repository (mwt-packages)"
+        rpm --import https://mirror.mwt.me/shiftkey-desktop/gpgkey 2>/dev/null || true
+        put 644 /etc/zypp/repos.d/mwt-packages.repo <<'REPO_EOF'
+[mwt-packages]
+name=GitHub Desktop
+baseurl=https://mirror.mwt.me/shiftkey-desktop/rpm
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://mirror.mwt.me/shiftkey-desktop/gpgkey
+REPO_EOF
+    fi
     zypper --gpg-auto-import-keys refresh
 
     # Remove conflicting power-profiles-daemon if present so TLP installs without prompts

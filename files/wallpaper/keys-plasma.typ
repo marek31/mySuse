@@ -49,11 +49,8 @@
   ("Shift+drag", "drop into a tile"),
 )
 
-#section(aqua, "Desktops & screens",
-  ("Meta+1..4", "go to desktop"),
-  ("Meta+Shift+1..4", "window to N"),
-  ("Meta+Ctrl+Left/Right", "desktop left / right"),
-  ("Ctrl+F1..F4", "go to desktop"),
+#section(aqua, "Apps & screens",
+  ("Meta+1..4", "activate app 1..4"),
   ("Meta+Shift+Left/Right", "window to other screen"),
 )
 

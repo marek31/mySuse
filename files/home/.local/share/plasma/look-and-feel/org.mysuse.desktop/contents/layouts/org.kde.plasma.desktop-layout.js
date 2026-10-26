@@ -10,7 +10,6 @@ panel.hiding = "none";
 panel.opacity = "opaque";
 
 panel.addWidget("org.kde.plasma.kickoff");
-panel.addWidget("org.kde.plasma.pager");
 var tasks = panel.addWidget("org.kde.plasma.icontasks");   // fills the free height
 tasks.currentConfigGroup = ["General"];
 tasks.writeConfig("launchers", "");                          // no pinned apps

@@ -3,10 +3,11 @@
 # are written, everything else in the files stays.
 # Run by plasma-suse-session before Plasma starts, once per VERSION, so later changes made in System Settings
 # are kept. Bump VERSION after changing a value here.
-VERSION=9   # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
+VERSION=10  # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
             # 4: screen lock after 60 min idle; 5: auto-apply look-and-feel layout & icon fallback; 6: pure Plasma 6;
             # 7: disable weather reports; 8: turn off all transparency effects (blur, translucency, opaque panel/menus);
-            # 9: shift+esc opens btop, fast keyboard, low friction touchpad, volume boost up to 150%
+            # 9: shift+esc opens btop, fast keyboard, low friction touchpad, volume boost up to 150%;
+            # 10: disable all window/popup animations, single desktop workspace, Meta+1..4 task manager
 stamp=${XDG_STATE_HOME:-$HOME/.local/state}/mysuse/plasma-config.version
 [ "${1:-}" = "-f" ] || [ "${1:-}" = "--force" ] && rm -f "$stamp"
 [ "$(cat "$stamp" 2>/dev/null)" = "$VERSION" ] && exit 0
@@ -36,23 +37,43 @@ fi
 w kdeglobals --group KDE --key LookAndFeelPackage org.mysuse.desktop
 w kdeglobals --group KDE --key AnimationDurationFactor 0
 w kdeglobals --group KDE --key OpaqueMenus --type bool true
+w kwinrc --group KDE --key AnimationDurationFactor 0
+w kwinrc --group Compositing --key AllowTearing --type bool true
 
-# disable all transparency, blur, contrast, and translucency effects
+# disable all window animations, popups, and visual delay effects
 w kwinrc --group Plugins --key blurEnabled --type bool false
 w kwinrc --group Plugins --key contrastEnabled --type bool false
 w kwinrc --group Plugins --key translucencyEnabled --type bool false
+w kwinrc --group Plugins --key scaleEnabled --type bool false
+w kwinrc --group Plugins --key squashEnabled --type bool false
+w kwinrc --group Plugins --key maximizeEnabled --type bool false
+w kwinrc --group Plugins --key slideEnabled --type bool false
+w kwinrc --group Plugins --key slidingpopupsEnabled --type bool false
+w kwinrc --group Plugins --key fadingpopupsEnabled --type bool false
+w kwinrc --group Plugins --key windowapertureEnabled --type bool false
+w kwinrc --group Plugins --key blendchangesEnabled --type bool false
+w kwinrc --group Plugins --key slidingnotificationsEnabled --type bool false
+w kwinrc --group Plugins --key dialogparentEnabled --type bool false
+w kwinrc --group Plugins --key dimscreenEnabled --type bool false
+w kwinrc --group Plugins --key fullscreenEnabled --type bool false
+w kwinrc --group Plugins --key startupfeedbackEnabled --type bool false
+w kwinrc --group Plugins --key shakecursorEnabled --type bool false
 w kwinrc --group Windows --key InactiveOpacity 100
 w kwinrc --group Windows --key ActiveOpacity 100
 
-# windows: no borders, no border on maximised windows, minimise/maximise/close only, 4 desktops
+# disable launch feedback bouncing cursor delay
+w klaunchrc --group BusyCursorSettings --key BusyCursor --type bool false
+w klaunchrc --group FeedbackStyle --key BusyCursor --type bool false
+w klaunchrc --group FeedbackStyle --key TaskbarButton --type bool false
+
+# windows: no borders, no border on maximised windows, minimise/maximise/close only, single desktop
 w kwinrc --group Windows --key BorderlessMaximizedWindows --type bool true
 w kwinrc --group org.kde.kdecoration2 --key BorderSize None
 w kwinrc --group org.kde.kdecoration2 --key BorderSizeAuto --type bool false
 w kwinrc --group org.kde.kdecoration2 --key ButtonsOnLeft ""
 w kwinrc --group org.kde.kdecoration2 --key ButtonsOnRight IAX
-w kwinrc --group Desktops --key Number 4
+w kwinrc --group Desktops --key Number 1
 w kwinrc --group Desktops --key Rows 1
-w kwinrc --group Plugins --key shakecursorEnabled --type bool false
 
 # keyboard, cursor, touchpad (fast keyboard & low friction touchpad from Windows settings)
 w kxkbrc --group Layout --key LayoutList "@XKB@"
@@ -98,10 +119,11 @@ k kwin "Window Fullscreen" "Meta+Shift+F,,Make Window Fullscreen"
 k kwin "Overview" "Meta+O${T}Meta+W,Meta+W,Toggle Overview"
 k kwin "Show Desktop" "Meta+Shift+D,Meta+D,Peek at Desktop"   # Meta+D is KRunner
 k plasmashell "manage activities" "none,Meta+Q,Show Activity Switcher"
+# Single desktop workspace: Meta+1..4 activate task manager entries 1..4
 for n in 1 2 3 4; do
-    k kwin "Switch to Desktop $n" "Meta+$n${T}Ctrl+F$n,Ctrl+F$n,Switch to Desktop $n"
-    k kwin "Window to Desktop $n" "Meta+Shift+$n,,Window to Desktop $n"
-    k plasmashell "activate task manager entry $n" "none,Meta+$n,Activate Task Manager Entry $n"
+    k kwin "Switch to Desktop $n" "none,,Switch to Desktop $n"
+    k kwin "Window to Desktop $n" "none,,Window to Desktop $n"
+    k plasmashell "activate task manager entry $n" "Meta+$n,Meta+$n,Activate Task Manager Entry $n"
 done
 k ksmserver "Lock Session" "Meta+Escape${T}Meta+L${T}Screensaver,Meta+L${T}Screensaver,Lock Session"
 k ksmserver "Log Out" "Meta+Shift+E${T}Ctrl+Alt+Del,Ctrl+Alt+Del,Show Logout Prompt"

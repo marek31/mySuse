@@ -54,4 +54,4 @@ htop btop nmon iftop nmap speedtest-cli duf plocate lsof strace usbutils pciutil
 curl wget rsync jq unzip zip 7zip xz zstd man-pages tealdeer trash-cli acl bind-utils fastfetch
 
 # --- development ---
-patterns-devel-base-devel_basis git git-lfs gh cmake python3 python3-pip go typst sbcl
+patterns-devel-base-devel_basis git git-lfs gh cmake python3 python3-pip go typst sbcl github-desktop
