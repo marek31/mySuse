@@ -609,7 +609,7 @@ EOF
 }
 
 step_devtools() {
-    log "developer tools: rustup, Claude Code, Antigravity CLI, Deno, oh-my-pi"
+    log "developer tools: rustup, Claude Code, Antigravity CLI, Deno, oh-my-pi, nanobot"
     if ! command -v cc >/dev/null 2>&1 && ! command -v gcc >/dev/null 2>&1; then
         zypper --ignore-unknown in -y --no-recommends gcc gcc-c++ 2>/dev/null || true
     fi
@@ -628,6 +628,9 @@ step_devtools() {
     fi
     if [[ ! -x $UHOME/.local/bin/omp ]]; then
         as_user bash -o pipefail -c 'curl -fsSL https://omp.sh/install | sh -s -- --binary' || warn "omp install failed"
+    fi
+    if [[ ! -x $UHOME/.local/bin/nanobot ]]; then
+        as_user bash -o pipefail -c 'NANOBOT_SKIP_WIZARD=1 curl -fsSL https://raw.githubusercontent.com/HKUDS/nanobot/main/scripts/install.sh | sh' || warn "nanobot install failed"
     fi
 }
 

@@ -17,7 +17,7 @@
 #   desktop     Wayland only: KDE Plasma 6 with mySuse look-and-feel (left panel, dark theme), SDDM login
 #   look        minimal: dark palette, thin vertical panel on the left edge, Inter + JetBrains Mono,
 #               Bibata cursor, Hokusai "Great Wave" wallpaper (public domain)
-#   dev         Go, Rust (rustup), Common Lisp (SBCL), Deno, Claude Code, Antigravity CLI (agy), oh-my-pi (omp)
+#   dev         Go, Rust (rustup), Common Lisp (SBCL), Deno, Claude Code, Antigravity CLI (agy), oh-my-pi (omp), nanobot
 #   remote      RustDesk (upstream package), Remmina; KDE Connect for the phone (LAN-only firewall rule)
 #   upkeep      browsers auto-update once a day, update notifications, monthly btrfs scrub,
 #               smartd, earlyoom, hibernate at 5 % battery, USB automount (udisks2)
