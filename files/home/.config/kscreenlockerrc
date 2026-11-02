@@ -1,0 +1,7 @@
+[Daemon]
+Autolock=true
+LockOnResume=true
+Timeout=60
+
+[Greeter]
+ShowWeather=false
