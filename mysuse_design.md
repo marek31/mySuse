@@ -54,7 +54,24 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ---
 
+## Virtualization & Windows 11 VM
+
+- **Hypervisor:** Kernel-based Virtual Machine (KVM) with QEMU and `libvirt`. Native to openSUSE Tumbleweed, avoiding out-of-tree kernel module breakage during rolling kernel updates.
+- **Windows 11 Compatibility:**
+  - **TPM 2.0:** Emulated via `swtpm` (backend emulator, model `tpm-tis`).
+  - **Firmware:** UEFI with Secure Boot support provided by `qemu-ovmf-x86_64` (Microsoft-enrolled keys).
+  - **Chipset & CPU:** Modern `q35` machine type with `host-passthrough` CPU configuration.
+  - **Drivers & Performance:** Paravirtualized VirtIO SCSI storage, VirtIO network (`NetKVM`), and SPICE integration via `virtio-win.iso`.
+- **Filesystem & Snapshot Isolation:**
+  - VM storage paths (`/var/lib/libvirt/images` and `~/VMs`) have Btrfs Copy-on-Write disabled (`chattr +C`) to prevent I/O latency, severe disk fragmentation, and write multiplication.
+  - `~/VMs` is excluded from automatic 15-minute Snapper snapshots via `HOME_NOSNAP`.
+- **Management:** GUI via `virt-manager` or CLI via `win11-vm` helper tool (`win11-vm create`, `win11-vm start`, `win11-vm drivers`).
+
+---
+
 ## Changelog
+
+- 2026-11-05: Added Windows 11 virtualization stack (KVM, QEMU, libvirt, swtpm, OVMF Secure Boot, virt-manager, win11-vm helper, Btrfs nodatacow tuning).
 
 - 2026-10-25: Transitioned to pure KDE Plasma 6 desktop environment. Removed Noctalia and Niri build dependencies, configured native SDDM display manager, and refined custom left-panel look-and-feel package.
 - 2026-10-24: Initial release of `mySuse` configuration suite adapted for openSUSE Tumbleweed.

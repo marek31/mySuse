@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Stage 2 - run as root, inside the install chroot (install.sh does it) or on the running openSUSE system.
 # Safe to re-run. Usage: sudo ./setup.sh [all | step...]
-# Steps: base packages user security snapper desktop apps login devtools speakers dotfiles finish
+# Steps: base packages user security snapper desktop vm apps login devtools speakers dotfiles finish
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 # shellcheck source=config.sh
@@ -227,7 +227,7 @@ step_user() {
     if ! id "$USERNAME" >/dev/null 2>&1; then
         useradd -m -s /bin/bash -c "$FULLNAME" "$USERNAME"
     fi
-    for g in wheel audio video input disk storage network; do
+    for g in wheel audio video input disk storage network libvirt kvm; do
         getent group "$g" >/dev/null && usermod -aG "$g" "$USERNAME" || true
     done
 
@@ -297,6 +297,14 @@ step_snapper() {
                 btrfs subvolume delete /home/.snapshots 2>/dev/null || rm -rf /home/.snapshots 2>/dev/null || true
             fi
             snapper -c home create-config /home 2>/dev/null || true
+            for p in "${HOME_NOSNAP[@]}"; do
+                local dir="$UHOME/$p"
+                if [[ ! -e $dir ]]; then
+                    mkdir -p "$(dirname "$dir")"
+                    btrfs subvolume create "$dir" 2>/dev/null || mkdir -p "$dir"
+                    chown -R "$USERNAME:$USERNAME" "$dir" 2>/dev/null || true
+                fi
+            done
         fi
     fi
 
@@ -341,6 +349,7 @@ step_desktop() {
     put 755 /usr/local/bin/plasma-keys < "$FILES/plasma-keys"
     tpl "$FILES/plasma-suse-config" | put 755 /usr/local/bin/plasma-suse-config
     put 755 /usr/local/bin/plasma-suse-session < "$FILES/plasma-suse-session"
+    put 755 /usr/local/bin/win11-vm < "$FILES/win11-vm"
 
     # Install mySuse look-and-feel package system-wide so plasma-apply-lookandfeel finds it
     local lnf_src=$FILES/home/.local/share/plasma/look-and-feel/org.mysuse.desktop
@@ -685,6 +694,25 @@ step_speakers() {
     umount "$win" 2>/dev/null || true
 }
 
+step_vm() {
+    log "virtualization: KVM, libvirt, swtpm, Windows 11 VM prep"
+    systemctl enable --now libvirtd 2>/dev/null || systemctl enable --now libvirtd.socket 2>/dev/null || true
+
+    if command -v virsh >/dev/null 2>&1; then
+        virsh net-autostart default 2>/dev/null || true
+        virsh net-start default 2>/dev/null || true
+    fi
+
+    mkdir -p /var/lib/libvirt/images "$UHOME/VMs"
+    chattr +C /var/lib/libvirt/images 2>/dev/null || true
+    chattr +C "$UHOME/VMs" 2>/dev/null || true
+    chown -R "$USERNAME:$USERNAME" "$UHOME/VMs" 2>/dev/null || true
+
+    put 755 /usr/local/bin/win11-vm < "$FILES/win11-vm"
+    desktop_entry win11-vm "Windows 11 VM" "/usr/local/bin/win11-vm start" \
+        "qemu" "System;Emulator;"
+}
+
 step_finish() {
     log "regenerating dracut initramfs and grub2 configuration"
     dracut --force --hostonly 2>/dev/null || true
@@ -701,7 +729,7 @@ ensure_tools() {
 ensure_tools
 
 steps=("$@")
-[[ ${#steps[@]} -eq 0 || ${steps[0]} == all ]] && steps=(base swap packages user security snapper desktop apps login devtools speakers finish)
+[[ ${#steps[@]} -eq 0 || ${steps[0]} == all ]] && steps=(base swap packages user security snapper desktop vm apps login devtools speakers finish)
 for s in "${steps[@]}"; do
     declare -F "step_$s" >/dev/null || die "unknown step '$s'"
     "step_$s"

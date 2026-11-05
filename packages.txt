@@ -48,6 +48,9 @@ geeqie qimgv imv mpv vlc strawberry gimp kolourpaint krita audacity ffmpeg yt-dl
 remmina kdeconnect-kde qbittorrent calibre kate qalculate-qt fsearch qdirstat gparted
 meld kdiff3 krename ncmpcpp keepassxc restic rclone
 
+# --- virtualization (Windows 11 VM: KVM, QEMU, libvirt, TPM 2.0, UEFI) ---
+qemu-kvm qemu-ovmf-x86_64 libvirt libvirt-daemon-qemu libvirt-daemon-config-network virt-manager virt-install virt-viewer swtpm iptables dnsmasq
+
 # --- shell and CLI tools ---
 fish bash-completion starship eza bat ripgrep fd fzf zoxide tmux vim neovim mc nnn
 htop btop nmon iftop nmap speedtest-cli duf plocate lsof strace usbutils pciutils smartmontools

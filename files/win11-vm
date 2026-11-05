@@ -1,0 +1,170 @@
+#!/usr/bin/env bash
+# win11-vm - Manage Windows 11 VM on KVM/QEMU with TPM 2.0, UEFI Secure Boot, and VirtIO.
+#   win11-vm create <iso> [gib]   Create Windows 11 VM with TPM 2.0, UEFI, VirtIO disk & drivers
+#   win11-vm start                Start VM and open display viewer
+#   win11-vm stop                 Graceful ACPI shutdown
+#   win11-vm status               Check hypervisor, services, network, and VM state
+#   win11-vm drivers              Download latest stable virtio-win.iso drivers
+#   win11-vm gui                  Open Virtual Machine Manager (virt-manager)
+set -euo pipefail
+export LIBVIRT_DEFAULT_URI="qemu:///system"
+
+VM_NAME="win11"
+VM_DIR="${XDG_DATA_HOME:-$HOME/VMs}"
+VIRTIO_URL="https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso"
+VIRTIO_ISO="$VM_DIR/virtio-win.iso"
+
+die() { printf '\e[1;31m!! %s\e[0m\n' "$*" >&2; exit 1; }
+log() { printf '\e[1;34m==> %s\e[0m\n' "$*"; }
+
+ensure_dirs() {
+    mkdir -p "$VM_DIR"
+    chattr +C "$VM_DIR" 2>/dev/null || true
+}
+
+fetch_drivers() {
+    ensure_dirs
+    if [[ -s $VIRTIO_ISO ]]; then
+        log "VirtIO drivers ISO present: $VIRTIO_ISO"
+        return 0
+    fi
+    log "downloading latest VirtIO drivers ISO (~600MB)..."
+    curl -fL --progress-bar -o "$VIRTIO_ISO.tmp" "$VIRTIO_URL"
+    mv "$VIRTIO_ISO.tmp" "$VIRTIO_ISO"
+    log "VirtIO drivers saved to $VIRTIO_ISO"
+}
+
+open_viewer() {
+    if command -v virt-viewer >/dev/null 2>&1; then
+        virt-viewer -c "$LIBVIRT_DEFAULT_URI" "$VM_NAME" >/dev/null 2>&1 &
+    elif command -v virt-manager >/dev/null 2>&1; then
+        virt-manager --show-domain-console "$VM_NAME" >/dev/null 2>&1 &
+    else
+        log "VM started. Install virt-viewer or virt-manager to view the console."
+    fi
+}
+
+cmd_create() {
+    local iso=${1:-}
+    local disk_gib=${2:-64}
+    [[ -n $iso ]] || die "usage: win11-vm create <path/to/Win11.iso> [disk_gib]"
+    [[ -f $iso ]] || die "Windows ISO not found at: $iso"
+
+    ensure_dirs
+    fetch_drivers
+
+    if virsh dominfo "$VM_NAME" >/dev/null 2>&1; then
+        die "VM '$VM_NAME' already exists. Use 'win11-vm start' or delete with 'virsh undefine --remove-all-storage $VM_NAME'"
+    fi
+
+    # Check TPM 2.0 emulator and OVMF
+    command -v swtpm >/dev/null 2>&1 || die "swtpm not found. Run: sudo zypper in swtpm"
+    rpm -q qemu-ovmf-x86_64 >/dev/null 2>&1 || log "warning: qemu-ovmf-x86_64 package not verified; ensure UEFI firmware is installed"
+
+    local disk_img="$VM_DIR/${VM_NAME}.qcow2"
+    log "creating $VM_NAME (RAM: 8192MB, vCPUs: 4, Disk: ${disk_gib}GB VirtIO, TPM 2.0, UEFI)..."
+
+    virt-install \
+        --name "$VM_NAME" \
+        --memory 8192 \
+        --vcpus 4 \
+        --cpu host-passthrough \
+        --machine q35 \
+        --os-variant win11 \
+        --boot uefi \
+        --tpm backend.type=emulator,backend.version=2.0,model=tpm-tis \
+        --disk "path=$disk_img,size=$disk_gib,bus=virtio,cache=none" \
+        --cdrom "$iso" \
+        --disk "path=$VIRTIO_ISO,device=cdrom" \
+        --network network=default,model=virtio \
+        --graphics spice,listen=none \
+        --video virtio \
+        --channel spicevmc \
+        --noautoconsole
+
+    printf '\n\e[1;32m==> Windows 11 VM created and booted!\e[0m\n'
+    printf 'Note during Windows setup:\n'
+    printf '  1. At "Where do you want to install Windows?", click "Load driver".\n'
+    printf '  2. Browse CD drive (virtio-win) -> amd64\\w11 (or vioscsi\\w11) to detect the virtual disk.\n'
+    printf '  3. After setup finishes, run virtio-win-gt-x64.exe from the CD drive for guest tools & network.\n\n'
+
+    open_viewer
+}
+
+cmd_start() {
+    virsh dominfo "$VM_NAME" >/dev/null 2>&1 || die "VM '$VM_NAME' does not exist. Run: win11-vm create <iso>"
+    local state
+    state=$(virsh domstate "$VM_NAME" 2>/dev/null || echo "shut off")
+    if [[ $state != "running" ]]; then
+        log "starting $VM_NAME..."
+        virsh start "$VM_NAME"
+    else
+        log "$VM_NAME is already running"
+    fi
+    open_viewer
+}
+
+cmd_stop() {
+    virsh dominfo "$VM_NAME" >/dev/null 2>&1 || die "VM '$VM_NAME' does not exist."
+    log "shutting down $VM_NAME gracefully (ACPI)..."
+    virsh shutdown "$VM_NAME"
+}
+
+cmd_status() {
+    echo "--- Hypervisor & Hardware Acceleration ---"
+    if [[ -e /dev/kvm ]]; then
+        echo "KVM acceleration: available (/dev/kvm)"
+    else
+        echo "KVM acceleration: NOT available (check BIOS VT-x/AMD-V settings)"
+    fi
+
+    echo -e "\n--- Libvirt Service & Network ---"
+    if systemctl is-active --quiet libvirtd.service 2>/dev/null || systemctl is-active --quiet libvirtd.socket 2>/dev/null; then
+        echo "libvirt service: active"
+    else
+        echo "libvirt service: inactive (run: sudo systemctl enable --now libvirtd)"
+    fi
+
+    if virsh net-info default >/dev/null 2>&1; then
+        local net_act
+        net_act=$(virsh net-info default | awk '/Active:/ {print $2}')
+        echo "NAT network (default / virbr0): $net_act"
+    else
+        echo "NAT network (default): not defined"
+    fi
+
+    echo -e "\n--- VM State ($VM_NAME) ---"
+    if virsh dominfo "$VM_NAME" >/dev/null 2>&1; then
+        virsh dominfo "$VM_NAME" | grep -E '^(State|CPU\(s\)|Max memory|Used memory):'
+    else
+        echo "VM '$VM_NAME' is not defined yet (create with: win11-vm create <path/to/win11.iso>)"
+    fi
+}
+
+cmd_gui() {
+    exec virt-manager "$@"
+}
+
+case "${1:-help}" in
+    create)  shift; cmd_create "$@" ;;
+    start)   cmd_start ;;
+    stop)    cmd_stop ;;
+    status)  cmd_status ;;
+    drivers) fetch_drivers ;;
+    gui)     shift; cmd_gui "$@" ;;
+    help|--help|-h)
+        cat <<EOF
+Usage: win11-vm <command> [arguments]
+
+Commands:
+  create <iso> [gib]   Create Windows 11 VM with TPM 2.0, UEFI Secure Boot, VirtIO
+  start                Start the Windows 11 VM and open viewer
+  stop                 Graceful ACPI shutdown of the VM
+  status               Check KVM, libvirt, default network, and VM state
+  drivers              Download/update latest virtio-win.iso drivers
+  gui                  Launch Virtual Machine Manager (virt-manager)
+  help                 Show this help message
+EOF
+        ;;
+    *) die "unknown command '$1'. Run 'win11-vm help' for usage." ;;
+esac
