@@ -65,12 +65,14 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 - **Filesystem & Snapshot Isolation:**
   - VM storage paths (`/var/lib/libvirt/images` and `~/VMs`) have Btrfs Copy-on-Write disabled (`chattr +C`) to prevent I/O latency, severe disk fragmentation, and write multiplication.
   - `~/VMs` is excluded from automatic 15-minute Snapper snapshots via `HOME_NOSNAP`.
-- **Management:** GUI via `virt-manager` or CLI via `win11-vm` helper tool (`win11-vm create`, `win11-vm start`, `win11-vm drivers`).
+- **Management:** GUI via `virt-manager` or CLI via `win11-vm` helper tool (`win11-vm create`, `win11-vm start`, `win11-vm key`, `win11-vm drivers`).
+- **License & Offline Activation:** Preserves motherboard OEM product key (`win11-vm key`), enabling activation inside the VM via `slmgr` or ACPI table pass-through without linking a Microsoft Account.
 
 ---
 
 ## Changelog
 
+- 2026-11-06: Documented OEM license key extraction and offline / local-account VM activation workflow (`win11-vm key`).
 - 2026-11-05: Added Windows 11 virtualization stack (KVM, QEMU, libvirt, swtpm, OVMF Secure Boot, virt-manager, win11-vm helper, Btrfs nodatacow tuning).
 
 - 2026-10-25: Transitioned to pure KDE Plasma 6 desktop environment. Removed Noctalia and Niri build dependencies, configured native SDDM display manager, and refined custom left-panel look-and-feel package.

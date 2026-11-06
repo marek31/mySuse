@@ -18,14 +18,17 @@ Grab openSUSE Tumbleweed from the official download page:
   - Windows: [Rufus](https://rufus.ie/) -> pick the ISO -> Start -> choose **DD Image mode** when prompted.
   - Linux: `dd bs=4M if=openSUSE-Tumbleweed-*.iso of=/dev/sdX status=progress; sync`
 
-### 2. Prepare Windows (Dual Boot)
+### 2. Prepare Windows (Dual Boot or VM Migration)
 
-Skip this step if wiping the whole drive for a Linux-only system.
-
-1. **BitLocker:** Save your recovery key (`manage-bde -protectors -get C:` in an administrator PowerShell) and suspend protection in Control Panel > BitLocker > Suspend protection. Turning Secure Boot off can trigger a recovery prompt on the next boot if this is skipped.
-2. **Fast Startup:** Disable fast startup in Control Panel > Power Options > "Choose what the power buttons do" > uncheck "Turn on fast startup". This prevents Windows from leaving NTFS partitions in an unclean hibernated state.
-3. **Make room:** Open `diskmgmt.msc`, right-click drive C:, and select "Shrink Volume". Leave the freed space **unallocated** (80-100 GiB recommended; 40 GiB minimum).
-4. **Hardware Clock:** Set Windows to keep the RTC in UTC by running in an admin PowerShell:
+1. **OEM Product Key:** If wiping Windows to run it in a VM later, record your motherboard license key:
+   ```powershell
+   (Get-CimInstance -ClassName SoftwareLicensingService).OA3xOriginalProductKey
+   # Saved ThinkPad X1 Key: Q4W3R-TNBK9-XD88X-TTXKP-TMQH2
+   ```
+2. **BitLocker:** Save your recovery key (`manage-bde -protectors -get C:` in an administrator PowerShell) and suspend protection in Control Panel > BitLocker > Suspend protection. Turning Secure Boot off can trigger a recovery prompt on the next boot if this is skipped.
+3. **Fast Startup:** Disable fast startup in Control Panel > Power Options > "Choose what the power buttons do" > uncheck "Turn on fast startup". This prevents Windows from leaving NTFS partitions in an unclean hibernated state.
+4. **Make room (if dual-booting):** Open `diskmgmt.msc`, right-click drive C:, and select "Shrink Volume". Leave the freed space **unallocated** (80-100 GiB recommended; 40 GiB minimum). Skip if wiping entire drive.
+5. **Hardware Clock:** Set Windows to keep the RTC in UTC by running in an admin PowerShell:
    ```powershell
    reg add "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeIsUniversal /t REG_DWORD /d 1 /f
    ```
@@ -91,6 +94,52 @@ If an installation or setup run ever gets interrupted (e.g. Wi-Fi drop), simply 
 | Windows 11 VM | `win11-vm create <path/to/win11.iso>` (TPM 2.0, UEFI, VirtIO) or `virt-manager` |
 | KDE Connect | Pair from tray icon (firewall opens ports 1714-1764 for LAN) |
 | Wallpapers | Default cheat sheet is generated from `files/wallpaper/*.typ`. Great Wave is in `~/Pictures/Wallpapers/great-wave.jpg` |
+
+---
+
+## Windows 11 VM Setup & Offline / Local Account Activation
+
+Running Windows 11 in a KVM virtual machine using the ThinkPad's extracted OEM license key without linking a Microsoft Account:
+
+- **Saved Motherboard Key:** `Q4W3R-TNBK9-XD88X-TTXKP-TMQH2`
+- Helper script: `win11-vm` (installed to `/usr/local/bin/win11-vm`)
+
+### 1. Create and Start VM
+```bash
+win11-vm create ~/Downloads/Win11_24H2_English_x64.iso 64
+```
+This provisions a 64 GiB VirtIO disk (CoW disabled, Snapper snapshots excluded), 4 vCPUs, 8 GB RAM, `swtpm` TPM 2.0 emulator, and OVMF UEFI Secure Boot firmware.
+
+### 2. Disk Driver (During Setup)
+At the *"Where do you want to install Windows?"* prompt:
+1. Click **Load driver** -> **Browse**.
+2. Select the VirtIO CD drive (`virtio-win`) -> `vioscsi\w11\amd64` (or `amd64\w11`).
+3. Select the detected virtual disk to continue installation.
+
+### 3. Bypass Microsoft Account (Local Account Setup)
+When the installer asks for network or Microsoft account sign-in:
+1. Press `Shift + F10` to open Command Prompt.
+2. Run:
+   ```cmd
+   oobe\bypassnro
+   ```
+3. The VM restarts. When returning to the network screen, click **I don't have internet** -> **Continue with limited setup**.
+4. Enter your desired local username and password.
+
+### 4. Install VirtIO Guest Tools
+Once on the desktop:
+1. Open File Explorer and navigate to the `virtio-win` CD drive.
+2. Run `virtio-win-gt-x64.exe` to install drivers for network, graphics, and memory ballooning.
+
+### 5. Activate Windows
+Open Command Prompt as **Administrator** inside the VM:
+```cmd
+slmgr /ipk Q4W3R-TNBK9-XD88X-TTXKP-TMQH2
+slmgr /ato
+```
+- `/ipk`: registers the OEM product key.
+- `/ato`: contacts Microsoft activation servers (activates machine-level license; no Microsoft account required).
+- Verify status with `slmgr /xpr` (or run `win11-vm key` from host Linux).
 
 ---
 

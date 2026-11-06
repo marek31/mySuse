@@ -83,10 +83,16 @@ cmd_create() {
         --noautoconsole
 
     printf '\n\e[1;32m==> Windows 11 VM created and booted!\e[0m\n'
-    printf 'Note during Windows setup:\n'
-    printf '  1. At "Where do you want to install Windows?", click "Load driver".\n'
-    printf '  2. Browse CD drive (virtio-win) -> amd64\\w11 (or vioscsi\\w11) to detect the virtual disk.\n'
-    printf '  3. After setup finishes, run virtio-win-gt-x64.exe from the CD drive for guest tools & network.\n\n'
+    printf 'Setup instructions:\n'
+    printf '  1. Disk driver: click "Load driver" -> CD drive (virtio-win) -> amd64\\w11 (or vioscsi\\w11).\n'
+    printf '  2. Local account (no MS account):\n'
+    printf '     - At network screen, press Shift+F10 -> run: oobe\\bypassnro (VM reboots).\n'
+    printf '     - Click "I don'\''t have internet" -> "Continue with limited setup".\n'
+    printf '     - (Or choose "Set up for work or school" -> "Sign-in options" -> "Domain join instead").\n'
+    printf '  3. Guest tools: run virtio-win-gt-x64.exe from virtio-win CD drive after first login.\n'
+    printf '  4. Activation (Admin CMD in VM):\n'
+    printf '     slmgr /ipk Q4W3R-TNBK9-XD88X-TTXKP-TMQH2\n'
+    printf '     slmgr /ato\n\n'
 
     open_viewer
 }
@@ -145,11 +151,31 @@ cmd_gui() {
     exec virt-manager "$@"
 }
 
+cmd_key() {
+    echo "--- ThinkPad X1 OEM Windows License Key ---"
+    echo "Product Key: Q4W3R-TNBK9-XD88X-TTXKP-TMQH2"
+    if [[ -r /sys/firmware/acpi/tables/MSDM ]]; then
+        local raw
+        raw=$(tail -c 29 /sys/firmware/acpi/tables/MSDM 2>/dev/null || true)
+        [[ -n $raw ]] && echo "ACPI MSDM table read: $raw"
+    fi
+    echo ""
+    echo "Activation inside Windows VM without MS account (Admin Command Prompt):"
+    echo "  slmgr /ipk Q4W3R-TNBK9-XD88X-TTXKP-TMQH2"
+    echo "  slmgr /ato"
+    echo ""
+    echo "Bypass MS Account during installation (Local Account):"
+    echo "  1. At network screen, press Shift + F10"
+    echo "  2. Run: oobe\\bypassnro"
+    echo "  3. After reboot, click 'I don'\''t have internet' -> 'Continue with limited setup'"
+}
+
 case "${1:-help}" in
     create)  shift; cmd_create "$@" ;;
     start)   cmd_start ;;
     stop)    cmd_stop ;;
     status)  cmd_status ;;
+    key)     cmd_key ;;
     drivers) fetch_drivers ;;
     gui)     shift; cmd_gui "$@" ;;
     help|--help|-h)
@@ -161,6 +187,7 @@ Commands:
   start                Start the Windows 11 VM and open viewer
   stop                 Graceful ACPI shutdown of the VM
   status               Check KVM, libvirt, default network, and VM state
+  key                  Show laptop OEM license key and activation instructions
   drivers              Download/update latest virtio-win.iso drivers
   gui                  Launch Virtual Machine Manager (virt-manager)
   help                 Show this help message
