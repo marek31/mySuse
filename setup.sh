@@ -300,38 +300,14 @@ step_snapper() {
     log "snapper snapshot configuration"
     [[ -f /etc/snapper/configs/root ]] || snapper create-config / 2>/dev/null || true
 
-    local home_fs
-    home_fs=$(findmnt -no FSTYPE /home 2>/dev/null || true)
-    if [[ $home_fs == "btrfs" ]]; then
-        if [[ ! -f /etc/snapper/configs/home ]]; then
-            if [[ -d /home/.snapshots && ! -d /home/.snapshots/1 ]]; then
-                btrfs subvolume delete /home/.snapshots 2>/dev/null || rm -rf /home/.snapshots 2>/dev/null || true
-            fi
-            snapper -c home create-config /home 2>/dev/null || true
-        fi
-        for p in "${HOME_NOSNAP[@]}"; do
-            local dir="$UHOME/$p"
-            if [[ ! -e $dir ]]; then
-                mkdir -p "$(dirname "$dir")"
-                btrfs subvolume create "$dir" 2>/dev/null || mkdir -p "$dir"
-                chown -R "$USERNAME:$USERNAME" "$dir" 2>/dev/null || true
-            elif [[ -d $dir && -z "$(ls -A "$dir" 2>/dev/null)" ]] && ! btrfs subvolume show "$dir" >/dev/null 2>&1; then
-                rmdir "$dir" 2>/dev/null && btrfs subvolume create "$dir" 2>/dev/null || mkdir -p "$dir"
-                chown -R "$USERNAME:$USERNAME" "$dir" 2>/dev/null || true
-            fi
-        done
+    # Snapshots: only root is maintained for system update snapshots (snapper-zypp-plugin).
+    # Home snapshots and periodic timeline snapshots are disabled.
+    if [[ -f /etc/snapper/configs/root ]]; then
+        sed -i "s|^TIMELINE_CREATE=.*|TIMELINE_CREATE=\"no\"|" "/etc/snapper/configs/root"
     fi
 
-    for cfg in root home; do
-        if [[ -f /etc/snapper/configs/$cfg ]]; then
-            sed -i "s|^TIMELINE_LIMIT_HOURLY=.*|TIMELINE_LIMIT_HOURLY=\"$SNAP_KEEP_HOURLY\"|" "/etc/snapper/configs/$cfg"
-            sed -i "s|^TIMELINE_LIMIT_DAILY=.*|TIMELINE_LIMIT_DAILY=\"$SNAP_KEEP_DAILY\"|" "/etc/snapper/configs/$cfg"
-            sed -i "s|^TIMELINE_LIMIT_WEEKLY=.*|TIMELINE_LIMIT_WEEKLY=\"$SNAP_KEEP_WEEKLY\"|" "/etc/snapper/configs/$cfg"
-            sed -i "s|^TIMELINE_LIMIT_MONTHLY=.*|TIMELINE_LIMIT_MONTHLY=\"$SNAP_KEEP_MONTHLY\"|" "/etc/snapper/configs/$cfg"
-        fi
-    done
-
-    systemctl enable --now snapper-timeline.timer snapper-cleanup.timer 2>/dev/null || true
+    systemctl disable --now snapper-timeline.timer 2>/dev/null || true
+    systemctl enable --now snapper-cleanup.timer 2>/dev/null || true
 }
 
 step_desktop() {

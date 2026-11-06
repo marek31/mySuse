@@ -46,12 +46,13 @@ git pull --ff-only || true
 
 rpre="none"
 hpre="none"
-if has_cfg root; then
-    rpre=$(sudo snapper --no-dbus -c root create -t pre -p -c number -d "refresh.sh" 2>/dev/null || echo "none")
-fi
-if has_cfg home; then
-    hpre=$(sudo snapper --no-dbus -c home create -t pre -p -c number -d "refresh.sh" 2>/dev/null || echo "none")
-fi
+# User-triggered snapshots disabled (only system updates create snapshots via snapper-zypp-plugin)
+# if has_cfg root; then
+#     rpre=$(sudo snapper --no-dbus -c root create -t pre -p -c number -d "refresh.sh" 2>/dev/null || echo "none")
+# fi
+# if has_cfg home; then
+#     hpre=$(sudo snapper --no-dbus -c home create -t pre -p -c number -d "refresh.sh" 2>/dev/null || echo "none")
+# fi
 
 finish() {
     rc=$?
