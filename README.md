@@ -94,6 +94,7 @@ If an installation or setup run ever gets interrupted (e.g. Wi-Fi drop), simply 
 | Tailscale mesh | `sudo tailscale up`, then `sudo tailscale set --operator=$USER` |
 | Windows 11 VM | `win11-vm create <path/to/win11.iso>` (TPM 2.0, UEFI, VirtIO) or `virt-manager` |
 | KDE Connect | Pair from tray icon (firewall opens ports 1714-1764 for LAN) |
+| MMAutoKey | Clone `mydata` (`git clone https://github.com/marek31/mydata ~/Github/mydata`) — MMAutoKey installs and autostarts automatically |
 | Wallpapers | Default cheat sheet is generated from `files/wallpaper/*.typ`. Great Wave is in `~/Pictures/Wallpapers/great-wave.jpg` |
 
 ---

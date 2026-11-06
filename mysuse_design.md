@@ -72,6 +72,7 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Changelog
 
+- 2026-11-06: Integrated MMAutoKey Linux auto-installation (`setup.sh`, `plasma-suse-session`, and `config.fish` hooks with uinput udev rules and systemd autostart watchdog).
 - 2026-11-06: Documented OEM license key extraction and offline / local-account VM activation workflow (`win11-vm key`).
 - 2026-11-05: Added Windows 11 virtualization stack (KVM, QEMU, libvirt, swtpm, OVMF Secure Boot, virt-manager, win11-vm helper, Btrfs nodatacow tuning).
 

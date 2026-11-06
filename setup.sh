@@ -244,6 +244,17 @@ Defaults:ALL !rootpw
 %wheel ALL=(ALL:ALL) ALL
 $USERNAME ALL=(ALL:ALL) ALL
 EOF
+
+    # MMAutoKey: uinput permissions for group input
+    put 644 /etc/udev/rules.d/80-mmautokey-uinput.rules <<'EOF'
+KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"
+EOF
+    put 644 /etc/modules-load.d/mmautokey-uinput.conf <<'EOF'
+uinput
+EOF
+    modprobe uinput 2>/dev/null || true
+    udevadm control --reload-rules 2>/dev/null || true
+    chgrp input /dev/uinput 2>/dev/null && chmod 0660 /dev/uinput 2>/dev/null || true
 }
 
 step_security() {
@@ -429,6 +440,17 @@ step_dotfiles() {
     rm -rf "$UHOME/.config/niri" "$UHOME/.config/noctalia" "$UHOME/.local/state/noctalia" \
            "$UHOME/.config/qt5ct" "$UHOME/.config/qt6ct" \
            "$UHOME/Pictures/Wallpapers/keys-niri.png" 2>/dev/null || true
+
+    # MMAutoKey: install if mydata repo has been downloaded
+    local d
+    for d in "$UHOME/Github/mydata/code/MMAutoKey_linux" "$UHOME/GitHub/mydata/code/MMAutoKey_linux"; do
+        if [[ -f "$d/install.sh" ]]; then
+            log "installing MMAutoKey from $d"
+            chmod +x "$d/MMAutoKey_linux" "$d/build/build.sh" "$d/install.sh" 2>/dev/null || true
+            as_user bash "$d/install.sh" || warn "MMAutoKey install failed"
+            break
+        fi
+    done
 }
 
 gh_asset() {

@@ -16,4 +16,14 @@ if status is-interactive
     abbr zq 'zypper se'
     abbr snaps 'snapper -c root list; [ -f /etc/snapper/configs/home ] && snapper -c home list'
     abbr suse-update 'sudo ~/mySuse/setup.sh apps'
+
+    # Auto-install MMAutoKey once mydata is downloaded from GitHub
+    if not test -f ~/.config/autostart/mmautokey.desktop
+        for d in ~/Github/mydata/code/MMAutoKey_linux ~/GitHub/mydata/code/MMAutoKey_linux
+            if test -f "$d/install.sh"
+                bash "$d/install.sh" >/dev/null 2>&1 &
+                break
+            end
+        end
+    end
 end
