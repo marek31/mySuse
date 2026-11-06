@@ -3,12 +3,13 @@
 # are written, everything else in the files stays.
 # Run by plasma-suse-session before Plasma starts, once per VERSION, so later changes made in System Settings
 # are kept. Bump VERSION after changing a value here.
-VERSION=11  # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
+VERSION=12  # 2: Show Desktop on Meta+Shift+D, Meta+P left to Plasma's screen switcher; 3: Meta+Shift+/ cheat sheet;
             # 4: screen lock after 60 min idle; 5: auto-apply look-and-feel layout & icon fallback; 6: pure Plasma 6;
             # 7: disable weather reports; 8: turn off all transparency effects (blur, translucency, opaque panel/menus);
             # 9: shift+esc opens btop, fast keyboard, low friction touchpad, volume boost up to 150%;
             # 10: disable all window/popup animations, single desktop workspace, Meta+1..4 task manager;
-            # 11: fast keyboard RepeatRate 100 (10ms matching Windows set_fast_keyboard), dynamic touchpad detection
+            # 11: fast keyboard RepeatRate 100 (10ms matching Windows set_fast_keyboard), dynamic touchpad detection;
+            # 12: instant alt-tab task switcher (0ms delay, no window highlight stall, no outline)
 stamp=${XDG_STATE_HOME:-$HOME/.local/state}/mysuse/plasma-config.version
 [ "${1:-}" = "-f" ] || [ "${1:-}" = "--force" ] && rm -f "$stamp"
 [ "$(cat "$stamp" 2>/dev/null)" = "$VERSION" ] && exit 0
@@ -61,6 +62,11 @@ w kwinrc --group Plugins --key startupfeedbackEnabled --type bool false
 w kwinrc --group Plugins --key shakecursorEnabled --type bool false
 w kwinrc --group Windows --key InactiveOpacity 100
 w kwinrc --group Windows --key ActiveOpacity 100
+
+# instant alt-tab task switcher without visual delay or window highlighting stall
+w kwinrc --group TabBox --key DelayTime 0
+w kwinrc --group TabBox --key HighlightWindows --type bool false
+w kwinrc --group TabBox --key ShowOutline --type bool false
 
 # disable launch feedback bouncing cursor delay
 w klaunchrc --group BusyCursorSettings --key BusyCursor --type bool false
