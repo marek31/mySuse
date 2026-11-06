@@ -28,3 +28,10 @@ application/x-7z-compressed=org.gnome.FileRoller.desktop
 application/x-tar=org.gnome.FileRoller.desktop
 application/x-xz-compressed-tar=org.gnome.FileRoller.desktop
 application/gzip=org.gnome.FileRoller.desktop
+text/vnd.typst=typst-compile.desktop
+text/x-typst=typst-compile.desktop
+
+[Added Associations]
+text/vnd.typst=typst-compile.desktop;
+text/x-typst=typst-compile.desktop;
+

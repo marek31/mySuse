@@ -1,0 +1,43 @@
+#!/bin/bash
+set -euo pipefail
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <file.typ...>" >&2
+    exit 1
+fi
+
+for file in "$@"; do
+    if [ ! -f "$file" ]; then
+        continue
+    fi
+
+    file_abs=$(realpath "$file")
+    dir=$(dirname "$file_abs")
+    base=$(basename "$file_abs")
+    name="${base%.*}"
+    pdf_file="$dir/$name.pdf"
+
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send -a "Typst" "Compiling $base..." "Building PDF in $dir" -t 3000 || true
+    fi
+
+    ERR_LOG=$(mktemp)
+    if (cd "$dir" && typst c "$base" "$pdf_file" 2>"$ERR_LOG"); then
+        rm -f "$ERR_LOG"
+        if [ -f "$pdf_file" ]; then
+            if command -v notify-send >/dev/null 2>&1; then
+                notify-send -a "Typst" "Compilation Successful" "Opened $name.pdf" -t 3000 || true
+            fi
+            xdg-open "$pdf_file" >/dev/null 2>&1 &
+        fi
+    else
+        status=$?
+        err_msg=$(head -n 10 "$ERR_LOG")
+        rm -f "$ERR_LOG"
+        if command -v notify-send >/dev/null 2>&1; then
+            notify-send -u critical -a "Typst" "Compilation Failed" "$err_msg" || true
+        fi
+        echo "Error compiling $file_abs (exit code $status):" >&2
+        echo "$err_msg" >&2
+    fi
+done

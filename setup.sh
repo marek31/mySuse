@@ -392,6 +392,7 @@ step_dotfiles() {
         as_user mkdir -p "$(dirname "$dst")"
         tpl "$src" | as_user tee "$dst" >/dev/null
     done < <(find "$FILES/home" -type f -print0)
+    as_user chmod +x "$UHOME/.local/bin/"* 2>/dev/null || true
 
     # Wallpapers
     as_user mkdir -p "$UHOME/Pictures/Wallpapers"
@@ -611,6 +612,12 @@ EOF
 
     font_zip "jetbrains-mono" "JetBrains/JetBrainsMono"
     font_zip "cascadia-code" "microsoft/cascadia-code"
+
+    # Mission Center (Windows 11-style Task Manager via Flathub)
+    if command -v flatpak >/dev/null 2>&1; then
+        flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+        flatpak install -y --noninteractive flathub io.missioncenter.MissionCenter 2>/dev/null || true
+    fi
 }
 
 step_login() {

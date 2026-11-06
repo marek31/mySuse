@@ -46,7 +46,7 @@ udisks2 ntfs-3g dosfstools
 okular zathura zathura-plugin-pdf-poppler sioyek xournalpp pdfarranger poppler-tools qpdf ghostwriter glow
 geeqie qimgv imv mpv vlc strawberry gimp kolourpaint krita audacity ffmpeg yt-dlp
 remmina kdeconnect-kde qbittorrent calibre kate qalculate-qt fsearch qdirstat gparted
-meld kdiff3 krename ncmpcpp keepassxc restic rclone
+meld kdiff3 krename ncmpcpp keepassxc restic rclone flatpak
 
 # --- virtualization (Windows 11 VM: KVM, QEMU, libvirt, TPM 2.0, UEFI) ---
 qemu-kvm qemu-ovmf-x86_64 libvirt libvirt-daemon-qemu libvirt-daemon-config-network virt-manager virt-install virt-viewer swtpm iptables dnsmasq

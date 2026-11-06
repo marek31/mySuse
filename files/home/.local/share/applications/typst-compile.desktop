@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Typst Compile & View
+GenericName=Document Compiler
+Comment=Compile Typst document and open the resulting PDF
+Exec=typst-compile-view %F
+Icon=application-pdf
+Terminal=false
+MimeType=text/vnd.typst;text/x-typst;
+Categories=Utility;Publishing;Office;
+NoDisplay=false
+StartupNotify=true

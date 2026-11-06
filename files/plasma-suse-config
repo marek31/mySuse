@@ -162,7 +162,7 @@ k ksmserver "Log Out" "Meta+Shift+E${T}Ctrl+Alt+Del,Ctrl+Alt+Del,Show Logout Pro
 app() { w kglobalshortcutsrc --group services --group "$1" --key _launch "$2"; }
 app org.kde.krunner.desktop "Meta+D${T}Meta+Space${T}Alt+Space${T}Alt+F2${T}Search"
 app org.codeberg.dnkl.foot.desktop Meta+Return
-app btop.desktop "Shift+Escape${T}Ctrl+Shift+Escape"
+app btop.desktop "Ctrl+Shift+Escape${T}Shift+Escape"
 app helium.desktop Meta+B
 app floorp.desktop Meta+Shift+B
 app thunar.desktop Meta+E
