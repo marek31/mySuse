@@ -72,6 +72,7 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Changelog
 
+- 2026-11-06: Reduced taskbar hover delay to 50ms (plasmarc PlasmaToolTips Delay in plasma-suse-config v14) for instant grouped window list previews.
 - 2026-11-06: Added single-instance btop launcher and KWin window activation (Ctrl+Shift+Esc), Typst double-click compile-and-view workflow (.typ -> typst c -> Okular PDF), and Mission Center (Windows 11-style Task Manager via Flathub).
 - 2026-11-06: Boosted UI & burst responsiveness: instant Alt+Tab (0ms delay, no window highlight stall in plasma-suse-config v12), TLP battery profile switched to BAL with 18% min perf (~800 MHz floor), and integrated CachyOS sysctl responsiveness tunables.
 - 2026-11-06: Integrated MMAutoKey Linux auto-installation (`setup.sh`, `plasma-suse-session`, and `config.fish` hooks with uinput udev rules and systemd autostart watchdog).
