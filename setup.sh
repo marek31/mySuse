@@ -641,11 +641,24 @@ EOF
           /etc/greetd/config.toml 2>/dev/null || true
     rm -rf /usr/local/share/noctalia /var/cache/noctalia 2>/dev/null || true
 
-    # Enable SDDM display manager
+    # Enable SDDM display manager and require password on login
     systemctl enable sddm 2>/dev/null || true
     if command -v update-alternatives >/dev/null 2>&1; then
         update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/sddm 2>/dev/null || true
     fi
+
+    # Require password authentication on login (disable autologin)
+    if [ -f /etc/sysconfig/displaymanager ]; then
+        sed -i 's/^DISPLAYMANAGER_AUTOLOGIN=.*/DISPLAYMANAGER_AUTOLOGIN=""/' /etc/sysconfig/displaymanager
+        sed -i 's/^DISPLAYMANAGER_PASSWORD_LESS_LOGIN=.*/DISPLAYMANAGER_PASSWORD_LESS_LOGIN="no"/' /etc/sysconfig/displaymanager
+    fi
+    mkdir -p /etc/sddm.conf.d
+    put 644 /etc/sddm.conf.d/autologin.conf <<'EOF'
+[Autologin]
+User=
+Session=
+Relogin=false
+EOF
 }
 
 step_devtools() {
