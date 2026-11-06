@@ -79,6 +79,10 @@ sudo ./setup.sh swap packages security desktop vm apps login devtools speakers d
 plasma-suse-config -f 2>/dev/null || true
 plasma-displays -f 2>/dev/null || true
 
-if ! gh auth status >/dev/null 2>&1 || ! git config --global --get credential.https://github.com.helper >/dev/null; then
-    echo "note: git can't push to GitHub yet - run once: gh auth login, then: gh auth setup-git"
+if command -v git-credential-manager >/dev/null 2>&1; then
+    if ! git credential-manager github list 2>/dev/null | grep -q ':'; then
+        echo "note: GitHub is not authenticated yet - run: git credential-manager github login (or sign in via github-desktop)"
+    fi
+elif ! gh auth status >/dev/null 2>&1; then
+    echo "note: GitHub is not authenticated yet - run once: gh auth login"
 fi

@@ -289,23 +289,26 @@ step_snapper() {
     log "snapper snapshot configuration"
     [[ -f /etc/snapper/configs/root ]] || snapper create-config / 2>/dev/null || true
 
-    if [[ ! -f /etc/snapper/configs/home ]]; then
-        local home_fs
-        home_fs=$(findmnt -no FSTYPE /home 2>/dev/null || true)
-        if [[ $home_fs == "btrfs" ]]; then
+    local home_fs
+    home_fs=$(findmnt -no FSTYPE /home 2>/dev/null || true)
+    if [[ $home_fs == "btrfs" ]]; then
+        if [[ ! -f /etc/snapper/configs/home ]]; then
             if [[ -d /home/.snapshots && ! -d /home/.snapshots/1 ]]; then
                 btrfs subvolume delete /home/.snapshots 2>/dev/null || rm -rf /home/.snapshots 2>/dev/null || true
             fi
             snapper -c home create-config /home 2>/dev/null || true
-            for p in "${HOME_NOSNAP[@]}"; do
-                local dir="$UHOME/$p"
-                if [[ ! -e $dir ]]; then
-                    mkdir -p "$(dirname "$dir")"
-                    btrfs subvolume create "$dir" 2>/dev/null || mkdir -p "$dir"
-                    chown -R "$USERNAME:$USERNAME" "$dir" 2>/dev/null || true
-                fi
-            done
         fi
+        for p in "${HOME_NOSNAP[@]}"; do
+            local dir="$UHOME/$p"
+            if [[ ! -e $dir ]]; then
+                mkdir -p "$(dirname "$dir")"
+                btrfs subvolume create "$dir" 2>/dev/null || mkdir -p "$dir"
+                chown -R "$USERNAME:$USERNAME" "$dir" 2>/dev/null || true
+            elif [[ -d $dir && -z "$(ls -A "$dir" 2>/dev/null)" ]] && ! btrfs subvolume show "$dir" >/dev/null 2>&1; then
+                rmdir "$dir" 2>/dev/null && btrfs subvolume create "$dir" 2>/dev/null || mkdir -p "$dir"
+                chown -R "$USERNAME:$USERNAME" "$dir" 2>/dev/null || true
+            fi
+        done
     fi
 
     for cfg in root home; do
@@ -641,7 +644,7 @@ EOF
 }
 
 step_devtools() {
-    log "developer tools: rustup, Claude Code, Antigravity CLI, Deno, oh-my-pi, nanobot"
+    log "developer tools: rustup, Claude Code, Antigravity CLI, Deno, oh-my-pi, nanobot, Git Credential Manager"
     if ! command -v cc >/dev/null 2>&1 && ! command -v gcc >/dev/null 2>&1; then
         zypper --ignore-unknown in -y --no-recommends gcc gcc-c++ 2>/dev/null || true
     fi
@@ -663,6 +666,24 @@ step_devtools() {
     fi
     if [[ ! -x $UHOME/.local/bin/nanobot ]]; then
         as_user bash -o pipefail -c 'NANOBOT_SKIP_WIZARD=1 curl -fsSL https://raw.githubusercontent.com/HKUDS/nanobot/main/scripts/install.sh | sh' || warn "nanobot install failed"
+    fi
+
+    # Git Credential Manager (GCM)
+    local gcm_url
+    gcm_url=$(gh_asset "git-ecosystem/git-credential-manager" 'gcm-linux-x64-.*\.tar\.gz$') || true
+    if [[ -n $gcm_url ]]; then
+        opt_install /opt/git-credential-manager "$gcm_url" 0 "$gcm_url"
+        chmod +x /opt/git-credential-manager/git-credential-manager 2>/dev/null || true
+        ln -sf /opt/git-credential-manager/git-credential-manager /usr/local/bin/git-credential-manager
+    fi
+
+    # Git configuration matching Windows workflow: longpaths, GCM credential helper, Secret Service
+    if command -v git >/dev/null 2>&1; then
+        as_user git config --global core.longpaths true
+        as_user git config --global --unset-all credential.helper 2>/dev/null || true
+        as_user git config --global credential.helper ""
+        as_user git config --global --add credential.helper manager
+        as_user git config --global credential.credentialStore secretservice
     fi
 }
 

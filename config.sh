@@ -17,7 +17,7 @@
 #   desktop     Wayland only: KDE Plasma 6 with mySuse look-and-feel (left panel, dark theme), SDDM login
 #   look        minimal: dark palette, thin vertical panel on the left edge, Inter + JetBrains Mono,
 #               Bibata cursor, Hokusai "Great Wave" wallpaper (public domain)
-#   dev         Go, Rust (rustup), Common Lisp (SBCL), Deno, Claude Code, Antigravity CLI (agy), oh-my-pi (omp), nanobot
+#   dev         Go, Rust (rustup), Common Lisp (SBCL), Deno, Claude Code, Antigravity CLI (agy), oh-my-pi (omp), nanobot, Git Credential Manager (GCM), GitHub Desktop
 #   remote      RustDesk (upstream package), Remmina; KDE Connect for the phone (LAN-only firewall rule)
 #   vm          KVM/QEMU, libvirt, virt-manager, swtpm (TPM 2.0), OVMF UEFI for Windows 11
 #   upkeep      browsers auto-update once a day, update notifications, monthly btrfs scrub,
@@ -69,7 +69,7 @@ SNAP_KEEP_DAILY=7
 SNAP_KEEP_WEEKLY=4
 SNAP_KEEP_MONTHLY=3
 # Paths under /home/$USERNAME turned into nested subvolumes = excluded from home snapshots.
-HOME_NOSNAP=(.cache .local/share/Trash .local/share/resilio-sync .pcloud VMs .local/share/libvirt/images)
+HOME_NOSNAP=(.cache .local/share/Trash .local/share/resilio-sync .pcloud pCloud pCloudDrive VMs .local/share/libvirt/images)
 
 GREETER=sddm            # login screen: sddm (graphical display manager)
 

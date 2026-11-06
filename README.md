@@ -89,7 +89,8 @@ If an installation or setup run ever gets interrupted (e.g. Wi-Fi drop), simply 
 | Speaker tuning | `sudo ~/mySuse/setup.sh speakers` (converts Lenovo's Dolby Atmos profile from the Windows partition into an EasyEffects preset) |
 | Resilio Sync | `resilio` (starts service and opens WebUI on localhost:55555) |
 | pCloud storage | `cloud setup` (browser auth), then `cloud open` to mount `~/pCloud` on demand |
-| Dev tools | `claude`, `agy` (Antigravity CLI), `omp` (oh-my-pi), `cargo`, `go`, `sbcl` |
+| Dev tools | `claude`, `agy` (Antigravity CLI), `omp` (oh-my-pi), `cargo`, `go`, `sbcl`, `git-credential-manager` |
+| GitHub auth | `git credential-manager github login` (OAuth login stored in GNOME Keyring) or launch `github-desktop` |
 | Tailscale mesh | `sudo tailscale up`, then `sudo tailscale set --operator=$USER` |
 | Windows 11 VM | `win11-vm create <path/to/win11.iso>` (TPM 2.0, UEFI, VirtIO) or `virt-manager` |
 | KDE Connect | Pair from tray icon (firewall opens ports 1714-1764 for LAN) |
