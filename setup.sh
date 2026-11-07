@@ -59,19 +59,29 @@ as_user() {
 }
 
 cmdline_set() {
-    local key=$1 val=${2:-} line out=() word found=0
-    [[ -f /etc/default/grub ]] || return 0
-    line=$(sed -n 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"$/\1/p' /etc/default/grub)
-    for word in $line; do
-        if [[ $word == "$key" || $word == "$key="* ]]; then
-            [[ -n $val ]] && out+=("$key=$val") || out+=("$key")
-            found=1
+    local key=$1 val=${2:-} opt
+    [[ -n $val ]] && opt="$key=$val" || opt="$key"
+    if command -v update-bootloader >/dev/null 2>&1; then
+        update-bootloader --add-option "$opt" 2>/dev/null || true
+    fi
+    if [[ -f /etc/default/grub ]]; then
+        local line out=() word found=0
+        line=$(sed -n 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"$/\1/p' /etc/default/grub)
+        for word in $line; do
+            if [[ $word == "$key" || $word == "$key="* ]]; then
+                out+=("$opt")
+                found=1
+            else
+                out+=("$word")
+            fi
+        done
+        [[ $found -eq 0 ]] && out+=("$opt")
+        if grep -q "^GRUB_CMDLINE_LINUX_DEFAULT=" /etc/default/grub; then
+            sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"${out[*]}\"|" /etc/default/grub
         else
-            out+=("$word")
+            echo "GRUB_CMDLINE_LINUX_DEFAULT=\"${out[*]}\"" >> /etc/default/grub
         fi
-    done
-    [[ $found -eq 0 ]] && { [[ -n $val ]] && out+=("$key=$val") || out+=("$key"); }
-    sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"${out[*]}\"|" /etc/default/grub
+    fi
 }
 
 tpl() {
@@ -139,6 +149,7 @@ EOF
     cmdline_set i915.enable_psr 1
     cmdline_set i915.enable_fbc 1
     cmdline_set nvme.noacpi 1
+    cmdline_set workqueue.power_efficient 1
 
     ensure_swap
     setkv /etc/default/grub GRUB_DISABLE_OS_PROBER false
@@ -823,9 +834,9 @@ step_vm() {
 }
 
 step_finish() {
-    log "regenerating dracut initramfs and grub2 configuration"
+    log "regenerating dracut initramfs and bootloader configuration"
     dracut --force --hostonly 2>/dev/null || true
-    grub2-mkconfig -o /boot/grub2/grub.cfg 2>/dev/null || update-bootloader 2>/dev/null || true
+    update-bootloader --refresh 2>/dev/null || grub2-mkconfig -o /boot/grub2/grub.cfg 2>/dev/null || true
 }
 
 ensure_tools() {

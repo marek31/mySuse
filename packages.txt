@@ -8,7 +8,7 @@ snapper snapper-zypp-plugin grub2-snapper-plugin inotify-tools os-prober
 chrony cronie
 
 # --- desktop: Labwc + Sfwbar (lightweight windowed Wayland) & KDE Plasma 6 ---
-labwc kanshi swaybg swaylock swayidle mako fuzzel wlr-randr grim slurp
+labwc kanshi swaybg swaylock swayidle mako fuzzel wlr-randr grim slurp waybar fontawesome-fonts
 patterns-kde-kde_plasma spectacle sddm
 polkit polkit-default-privs dbus-1 xwayland
 gnome-keyring seahorse dconf xdg-user-dirs xdg-utils wl-clipboard libnotify-tools earlyoom

@@ -37,5 +37,5 @@ swayidle -w \
 # EasyEffects background service (Dolby Atmos speaker profile)
 easyeffects --gapplication-service &
 
-# Sfwbar taskbar (must start after display and environment are ready)
-sfwbar &
+# Modern Waybar taskbar
+waybar &

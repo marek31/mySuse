@@ -16,6 +16,7 @@ sudo ./setup.sh swap packages security desktop vm apps login devtools speakers
 if [ "${XDG_CURRENT_DESKTOP#*labwc}" != "$XDG_CURRENT_DESKTOP" ] || pgrep -x labwc >/dev/null 2>&1; then
     labwc --reconfigure 2>/dev/null || true
     killall -SIGUSR1 sfwbar 2>/dev/null || true
+    pkill -SIGUSR2 waybar 2>/dev/null || true
     if [ -f "$HOME/Pictures/Wallpapers/keys-labwc.png" ]; then
         pkill -x swaybg 2>/dev/null || true
         swaybg -i "$HOME/Pictures/Wallpapers/keys-labwc.png" -m fill >/dev/null 2>&1 &

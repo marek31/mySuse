@@ -23,9 +23,9 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Desktop Environments
 
-### 1. Labwc + Sfwbar (Primary · Lightweight Windowed Stacking)
-- **Compositor:** `labwc` stacking Wayland compositor inspired by Openbox. Built in C on top of `wlroots`. Delivers instantaneous application launch, zero background churn, and pure static declarative configuration in `~/.config/labwc/rc.xml`.
-- **Taskbar & Tray:** `sfwbar` (S* Floating Window Bar). Provides a traditional, responsive taskbar with start launcher (`fuzzel`), open window buttons with focus/minimize, 4-workspace pager, and native DBus StatusNotifierItem (SNI) system tray integration.
+### 1. Labwc + Waybar (Primary · Lightweight Windowed Stacking)
+- **Compositor:** `labwc` stacking Wayland compositor inspired by Openbox. Built in C on top of `wlroots`. Delivers instantaneous application launch, zero background churn, pure static declarative configuration in `~/.config/labwc/rc.xml`, and Tokyo-Night-Modern theme with 8px rounded corners and SVG window controls.
+- **Taskbar & Tray:** `waybar` (Modern Wayland Taskbar & Status Bar). Provides a bottom taskbar with start launcher (`fuzzel`), 4-workspace pager, running taskbar buttons (`wlr/taskbar`) with focus/minimize, native DBus StatusNotifierItem (SNI) system tray integration, volume, battery, and clock.
 - **Display & Scaling:** `kanshi` handles dynamic multi-monitor profiles and fractional scaling (1.25x laptop, 1.5x Dell 4K) automatically upon hotplug.
 - **Session Glue:** `mako` (notifications), `swayidle` / `swaylock` (idle and security lock), `easyeffects` (Dolby Atmos quad-speaker tuning).
 
@@ -80,6 +80,7 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Changelog
 
+- 2026-11-07: Upgraded Labwc desktop experience: integrated modern Waybar taskbar with wlr/taskbar, custom Tokyo-Night-Modern theme with 8px rounded corners and SVG window controls, 36px HiDPI 4K cursor scaling, thumbnail Alt-Tab OSD, and restored optimal TLP power settings (removed CPU/GPU frequency floors, balance_performance EPP, ASPM powersave, systemd-boot kernel cmdline power tuning).
 - 2026-11-07: Added lightweight windowed Wayland desktop session: Labwc + Sfwbar. Integrated Kanshi display scaling (1.25x laptop + 1.5x 4K), Fuzzel launcher, Mako notifications, and dual SDDM session selector.
 - 2026-11-06: Set taskbar hover delay to 1ms (plasmarc PlasmaToolTips Delay in plasma-suse-config v16) for instant grouped window list previews.
 - 2026-11-06: Added single-instance btop launcher and KWin window activation (Ctrl+Shift+Esc), Typst double-click compile-and-view workflow (.typ -> typst c -> Okular PDF), and Mission Center (Windows 11-style Task Manager via Flathub).

@@ -1,0 +1,87 @@
+# Tokyo Night Modern Labwc Theme
+# Premium modern dark theme with smooth dropshadows, rounded corners and crisp SVG controls
+
+border.width: 1
+window.titlebar.padding.width: 12
+window.titlebar.padding.height: 6
+
+# Window border
+window.active.border.color: #3b4261
+window.inactive.border.color: #1f2335
+
+# Titlebar backgrounds
+window.active.title.bg: Solid
+window.active.title.bg.color: #1a1b26
+window.inactive.title.bg: Solid
+window.inactive.title.bg.color: #16161e
+
+# Title text
+window.active.label.text.color: #c0caf5
+window.inactive.label.text.color: #565f89
+window.label.text.justify: center
+
+# Buttons geometry
+window.button.width: 26
+window.button.height: 26
+window.button.spacing: 6
+window.button.hover.bg.color: #ffffff10
+window.button.hover.bg.corner-radius: 13
+
+# Drop shadows
+window.active.shadow.size: 45
+window.inactive.shadow.size: 25
+window.active.shadow.color: #00000080
+window.inactive.shadow.color: #00000045
+
+# Root context menu
+menu.overlap.x: 0
+menu.overlap.y: 0
+menu.width.min: 160
+menu.width.max: 300
+menu.border.width: 1
+menu.border.color: #3b4261
+menu.items.bg.color: #1a1b26
+menu.items.text.color: #c0caf5
+menu.items.active.bg.color: #7aa2f7
+menu.items.active.text.color: #15161e
+menu.items.padding.x: 12
+menu.items.padding.y: 6
+menu.separator.width: 1
+menu.separator.padding.width: 8
+menu.separator.padding.height: 4
+menu.separator.color: #292e42
+menu.title.bg.color: #1f2335
+menu.title.text.color: #7aa2f7
+menu.title.text.justify: Left
+
+# On Screen Display (OSD / Alt-Tab)
+osd.bg.color: #1a1b26
+osd.border.color: #7aa2f7
+osd.border.width: 2
+osd.label.text.color: #c0caf5
+
+osd.window-switcher.style-thumbnail.width.max: 80%
+osd.window-switcher.style-thumbnail.padding: 8
+osd.window-switcher.style-thumbnail.item.width: 320
+osd.window-switcher.style-thumbnail.item.height: 240
+osd.window-switcher.style-thumbnail.item.padding: 12
+osd.window-switcher.style-thumbnail.item.active.border.width: 2
+osd.window-switcher.style-thumbnail.item.active.border.color: #7aa2f7
+osd.window-switcher.style-thumbnail.item.active.bg.color: #24283b
+osd.window-switcher.style-thumbnail.item.icon.size: 64
+
+osd.window-switcher.style-classic.width: 600
+osd.window-switcher.style-classic.padding: 8
+osd.window-switcher.style-classic.item.padding.x: 14
+osd.window-switcher.style-classic.item.padding.y: 4
+osd.window-switcher.style-classic.item.active.border.width: 1
+osd.window-switcher.style-classic.item.active.border.color: #7aa2f7
+osd.window-switcher.style-classic.item.active.bg.color: #283457
+
+# Edge and region snapping overlays
+snapping.overlay.region.bg.color: #7aa2f733
+snapping.overlay.edge.bg.color: #7aa2f733
+snapping.overlay.region.border.width: 2
+snapping.overlay.edge.border.width: 2
+snapping.overlay.region.border.color: #7aa2f7
+snapping.overlay.edge.border.color: #7aa2f7

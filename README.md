@@ -1,6 +1,6 @@
 # mySuse
 
-Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots on root, Labwc + Sfwbar (blazing fast windowed Wayland) with KDE Plasma 6 as secondary session, Helium, Floorp, Firefox, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
+Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots on root, Labwc + Waybar (blazing fast windowed Wayland) with KDE Plasma 6 as secondary session, Helium, Floorp, Firefox, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
 
 All decisions and hardware options are defined in [config.sh](config.sh).
 
@@ -145,13 +145,13 @@ slmgr /ato
 
 ---
 
-## Desktop Environments: Labwc + Sfwbar & KDE Plasma 6
+## Desktop Environments: Labwc + Waybar & KDE Plasma 6
 
 Both sessions are installed and switchable at the SDDM login screen:
 
-### 1. Labwc + Sfwbar (Default · Lightweight Windowed Stacking)
+### 1. Labwc + Waybar (Default · Lightweight Windowed Stacking)
 - **Compositor:** `labwc` (Openbox-style stacking Wayland compositor). Instantaneous launch, zero-latency window movement, and pure static XML configuration (`~/.config/labwc/rc.xml`).
-- **Taskbar & Tray:** `sfwbar` (S* Floating Window Bar). Provides a modern dark taskbar with application launcher (`fuzzel`), open window buttons with focus/minimize, 4-desktop workspace pager, and a native DBus StatusNotifierItem (SNI) system tray.
+- **Taskbar & Tray:** `waybar` (Modern Wayland Taskbar & Status Bar). Provides a bottom taskbar with application launcher (`fuzzel`), 4-workspace pager, running taskbar buttons (`wlr/taskbar`) with focus/minimize, native system tray, volume control, battery, and clock.
 - **Display & Scaling:** `kanshi` handles ThinkPad X1 1.25x laptop scaling and external Dell 4K 1.5x scaling automatically on hotplug.
 - **Keybindings:** Super+Return (terminal), Super+D (launcher), Super+Q (close), Super+F (maximise), Super+Left/Right/Up (edge snapping), Super+1..4 (workspaces), Super+L (screen lock), Super+Shift+/ (cheat sheet), Right-click desktop (app menu).
 

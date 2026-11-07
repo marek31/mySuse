@@ -18,7 +18,7 @@
   </focus>
 
   <snapping>
-    <range>10</range>
+    <range inner="10" outer="10" />
     <topMaximize>yes</topMaximize>
     <overlay enabled="yes">
       <placement>below</placement>
@@ -26,8 +26,8 @@
   </snapping>
 
   <theme>
-    <name>Breeze-Dark</name>
-    <cornerRadius>6</cornerRadius>
+    <name>Tokyo-Night-Modern</name>
+    <cornerRadius>8</cornerRadius>
     <font place="ActiveWindow">
       <name>Inter</name>
       <size>10</size>
@@ -42,7 +42,16 @@
       <name>Inter</name>
       <size>10</size>
     </font>
+    <font place="OnScreenDisplay">
+      <name>Inter</name>
+      <size>11</size>
+      <weight>bold</weight>
+    </font>
   </theme>
+
+  <windowSwitcher preview="yes" outlines="yes">
+    <osd show="yes" style="thumbnail" output="cursor" thumbnailLabelFormat="%T" />
+  </windowSwitcher>
 
   <keyboard>
     <default />
