@@ -23,9 +23,9 @@ corner_radius_scale = 1.0
 enabled = false
 speed = 3.0
 
-# Right vertical taskbar with launcher, running task buttons, system tray, audio, battery, and clock
+# Left vertical taskbar with launcher, running task buttons, system tray, audio, battery, and clock
 [bar.main]
-position = "right"
+position = "left"
 thickness = 46
 background_opacity = 0.94
 compositor_blur = true
