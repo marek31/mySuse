@@ -23,16 +23,16 @@ corner_radius_scale = 1.0
 enabled = false
 speed = 3.0
 
-# Bottom taskbar with launcher, running task buttons, system tray, audio, battery, and clock
+# Right vertical taskbar with launcher, running task buttons, system tray, audio, battery, and clock
 [bar.main]
-position = "bottom"
-thickness = 38
+position = "right"
+thickness = 46
 background_opacity = 0.94
 compositor_blur = true
 radius = 0
 margin_ends = 0
 margin_edge = 0
-padding = 10
+padding = 8
 widget_spacing = 6
 shadow = false
 capsule = true
@@ -43,7 +43,7 @@ end = ["tray", "network", "bluetooth", "volume", "battery", "clock", "control-ce
 [widget.taskbar]
 group_by_workspace = false
 hide_empty_workspaces = true
-show_window_title = true
+show_window_title = false
 
 [wallpaper]
 enabled = true
