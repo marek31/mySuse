@@ -7,7 +7,7 @@
 
 #section(blue, "Apps & Shell",
   ("Meta+Return", "terminal (foot)"),
-  ("Meta+D / Space", "launcher (Noctalia)"),
+  ("Meta / Meta+D", "launcher (Noctalia)"),
   ("Meta+A", "control center (Noctalia)"),
   ("Meta+,", "Noctalia settings"),
   ("Meta+B / Shift+B", "Helium / Floorp"),
