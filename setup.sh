@@ -769,7 +769,7 @@ step_devtools() {
 
     # Git Credential Manager (GCM)
     local gcm_url
-    gcm_url=$(gh_asset "git-ecosystem/git-credential-manager" 'gcm-linux-x64-.*\.tar\.gz$') || true
+    gcm_url=$(gh_asset "git-ecosystem/git-credential-manager" 'gcm-linux-x64-[0-9.]+\.tar\.gz$') || true
     if [[ -n $gcm_url ]]; then
         opt_install /opt/git-credential-manager "$gcm_url" 0 "$gcm_url"
         chmod +x /opt/git-credential-manager/git-credential-manager 2>/dev/null || true
