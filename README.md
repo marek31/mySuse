@@ -1,6 +1,6 @@
 # mySuse
 
-Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots every 15 min, KDE Plasma 6 on Wayland, Helium, Floorp, Firefox, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
+Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots every 15 min, Labwc + Sfwbar (blazing fast windowed Wayland) with KDE Plasma 6 as secondary session, Helium, Floorp, Firefox, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
 
 All decisions and hardware options are defined in [config.sh](config.sh).
 
@@ -145,10 +145,19 @@ slmgr /ato
 
 ---
 
-## Desktop Environment: KDE Plasma 6
+## Desktop Environments: Labwc + Sfwbar & KDE Plasma 6
 
-- **KDE Plasma 6 (Wayland):** Powered by the custom look-and-feel package (`org.mysuse.desktop`). Features a sleek 40 px vertical panel on the left edge, borderless maximized windows, animations disabled for zero latency, Inter + JetBrains Mono typography, Papirus icons, and intuitive tiling/desktop shortcuts.
-- **Display Manager:** Native SDDM configured with automatic session handling.
+Both sessions are installed and switchable at the SDDM login screen:
+
+### 1. Labwc + Sfwbar (Default · Lightweight Windowed Stacking)
+- **Compositor:** `labwc` (Openbox-style stacking Wayland compositor). Instantaneous launch, zero-latency window movement, and pure static XML configuration (`~/.config/labwc/rc.xml`).
+- **Taskbar & Tray:** `sfwbar` (S* Floating Window Bar). Provides a modern dark taskbar with application launcher (`fuzzel`), open window buttons with focus/minimize, 4-desktop workspace pager, and a native DBus StatusNotifierItem (SNI) system tray.
+- **Display & Scaling:** `kanshi` handles ThinkPad X1 1.25x laptop scaling and external Dell 4K 1.5x scaling automatically on hotplug.
+- **Keybindings:** Super+Return (terminal), Super+D (launcher), Super+Q (close), Super+F (maximise), Super+Left/Right/Up (edge snapping), Super+1..4 (workspaces), Super+L (screen lock), Super+Shift+/ (cheat sheet), Right-click desktop (app menu).
+
+### 2. KDE Plasma 6 (Alternative)
+- **Look & Feel:** Configured via the custom look-and-feel package (`org.mysuse.desktop`). Features a 40 px vertical panel on the left edge, borderless maximized windows, animations disabled for zero latency, Inter + JetBrains Mono typography, and Papirus icons.
+- **Display Manager:** Native SDDM configured with automatic session handling (remembers your last chosen session).
 
 ---
 

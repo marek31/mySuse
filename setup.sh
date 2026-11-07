@@ -177,7 +177,7 @@ REPO_EOF
     fi
 
     # Kick out unwanted vendor, bloat, or obsolete packages
-    local bloat=(hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman NetworkManager-applet file-roller niri xwayland-satellite greetd tuigreet polkit-gnome)
+    local bloat=(hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman NetworkManager-applet file-roller niri xwayland-satellite greetd tuigreet)
     local to_rm=()
     for p in "${bloat[@]}"; do
         rpm -q "$p" >/dev/null 2>&1 && to_rm+=("$p")
@@ -339,6 +339,7 @@ step_desktop() {
     put 755 /usr/local/bin/plasma-keys < "$FILES/plasma-keys"
     tpl "$FILES/plasma-suse-config" | put 755 /usr/local/bin/plasma-suse-config
     put 755 /usr/local/bin/plasma-suse-session < "$FILES/plasma-suse-session"
+    put 755 /usr/local/bin/labwc-suse-session < "$FILES/labwc-suse-session"
     put 755 /usr/local/bin/win11-vm < "$FILES/win11-vm"
 
     # Install mySuse look-and-feel package system-wide so plasma-apply-lookandfeel finds it
@@ -393,6 +394,7 @@ step_dotfiles() {
         tpl "$src" | as_user tee "$dst" >/dev/null
     done < <(find "$FILES/home" -type f -print0)
     as_user chmod +x "$UHOME/.local/bin/"* 2>/dev/null || true
+    chmod 755 "$UHOME/.config/labwc/autostart" 2>/dev/null || true
 
     # Wallpapers
     as_user mkdir -p "$UHOME/Pictures/Wallpapers"
@@ -405,6 +407,7 @@ step_dotfiles() {
 
     if command -v typst >/dev/null 2>&1; then
         (cd "$FILES/wallpaper" && typst compile keys-plasma.typ "$UHOME/Pictures/Wallpapers/keys-plasma.png" 2>/dev/null) || true
+        (cd "$FILES/wallpaper" && typst compile keys-labwc.typ "$UHOME/Pictures/Wallpapers/keys-labwc.png" 2>/dev/null) || true
         chown "$USERNAME:$USERNAME" "$UHOME/Pictures/Wallpapers"/keys-*.png 2>/dev/null || true
     fi
 
@@ -618,11 +621,45 @@ EOF
         flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
         flatpak install -y --noninteractive flathub io.missioncenter.MissionCenter 2>/dev/null || true
     fi
+
+    # Sfwbar taskbar
+    if [[ ! -x /usr/local/bin/sfwbar ]] || [[ ! -f /usr/local/share/sfwbar/.version ]]; then
+        log "building and installing sfwbar..."
+        local ssrc=/var/cache/sfwbar
+        mkdir -p "$ssrc"
+        if [[ -d $ssrc/.git ]]; then
+            git -C "$ssrc" pull -q --ff-only 2>/dev/null || true
+        else
+            git clone -q --depth 1 https://github.com/LBCrion/sfwbar.git "$ssrc" 2>/dev/null || warn "sfwbar clone failed"
+        fi
+        if [[ -f $ssrc/meson.build ]]; then
+            (
+                cd "$ssrc"
+                rm -rf build
+                meson setup build -Dprefix=/usr/local --buildtype=release >/dev/null 2>&1
+                ninja -C build -j "$(nproc)" >/dev/null 2>&1
+                ninja -C build install >/dev/null 2>&1
+            ) && {
+                mkdir -p /usr/local/share/sfwbar
+                date +%F > /usr/local/share/sfwbar/.version
+                log "sfwbar installed to /usr/local/bin/sfwbar"
+            } || warn "sfwbar compilation failed; verify build dependencies"
+        fi
+    fi
 }
 
 step_login() {
-    log "login screen: SDDM (KDE Plasma 6)"
+    log "login screen: SDDM (Labwc + Sfwbar & KDE Plasma 6 sessions)"
     mkdir -p /usr/share/wayland-sessions
+    put 644 /usr/share/wayland-sessions/labwc-suse.desktop <<EOF
+[Desktop Entry]
+Name=Labwc (mySuse)
+Comment=Lightweight Windowed Wayland Compositor with Sfwbar
+Exec=/usr/local/bin/labwc-suse-session
+Type=Application
+DesktopNames=labwc;wlroots
+EOF
+
     put 644 /usr/share/wayland-sessions/plasma-suse.desktop <<EOF
 [Desktop Entry]
 Name=Plasma (mySuse)
@@ -632,14 +669,29 @@ Type=Application
 DesktopNames=KDE
 EOF
 
-    # Clean up greetd / niri session and binaries if previously enabled
+    # Configure SDDM to remember sessions and pre-select DEFAULT_SESSION
+    local def_sess=${DEFAULT_SESSION:-labwc-suse}
+    mkdir -p /etc/sddm.conf.d /var/lib/sddm
+    put 644 /etc/sddm.conf.d/10-mysuse.conf <<EOF
+[Theme]
+Current=breeze
+
+[Users]
+RememberLastSession=true
+RememberLastUser=true
+EOF
+
+    if [[ ! -f /var/lib/sddm/state.conf ]] || ! grep -q "Session=" /var/lib/sddm/state.conf 2>/dev/null; then
+        put 644 /var/lib/sddm/state.conf <<EOF
+[Last]
+Session=/usr/share/wayland-sessions/${def_sess}.desktop
+User=$USERNAME
+EOF
+    fi
+
+    # Clean up obsolete greetd session if previously enabled
     systemctl disable greetd 2>/dev/null || true
-    rm -f /usr/share/wayland-sessions/niri*.desktop \
-          /usr/local/bin/niri-suse-session \
-          /usr/local/bin/noctalia \
-          /usr/local/bin/plasma-noctalia-colors \
-          /etc/greetd/config.toml 2>/dev/null || true
-    rm -rf /usr/local/share/noctalia /var/cache/noctalia 2>/dev/null || true
+    rm -f /etc/greetd/config.toml 2>/dev/null || true
 
     # Enable SDDM display manager and require password on login
     systemctl enable sddm 2>/dev/null || true

@@ -1,0 +1,17 @@
+# Mako notification daemon configuration for mySuse
+font=Inter 10
+background-color=#1a1b26f0
+text-color=#c0caf5
+border-color=#7aa2f7
+border-size=1
+border-radius=8
+padding=12
+width=360
+height=140
+margin=14
+default-timeout=5000
+group-by=summary
+
+[urgency=high]
+border-color=#f7768e
+default-timeout=0

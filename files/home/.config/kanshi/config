@@ -1,0 +1,31 @@
+# Kanshi display configuration for mySuse (ThinkPad X1 Carbon Gen 10)
+# Automatically applies fractional scaling and multi-monitor profiles on Wayland
+
+# 1. Undocked: Laptop panel alone (1920x1200 @ @SCALE@)
+profile undocked {
+    output eDP-1 scale @SCALE@ mode 1920x1200 position 0,0
+}
+
+# 2. Docked: Laptop panel + Dell G3223Q 4K monitor (@SCALE_4K@)
+profile docked_dell_4k {
+    output eDP-1 scale @SCALE@ mode 1920x1200 position 0,0
+    output "*G3223Q*" scale @SCALE_4K@ mode 3840x2160 position 1536,0
+}
+
+# 3. Docked: Laptop panel + external DisplayPort (USB-C / Thunderbolt)
+profile docked_external_dp {
+    output eDP-1 scale @SCALE@ mode 1920x1200 position 0,0
+    output "DP-*" scale @SCALE_4K@ mode 3840x2160 position 1536,0
+}
+
+# 4. Docked: Laptop panel + external HDMI
+profile docked_external_hdmi {
+    output eDP-1 scale @SCALE@ mode 1920x1200 position 0,0
+    output "HDMI-A-*" scale @SCALE_4K@ mode 3840x2160 position 1536,0
+}
+
+# 5. Fallback: Laptop + any connected external screen
+profile docked_fallback {
+    output eDP-1 scale @SCALE@ mode 1920x1200 position 0,0
+    output "*" scale @SCALE_4K@ position 1536,0
+}

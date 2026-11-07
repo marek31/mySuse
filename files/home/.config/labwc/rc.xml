@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<labwc_config>
+  <desktops>
+    <number>4</number>
+    <names>
+      <name>1</name>
+      <name>2</name>
+      <name>3</name>
+      <name>4</name>
+    </names>
+    <popupTime>500</popupTime>
+  </desktops>
+
+  <focus>
+    <focusNew>yes</focusNew>
+    <followMouse>no</followMouse>
+    <raiseOnFocus>yes</raiseOnFocus>
+  </focus>
+
+  <snapping>
+    <range>10</range>
+    <topMaximize>yes</topMaximize>
+    <overlay enabled="yes">
+      <placement>below</placement>
+    </overlay>
+  </snapping>
+
+  <theme>
+    <name>Breeze-Dark</name>
+    <cornerRadius>6</cornerRadius>
+    <font place="ActiveWindow">
+      <name>Inter</name>
+      <size>10</size>
+      <weight>bold</weight>
+    </font>
+    <font place="InactiveWindow">
+      <name>Inter</name>
+      <size>10</size>
+      <weight>normal</weight>
+    </font>
+    <font place="MenuItem">
+      <name>Inter</name>
+      <size>10</size>
+    </font>
+  </theme>
+
+  <keyboard>
+    <default />
+
+    <!-- Terminal & Launcher -->
+    <keybind key="W-Return">
+      <action name="Execute" command="foot" />
+    </keybind>
+    <keybind key="W-d">
+      <action name="Execute" command="fuzzel" />
+    </keybind>
+    <keybind key="W-space">
+      <action name="Execute" command="fuzzel" />
+    </keybind>
+
+    <!-- Essential Apps -->
+    <keybind key="W-e">
+      <action name="Execute" command="thunar" />
+    </keybind>
+    <keybind key="W-b">
+      <action name="Execute" command="helium" />
+    </keybind>
+    <keybind key="W-S-b">
+      <action name="Execute" command="floorp" />
+    </keybind>
+    <keybind key="W-a">
+      <action name="Execute" command="pavucontrol" />
+    </keybind>
+    <keybind key="S-Escape">
+      <action name="Execute" command="foot -e btop" />
+    </keybind>
+
+    <!-- Window Management -->
+    <keybind key="W-q">
+      <action name="Close" />
+    </keybind>
+    <keybind key="A-F4">
+      <action name="Close" />
+    </keybind>
+    <keybind key="W-f">
+      <action name="ToggleMaximize" direction="both" />
+    </keybind>
+    <keybind key="W-Prior">
+      <action name="ToggleMaximize" direction="both" />
+    </keybind>
+    <keybind key="W-Next">
+      <action name="Iconify" />
+    </keybind>
+    <keybind key="W-S-f">
+      <action name="ToggleFullscreen" />
+    </keybind>
+    <keybind key="W-v">
+      <action name="ToggleAlwaysOnTop" />
+    </keybind>
+    <keybind key="A-Tab">
+      <action name="NextWindow" />
+    </keybind>
+    <keybind key="A-S-Tab">
+      <action name="PreviousWindow" />
+    </keybind>
+
+    <!-- Snapping (Half-screen / Tiling) -->
+    <keybind key="W-Left">
+      <action name="SnapToEdge" direction="left" />
+    </keybind>
+    <keybind key="W-Right">
+      <action name="SnapToEdge" direction="right" />
+    </keybind>
+    <keybind key="W-Up">
+      <action name="SnapToEdge" direction="up" />
+    </keybind>
+    <keybind key="W-Down">
+      <action name="ToggleMaximize" direction="both" />
+    </keybind>
+
+    <!-- Workspaces 1..4 -->
+    <keybind key="W-1"><action name="GoToDesktop" to="1" /></keybind>
+    <keybind key="W-2"><action name="GoToDesktop" to="2" /></keybind>
+    <keybind key="W-3"><action name="GoToDesktop" to="3" /></keybind>
+    <keybind key="W-4"><action name="GoToDesktop" to="4" /></keybind>
+    <keybind key="W-S-1"><action name="SendToDesktop" to="1" /></keybind>
+    <keybind key="W-S-2"><action name="SendToDesktop" to="2" /></keybind>
+    <keybind key="W-S-3"><action name="SendToDesktop" to="3" /></keybind>
+    <keybind key="W-S-4"><action name="SendToDesktop" to="4" /></keybind>
+
+    <!-- Session & Lock -->
+    <keybind key="W-l">
+      <action name="Execute" command="swaylock -f -c 1e1e2e" />
+    </keybind>
+    <keybind key="W-Escape">
+      <action name="Execute" command="swaylock -f -c 1e1e2e" />
+    </keybind>
+    <keybind key="W-S-e">
+      <action name="Exit" />
+    </keybind>
+
+    <!-- Cheat Sheet -->
+    <keybind key="W-S-slash">
+      <action name="Execute" command="imv -f -c 'bind &lt;Escape&gt; quit' $HOME/Pictures/Wallpapers/keys-labwc.png" />
+    </keybind>
+    <keybind key="W-question">
+      <action name="Execute" command="imv -f -c 'bind &lt;Escape&gt; quit' $HOME/Pictures/Wallpapers/keys-labwc.png" />
+    </keybind>
+
+    <!-- Screenshots -->
+    <keybind key="Print">
+      <action name="Execute" command="sh -c 'mkdir -p ~/Pictures/Screenshots &amp;&amp; grim -g &quot;$(slurp)&quot; ~/Pictures/Screenshots/$(date +%F_%H-%M-%S).png &amp;&amp; notify-send &quot;Screenshot saved&quot;'" />
+    </keybind>
+    <keybind key="S-Print">
+      <action name="Execute" command="sh -c 'mkdir -p ~/Pictures/Screenshots &amp;&amp; grim ~/Pictures/Screenshots/$(date +%F_%H-%M-%S).png &amp;&amp; notify-send &quot;Full screen captured&quot;'" />
+    </keybind>
+
+    <!-- Hardware Keys: Audio & Brightness -->
+    <keybind key="XF86AudioRaiseVolume">
+      <action name="Execute" command="wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+" />
+    </keybind>
+    <keybind key="XF86AudioLowerVolume">
+      <action name="Execute" command="wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-" />
+    </keybind>
+    <keybind key="XF86AudioMute">
+      <action name="Execute" command="wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle" />
+    </keybind>
+    <keybind key="XF86AudioMicMute">
+      <action name="Execute" command="wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle" />
+    </keybind>
+    <keybind key="XF86MonBrightnessUp">
+      <action name="Execute" command="brightnessctl set +5%" />
+    </keybind>
+    <keybind key="XF86MonBrightnessDown">
+      <action name="Execute" command="brightnessctl set 5%-" />
+    </keybind>
+  </keyboard>
+
+  <mouse>
+    <default />
+    <context name="Frame">
+      <mousebind button="W-Left" action="Press">
+        <action name="Move" />
+      </mousebind>
+      <mousebind button="W-Right" action="Press">
+        <action name="Resize" />
+      </mousebind>
+    </context>
+    <context name="Root">
+      <mousebind button="Right" action="Press">
+        <action name="ShowMenu"><menu>root-menu</menu></action>
+      </mousebind>
+    </context>
+  </mouse>
+
+  <windowRules>
+    <windowRule identifier="pavucontrol" serverDecoration="yes">
+      <action name="SnapToRegion" region="center" />
+    </windowRule>
+    <windowRule identifier="qalculate-qt" serverDecoration="yes">
+      <action name="SnapToRegion" region="center" />
+    </windowRule>
+  </windowRules>
+</labwc_config>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_menu>
+  <menu id="root-menu" label="mySuse">
+    <item label="Terminal (foot)">
+      <action name="Execute" command="foot" />
+    </item>
+    <item label="Application Launcher (fuzzel)">
+      <action name="Execute" command="fuzzel" />
+    </item>
+    <separator />
+    <item label="Web Browser (Helium)">
+      <action name="Execute" command="helium" />
+    </item>
+    <item label="Floorp">
+      <action name="Execute" command="floorp" />
+    </item>
+    <item label="File Manager (Thunar)">
+      <action name="Execute" command="thunar" />
+    </item>
+    <item label="Text Editor (Kate)">
+      <action name="Execute" command="kate" />
+    </item>
+    <separator />
+    <item label="Audio Settings (pavucontrol)">
+      <action name="Execute" command="pavucontrol" />
+    </item>
+    <item label="System Monitor (btop)">
+      <action name="Execute" command="foot -e btop" />
+    </item>
+    <item label="Key Cheat Sheet">
+      <action name="Execute" command="imv -f -c 'bind &lt;Escape&gt; quit' $HOME/Pictures/Wallpapers/keys-labwc.png" />
+    </item>
+    <separator />
+    <item label="Lock Screen">
+      <action name="Execute" command="swaylock -f -c 1e1e2e" />
+    </item>
+    <item label="Exit Labwc">
+      <action name="Exit" />
+    </item>
+  </menu>
+</openbox_menu>

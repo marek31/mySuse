@@ -14,8 +14,9 @@
 #   btrfs       @ / @home / @snapshots / @var_log / @var_cache / @var_tmp / @swap, /tmp is tmpfs
 #   snapshots   snapper, root + home every 15 min; caches, logs, temp, swap, snapshots are separate
 #               subvolumes so they are never snapshotted; grub2-snapper-plugin lists snapshots in the boot menu
-#   desktop     Wayland only: KDE Plasma 6 with mySuse look-and-feel (left panel, dark theme), SDDM login
-#   look        minimal: dark palette, thin vertical panel on the left edge, Inter + JetBrains Mono,
+#   desktop     Wayland: Labwc + Sfwbar (lightweight windowed stacking compositor, Openbox feel)
+#               and KDE Plasma 6 (both installed, selectable at SDDM login)
+#   look        minimal: dark palette, taskbar with window buttons + tray, Inter + JetBrains Mono,
 #               Bibata cursor, Hokusai "Great Wave" wallpaper (public domain)
 #   dev         Go, Rust (rustup), Common Lisp (SBCL), Deno, Claude Code, Antigravity CLI (agy), oh-my-pi (omp), nanobot, Git Credential Manager (GCM), GitHub Desktop
 #   remote      RustDesk (upstream package), Remmina; KDE Connect for the phone (LAN-only firewall rule)
@@ -72,6 +73,7 @@ SNAP_KEEP_MONTHLY=3
 HOME_NOSNAP=(.cache .local/share/Trash .local/share/resilio-sync .pcloud pCloud pCloudDrive VMs .local/share/libvirt/images)
 
 GREETER=sddm            # login screen: sddm (graphical display manager)
+DEFAULT_SESSION=labwc-suse # default session: labwc-suse or plasma-suse
 
 SUDO_TIMEOUT_MIN=1440   # ask for the sudo password once per day
 RESILIO_PORT=55555      # fixed listening port, opened in the firewall

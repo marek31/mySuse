@@ -16,9 +16,9 @@
 #let orange = rgb("#ffa066")
 #let mono = ("JetBrains Mono", "DejaVu Sans Mono")
 
-#let sheet(title, subtitle, size: 12.9pt, cols: 4, body) = {
+#let sheet(title, subtitle, size: 12.9pt, cols: 4, margin: (left: 100pt, right: 48pt, top: 66pt, bottom: 60pt), body) = {
   set page(width: 1280pt, height: 800pt, fill: bg,
-    margin: (left: 100pt, right: 48pt, top: 66pt, bottom: 60pt))
+    margin: margin)
   set text(font: ("Inter", "Noto Sans", "DejaVu Sans"), size: size, fill: fg)
   set par(leading: 0.5em)
   grid(columns: (auto, 1fr), column-gutter: 14pt, align: bottom,

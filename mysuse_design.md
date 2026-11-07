@@ -19,9 +19,15 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ---
 
-## Desktop Environment
+## Desktop Environments
 
-### KDE Plasma 6 (Wayland)
+### 1. Labwc + Sfwbar (Primary · Lightweight Windowed Stacking)
+- **Compositor:** `labwc` stacking Wayland compositor inspired by Openbox. Built in C on top of `wlroots`. Delivers instantaneous application launch, zero background churn, and pure static declarative configuration in `~/.config/labwc/rc.xml`.
+- **Taskbar & Tray:** `sfwbar` (S* Floating Window Bar). Provides a traditional, responsive taskbar with start launcher (`fuzzel`), open window buttons with focus/minimize, 4-workspace pager, and native DBus StatusNotifierItem (SNI) system tray integration.
+- **Display & Scaling:** `kanshi` handles dynamic multi-monitor profiles and fractional scaling (1.25x laptop, 1.5x Dell 4K) automatically upon hotplug.
+- **Session Glue:** `mako` (notifications), `swayidle` / `swaylock` (idle and security lock), `easyeffects` (Dolby Atmos quad-speaker tuning).
+
+### 2. KDE Plasma 6 (Secondary · Monolithic DE)
 - **Look & Feel:** Configured via the custom look-and-feel package `org.mysuse.desktop`:
   - Single 40 px vertical panel on the left edge (application launcher, desktop pager, icon-only tasks, system tray, clock).
   - Borderless maximized windows and no window borders.
@@ -29,7 +35,7 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
   - Dark theme with Papirus-Dark / Breeze-Dark icons and typography set to Inter (UI) and JetBrains Mono (fixed-width).
   - Clean desktop containment without desktop icons.
 - **Shortcuts:** Clean, ergonomic shortcuts (Super+Return terminal, Super+D KRunner, Super+Q close, Super+F maximize, Super+1..4 desktops, Meta+Shift+/ key cheat sheet).
-- **Display Manager:** Native SDDM display manager with automatic Wayland session handling.
+- **Display Manager:** Native SDDM display manager with automatic Wayland session handling (select between Labwc and Plasma from the login screen; session is remembered).
 
 ---
 
@@ -72,6 +78,7 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Changelog
 
+- 2026-11-07: Added lightweight windowed Wayland desktop session: Labwc + Sfwbar. Integrated Kanshi display scaling (1.25x laptop + 1.5x 4K), Fuzzel launcher, Mako notifications, and dual SDDM session selector.
 - 2026-11-06: Set taskbar hover delay to 1ms (plasmarc PlasmaToolTips Delay in plasma-suse-config v16) for instant grouped window list previews.
 - 2026-11-06: Added single-instance btop launcher and KWin window activation (Ctrl+Shift+Esc), Typst double-click compile-and-view workflow (.typ -> typst c -> Okular PDF), and Mission Center (Windows 11-style Task Manager via Flathub).
 - 2026-11-06: Boosted UI & burst responsiveness: instant Alt+Tab (0ms delay, no window highlight stall in plasma-suse-config v12), TLP battery profile switched to BAL with 18% min perf (~800 MHz floor), and integrated CachyOS sysctl responsiveness tunables.

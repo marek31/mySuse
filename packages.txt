@@ -7,11 +7,13 @@ grub2-x86_64-efi efibootmgr cryptsetup btrfs-progs compsize dracut
 snapper snapper-zypp-plugin grub2-snapper-plugin inotify-tools os-prober
 chrony cronie
 
-# --- desktop: KDE Plasma 6 (Wayland) ---
+# --- desktop: Labwc + Sfwbar (lightweight windowed Wayland) & KDE Plasma 6 ---
+labwc kanshi swaybg swaylock swayidle mako fuzzel wlr-randr grim slurp
 patterns-kde-kde_plasma spectacle sddm
 polkit polkit-default-privs dbus-1 xwayland
 gnome-keyring seahorse dconf xdg-user-dirs xdg-utils wl-clipboard libnotify-tools earlyoom
 adwaita-icon-theme papirus-icon-theme kf6-breeze-icons breeze5-icons
+gtk3-devel gtk-layer-shell-devel libjson-c-devel libpulse-devel wayland-protocols-devel meson ninja
 
 # --- hardware: Intel Iris Xe, AX211 wifi, SOF audio, Synaptics 06cb:00fc fingerprint, USB4 ---
 Mesa-dri vulkan-intel intel-media-driver vulkan-tools libva-utils

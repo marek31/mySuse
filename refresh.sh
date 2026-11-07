@@ -76,7 +76,15 @@ trap finish EXIT
 
 sudo ./setup.sh swap packages security desktop vm apps login devtools speakers dotfiles
 
-# Re-apply Plasma configuration (layout, theme, icons, shortcuts, displays)
+# Re-apply live session configuration
+if [ "${XDG_CURRENT_DESKTOP#*labwc}" != "$XDG_CURRENT_DESKTOP" ] || pgrep -x labwc >/dev/null 2>&1; then
+    labwc --reconfigure 2>/dev/null || true
+    killall -SIGUSR1 sfwbar 2>/dev/null || true
+    if [ -f "$HOME/Pictures/Wallpapers/keys-labwc.png" ]; then
+        pkill -x swaybg 2>/dev/null || true
+        swaybg -i "$HOME/Pictures/Wallpapers/keys-labwc.png" -m fill >/dev/null 2>&1 &
+    fi
+fi
 plasma-suse-config -f 2>/dev/null || true
 plasma-displays -f 2>/dev/null || true
 
