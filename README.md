@@ -1,6 +1,6 @@
 # mySuse
 
-Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots on root, Labwc + Waybar (blazing fast windowed Wayland) with KDE Plasma 6 as secondary session, Helium, Floorp, Firefox, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
+Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots on root, Labwc + Noctalia (modern desktop shell on stacking Wayland) with KDE Plasma 6 as secondary session, Helium, Floorp, Firefox, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
 
 All decisions and hardware options are defined in [config.sh](config.sh).
 
@@ -145,15 +145,15 @@ slmgr /ato
 
 ---
 
-## Desktop Environments: Labwc + Waybar & KDE Plasma 6
+## Desktop Environments: Labwc + Noctalia & KDE Plasma 6
 
 Both sessions are installed and switchable at the SDDM login screen:
 
-### 1. Labwc + Waybar (Default · Lightweight Windowed Stacking)
+### 1. Labwc + Noctalia (Default · Lightweight Windowed Stacking + Modern Shell)
 - **Compositor:** `labwc` (Openbox-style stacking Wayland compositor). Instantaneous launch, zero-latency window movement, and pure static XML configuration (`~/.config/labwc/rc.xml`).
-- **Taskbar & Tray:** `waybar` (Modern Wayland Taskbar & Status Bar). Provides a bottom taskbar with application launcher (`fuzzel`), 4-workspace pager, running taskbar buttons (`wlr/taskbar`) with focus/minimize, native system tray, volume control, battery, and clock.
+- **Desktop Shell:** `noctalia` (Modern Wayland Desktop Shell). Provides a bottom taskbar with integrated launcher, running taskbar buttons with focus/minimize, native DBus system tray, control center (audio, brightness, Wi-Fi, Bluetooth, night light, power profile), lock screen with fingerprint support, notification daemon, and interactive screenshot & annotation tool.
 - **Display & Scaling:** `kanshi` handles ThinkPad X1 1.25x laptop scaling and external Dell 4K 1.5x scaling automatically on hotplug.
-- **Keybindings:** Super+Return (terminal), Super+D (launcher), Super+Q (close), Super+F (maximise), Super+Left/Right/Up (edge snapping), Super+1..4 (workspaces), Super+L (screen lock), Super+Shift+/ (cheat sheet), Right-click desktop (app menu).
+- **Keybindings:** Super+Return (terminal), Super+D / Super+Space (Noctalia launcher), Super+A (control center), Super+Comma (settings), Super+Q (close), Super+F (maximise), Super+Left/Right/Up (edge snapping), Super+1..4 (workspaces), Super+L / Super+Esc (Noctalia lock), PrtSc (interactive region screenshot & annotate), Shift+PrtSc (full screen screenshot), Super+Shift+/ (cheat sheet), Right-click desktop (app menu).
 
 ### 2. KDE Plasma 6 (Alternative)
 - **Look & Feel:** Configured via the custom look-and-feel package (`org.mysuse.desktop`). Features a 40 px vertical panel on the left edge, borderless maximized windows, animations disabled for zero latency, Inter + JetBrains Mono typography, and Papirus icons.

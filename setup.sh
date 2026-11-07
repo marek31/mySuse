@@ -445,8 +445,8 @@ step_dotfiles() {
         chown -R "$USERNAME:$USERNAME" "$UHOME/mySuse" 2>/dev/null || true
     fi
 
-    # Clean up obsolete niri and noctalia configs from home directory
-    rm -rf "$UHOME/.config/niri" "$UHOME/.config/noctalia" "$UHOME/.local/state/noctalia" \
+    # Clean up obsolete niri configs from home directory
+    rm -rf "$UHOME/.config/niri" \
            "$UHOME/.config/qt5ct" "$UHOME/.config/qt6ct" \
            "$UHOME/Pictures/Wallpapers/keys-niri.png" 2>/dev/null || true
 

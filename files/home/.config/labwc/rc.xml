@@ -61,9 +61,12 @@
       <action name="Execute" command="foot" />
     </keybind>
     <keybind key="W-d">
-      <action name="Execute" command="fuzzel" />
+      <action name="Execute" command="noctalia msg panel-toggle launcher" />
     </keybind>
     <keybind key="W-space">
+      <action name="Execute" command="noctalia msg panel-toggle launcher" />
+    </keybind>
+    <keybind key="W-S-d">
       <action name="Execute" command="fuzzel" />
     </keybind>
 
@@ -78,7 +81,10 @@
       <action name="Execute" command="floorp" />
     </keybind>
     <keybind key="W-a">
-      <action name="Execute" command="pavucontrol" />
+      <action name="Execute" command="noctalia msg panel-toggle control-center" />
+    </keybind>
+    <keybind key="W-comma">
+      <action name="Execute" command="noctalia msg settings-toggle" />
     </keybind>
     <keybind key="S-Escape">
       <action name="Execute" command="foot -e btop" />
@@ -139,10 +145,10 @@
 
     <!-- Session & Lock -->
     <keybind key="W-l">
-      <action name="Execute" command="swaylock -f -c 1e1e2e" />
+      <action name="Execute" command="noctalia msg lock || swaylock -f -c 1e1e2e" />
     </keybind>
     <keybind key="W-Escape">
-      <action name="Execute" command="swaylock -f -c 1e1e2e" />
+      <action name="Execute" command="noctalia msg lock || swaylock -f -c 1e1e2e" />
     </keybind>
     <keybind key="W-S-e">
       <action name="Exit" />
@@ -158,21 +164,21 @@
 
     <!-- Screenshots -->
     <keybind key="Print">
-      <action name="Execute" command="sh -c 'mkdir -p ~/Pictures/Screenshots &amp;&amp; grim -g &quot;$(slurp)&quot; ~/Pictures/Screenshots/$(date +%F_%H-%M-%S).png &amp;&amp; notify-send &quot;Screenshot saved&quot;'" />
+      <action name="Execute" command="noctalia msg screenshot-region" />
     </keybind>
     <keybind key="S-Print">
-      <action name="Execute" command="sh -c 'mkdir -p ~/Pictures/Screenshots &amp;&amp; grim ~/Pictures/Screenshots/$(date +%F_%H-%M-%S).png &amp;&amp; notify-send &quot;Full screen captured&quot;'" />
+      <action name="Execute" command="noctalia msg screenshot-fullscreen" />
     </keybind>
 
     <!-- Hardware Keys: Audio & Brightness -->
     <keybind key="XF86AudioRaiseVolume">
-      <action name="Execute" command="wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+" />
+      <action name="Execute" command="noctalia msg volume-up 5 || wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+" />
     </keybind>
     <keybind key="XF86AudioLowerVolume">
-      <action name="Execute" command="wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-" />
+      <action name="Execute" command="noctalia msg volume-down 5 || wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-" />
     </keybind>
     <keybind key="XF86AudioMute">
-      <action name="Execute" command="wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle" />
+      <action name="Execute" command="noctalia msg volume-mute || wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle" />
     </keybind>
     <keybind key="XF86AudioMicMute">
       <action name="Execute" command="wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle" />

@@ -1,22 +1,23 @@
-// Labwc + Sfwbar key cheat sheet, rendered to ~/Pictures/Wallpapers/keys-labwc.png by setup.sh.
+// Labwc + Noctalia key cheat sheet, rendered to ~/Pictures/Wallpapers/keys-labwc.png by setup.sh.
 #import "keys-style.typ": *
 
-#show: sheet.with("Labwc + Sfwbar  ·  x1-suse",
+#show: sheet.with("Labwc + Noctalia  ·  x1-suse",
   [Meta = Super  ·  Meta+Shift+/ shows this sheet (Esc closes)  ·  Right-click desktop for menu],
   size: 13.2pt, cols: 4, margin: (left: 54pt, right: 54pt, top: 60pt, bottom: 84pt))
 
-#section(blue, "Apps",
+#section(blue, "Apps & Shell",
   ("Meta+Return", "terminal (foot)"),
-  ("Meta+D / Space", "launcher (fuzzel)"),
+  ("Meta+D / Space", "launcher (Noctalia)"),
+  ("Meta+A", "control center (Noctalia)"),
+  ("Meta+,", "Noctalia settings"),
   ("Meta+B / Shift+B", "Helium / Floorp"),
   ("Meta+E", "files (Thunar)"),
-  ("Meta+A", "audio mixer (pavucontrol)"),
   ("Shift+Esc", "btop (system monitor)"),
   ("Right-click", "desktop context menu"),
 )
 
 #section(orange, "Screenshots",
-  ("PrtSc", "region capture (slurp)"),
+  ("PrtSc", "region capture & annotate"),
   ("Shift+PrtSc", "full screen capture"),
   ("Meta+Shift+/", "this cheat sheet full screen"),
 )
@@ -47,7 +48,7 @@
 )
 
 #section(pink, "Session & Keys",
-  ("Meta+L / Meta+Esc", "lock screen (swaylock)"),
+  ("Meta+L / Meta+Esc", "lock screen (Noctalia)"),
   ("Meta+Shift+E", "exit Labwc session"),
   ("Vol / Mic mute", "hardware audio keys"),
   ("Brightness Up/Dn", "hardware screen backlight"),

@@ -23,11 +23,11 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Desktop Environments
 
-### 1. Labwc + Waybar (Primary · Lightweight Windowed Stacking)
+### 1. Labwc + Noctalia (Primary · Lightweight Windowed Stacking + Modern Shell)
 - **Compositor:** `labwc` stacking Wayland compositor inspired by Openbox. Built in C on top of `wlroots`. Delivers instantaneous application launch, zero background churn, pure static declarative configuration in `~/.config/labwc/rc.xml`, and Tokyo-Night-Modern theme with 8px rounded corners and SVG window controls.
-- **Taskbar & Tray:** `waybar` (Modern Wayland Taskbar & Status Bar). Provides a bottom taskbar with start launcher (`fuzzel`), 4-workspace pager, running taskbar buttons (`wlr/taskbar`) with focus/minimize, native DBus StatusNotifierItem (SNI) system tray integration, volume, battery, and clock.
+- **Desktop Shell:** `noctalia` (Modern Wayland Desktop Shell). Delivers a modern bottom taskbar with app launcher, running window taskbar buttons (`widget.taskbar`) with focus/minimize, native DBus StatusNotifierItem (SNI) system tray, control center (audio, brightness, Wi-Fi, Bluetooth, night light, power profile), lock screen with fingerprint support, notification daemon, clipboard manager, and interactive screenshot & annotation tool.
 - **Display & Scaling:** `kanshi` handles dynamic multi-monitor profiles and fractional scaling (1.25x laptop, 1.5x Dell 4K) automatically upon hotplug.
-- **Session Glue:** `mako` (notifications), `swayidle` / `swaylock` (idle and security lock), `easyeffects` (Dolby Atmos quad-speaker tuning).
+- **Session Glue:** `easyeffects` (Dolby Atmos quad-speaker tuning), `swaylock` (fallback lock).
 
 ### 2. KDE Plasma 6 (Secondary · Monolithic DE)
 - **Look & Feel:** Configured via the custom look-and-feel package `org.mysuse.desktop`:
@@ -80,7 +80,8 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Changelog
 
-- 2026-11-07: Upgraded Labwc desktop experience: integrated modern Waybar taskbar with wlr/taskbar, custom Tokyo-Night-Modern theme with 8px rounded corners and SVG window controls, 36px HiDPI 4K cursor scaling, thumbnail Alt-Tab OSD, and restored optimal TLP power settings (removed CPU/GPU frequency floors, balance_performance EPP, ASPM powersave, systemd-boot kernel cmdline power tuning).
+- 2026-11-07: Integrated Noctalia desktop shell (`noctalia-dev/noctalia`) with Labwc: bottom capsule taskbar with launcher, running task buttons, system tray, control center (audio, brightness, Wi-Fi, Bluetooth, night light, power profile), lock screen with fingerprint support, notification daemon, and interactive screenshot & annotation tool.
+- 2026-11-07: Upgraded Labwc desktop experience: integrated custom Tokyo-Night-Modern theme with 8px rounded corners and SVG window controls, 30px balanced 4K cursor scaling, thumbnail Alt-Tab OSD, and restored optimal TLP power settings (removed CPU/GPU frequency floors, balance_performance EPP, ASPM powersave, systemd-boot kernel cmdline power tuning, idle CPU power reduced from ~12W to ~2-3W).
 - 2026-11-07: Added lightweight windowed Wayland desktop session: Labwc + Sfwbar. Integrated Kanshi display scaling (1.25x laptop + 1.5x 4K), Fuzzel launcher, Mako notifications, and dual SDDM session selector.
 - 2026-11-06: Set taskbar hover delay to 1ms (plasmarc PlasmaToolTips Delay in plasma-suse-config v16) for instant grouped window list previews.
 - 2026-11-06: Added single-instance btop launcher and KWin window activation (Ctrl+Shift+Esc), Typst double-click compile-and-view workflow (.typ -> typst c -> Okular PDF), and Mission Center (Windows 11-style Task Manager via Flathub).

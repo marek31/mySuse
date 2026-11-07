@@ -7,14 +7,6 @@ dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
 # Display configuration & dynamic scaling (kanshi)
 kanshi &
 
-# Wallpaper: key cheat sheet (fallback to Great Wave if missing)
-wp="$HOME/Pictures/Wallpapers/keys-labwc.png"
-[ -f "$wp" ] || wp="$HOME/Pictures/Wallpapers/great-wave.jpg"
-[ -f "$wp" ] && swaybg -i "$wp" -m fill &
-
-# Notification daemon
-mako &
-
 # Polkit authentication agent
 for agent in \
     /usr/libexec/polkit-gnome-authentication-agent-1 \
@@ -27,15 +19,8 @@ for agent in \
     fi
 done
 
-# Screen idle and locker
-swayidle -w \
-    timeout 300 'swaylock -f -c 1e1e2e' \
-    timeout 600 'wlr-randr --output eDP-1 --off' \
-    resume 'wlr-randr --output eDP-1 --on' \
-    before-sleep 'swaylock -f -c 1e1e2e' &
-
 # EasyEffects background service (Dolby Atmos speaker profile)
 easyeffects --gapplication-service &
 
-# Modern Waybar taskbar
-waybar &
+# Noctalia desktop shell (bar, wallpaper, notifications, lockscreen, control center)
+noctalia -d &

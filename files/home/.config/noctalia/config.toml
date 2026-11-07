@@ -1,0 +1,105 @@
+# Noctalia v5 configuration for mySuse on Labwc
+
+[theme]
+mode = "dark"
+source = "builtin"
+builtin = "Tokyo-Night"
+
+[theme.templates]
+enable_builtin_templates = true
+builtin_ids = ["foot", "gtk3", "gtk4", "qt", "kcolorscheme", "btop", "starship"]
+
+[shell]
+font_family = "Inter"
+time_format = "{:%H:%M}"
+date_format = "%a %d %b"
+telemetry_enabled = false
+polkit_agent = true
+clipboard_enabled = true
+clipboard_history_max_entries = 200
+corner_radius_scale = 1.0
+
+[shell.animation]
+enabled = false
+speed = 3.0
+
+# Bottom taskbar with launcher, running task buttons, system tray, audio, battery, and clock
+[bar.main]
+position = "bottom"
+thickness = 38
+background_opacity = 0.94
+compositor_blur = true
+radius = 0
+margin_ends = 0
+margin_edge = 0
+padding = 10
+widget_spacing = 6
+shadow = false
+capsule = true
+start = ["launcher", "taskbar"]
+center = []
+end = ["tray", "network", "bluetooth", "volume", "battery", "clock", "control-center"]
+
+[widget.taskbar]
+group_by_workspace = false
+hide_empty_workspaces = true
+show_window_title = true
+
+[wallpaper]
+enabled = true
+fill_mode = "crop"
+transition = ["fade"]
+transition_duration = 300
+directory = "/home/marek/Pictures/Wallpapers"
+
+[wallpaper.default]
+path = "/home/marek/Pictures/Wallpapers/keys-labwc.png"
+
+[wallpaper.automation]
+enabled = false
+
+[lockscreen]
+enabled = true
+fingerprint = true
+blurred_desktop = true
+blur_intensity = 0.7
+tint_intensity = 0.35
+transition = ["fade"]
+transition_duration = 100
+
+[idle.behavior.lock]
+timeout = 3600
+action = "lock"
+enabled = true
+
+[idle.behavior.screen-off]
+timeout = 3660
+action = "screen_off"
+enabled = true
+
+[[control_center.shortcuts]]
+type = "wifi"
+[[control_center.shortcuts]]
+type = "bluetooth"
+[[control_center.shortcuts]]
+type = "nightlight"
+[[control_center.shortcuts]]
+type = "notification"
+[[control_center.shortcuts]]
+type = "power_profile"
+
+[weather]
+enabled = false
+
+[nightlight]
+enabled = true
+temperature_day = 6500
+temperature_night = 4000
+
+[notification]
+enable_daemon = true
+background_opacity = 0.94
+border = false
+
+[dock]
+enabled = false
