@@ -297,15 +297,33 @@ step_security() {
 }
 
 step_snapper() {
-    log "snapper snapshot configuration"
+    log "snapper snapshot configuration (root only; home and timeline disabled)"
     [[ -f /etc/snapper/configs/root ]] || snapper create-config / 2>/dev/null || true
 
-    # Snapshots: only root is maintained for system update snapshots (snapper-zypp-plugin).
-    # Home snapshots and periodic timeline snapshots are disabled.
+    # Configure root: only zypper package pre/post pairs are kept; periodic timeline disabled
     if [[ -f /etc/snapper/configs/root ]]; then
-        sed -i "s|^TIMELINE_CREATE=.*|TIMELINE_CREATE=\"no\"|" "/etc/snapper/configs/root"
+        sed -i 's|^TIMELINE_CREATE=.*|TIMELINE_CREATE="no"|' /etc/snapper/configs/root
+        sed -i 's|^TIMELINE_CLEANUP=.*|TIMELINE_CLEANUP="yes"|' /etc/snapper/configs/root
+        sed -i 's|^NUMBER_CLEANUP=.*|NUMBER_CLEANUP="yes"|' /etc/snapper/configs/root
+        sed -i 's|^NUMBER_MIN_AGE=.*|NUMBER_MIN_AGE="1800"|' /etc/snapper/configs/root
+        sed -i "s|^NUMBER_LIMIT=.*|NUMBER_LIMIT=\"${SNAP_ROOT_LIMIT:-10}\"|" /etc/snapper/configs/root
+        sed -i "s|^NUMBER_LIMIT_IMPORTANT=.*|NUMBER_LIMIT_IMPORTANT=\"${SNAP_ROOT_LIMIT_IMPORTANT:-4}\"|" /etc/snapper/configs/root
+        for limit in HOURLY DAILY WEEKLY MONTHLY YEARLY; do
+            sed -i "s|^TIMELINE_LIMIT_${limit}=.*|TIMELINE_LIMIT_${limit}=\"0\"|" /etc/snapper/configs/root
+        done
     fi
 
+    # Decommission legacy home snapper config and snapshot subvolumes if present
+    if [[ -f /etc/snapper/configs/home ]] || snapper list-configs 2>/dev/null | grep -qw home; then
+        log "decommissioning legacy home snapper configuration and snapshots..."
+        snapper -c home delete-config 2>/dev/null || rm -f /etc/snapper/configs/home 2>/dev/null || true
+        if mountpoint -q /home/.snapshots 2>/dev/null; then
+            umount /home/.snapshots 2>/dev/null || true
+        fi
+        btrfs subvolume delete /home/.snapshots 2>/dev/null || rm -rf /home/.snapshots 2>/dev/null || true
+    fi
+
+    # Stop timeline timer, ensure cleanup timer is active for pruning old package snapshots
     systemctl disable --now snapper-timeline.timer 2>/dev/null || true
     systemctl enable --now snapper-cleanup.timer 2>/dev/null || true
 }

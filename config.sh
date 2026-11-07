@@ -12,8 +12,9 @@
 #               for the passphrase once, ~2 s, no grub wait. ENCRYPT=no = plain btrfs, no passphrase
 #   swap        plain swapfile on disk (@swap subvolume); no zram, zswap disabled
 #   btrfs       @ / @home / @snapshots / @var_log / @var_cache / @var_tmp / @swap, /tmp is tmpfs
-#   snapshots   snapper, root + home every 15 min; caches, logs, temp, swap, snapshots are separate
-#               subvolumes so they are never snapshotted; grub2-snapper-plugin lists snapshots in the boot menu
+#   snapshots   snapper on root only (pre/post via snapper-zypp-plugin on zypper package changes);
+#               periodic timeline snapshots disabled; /home is never snapshotted (kept separate in @home);
+#               grub2-snapper-plugin lists bootable snapshots in the boot menu
 #   desktop     Wayland: Labwc + Sfwbar (lightweight windowed stacking compositor, Openbox feel)
 #               and KDE Plasma 6 (both installed, selectable at SDDM login)
 #   look        minimal: dark palette, taskbar with window buttons + tray, Inter + JetBrains Mono,
@@ -64,13 +65,9 @@ REPO_OSS=https://download.opensuse.org/tumbleweed/repo/oss
 REPO_NON_OSS=https://download.opensuse.org/tumbleweed/repo/non-oss
 REPO_PACKMAN=https://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Tumbleweed
 
-SNAPSHOT_EVERY_MIN=15
-SNAP_KEEP_HOURLY=24     # older 15-min snapshots collapse into hourly/daily/... after 1 h
-SNAP_KEEP_DAILY=7
-SNAP_KEEP_WEEKLY=4
-SNAP_KEEP_MONTHLY=3
-# Paths under /home/$USERNAME turned into nested subvolumes = excluded from home snapshots.
-HOME_NOSNAP=(.cache .local/share/Trash .local/share/resilio-sync .pcloud pCloud pCloudDrive VMs .local/share/libvirt/images)
+# Snapper root snapshot retention (zypper pre/post pairs only; timeline disabled)
+SNAP_ROOT_LIMIT=10          # keep up to 10 package update snapshot pairs
+SNAP_ROOT_LIMIT_IMPORTANT=4 # keep up to 4 marked important
 
 GREETER=sddm            # login screen: sddm (graphical display manager)
 DEFAULT_SESSION=labwc-suse # default session: labwc-suse or plasma-suse

@@ -4,12 +4,11 @@
 [ -f /etc/sysconfig/snapper ] && . /etc/sysconfig/snapper
 [ -f /etc/conf.d/snapper ] && . /etc/conf.d/snapper
 configs=""
-for c in ${SNAPPER_CONFIGS:-"root home"}; do
+for c in ${SNAPPER_CONFIGS:-"root"}; do
     [ -f "/etc/snapper/configs/$c" ] && configs="$configs $c"
 done
 configs=${configs:-root}
 for c in $configs; do
-# snapper --no-dbus -c "$c" create -c timeline -d "timeline" 2>/dev/null || logger -t snapper-tick "create $c failed"
     snapper --no-dbus -c "$c" cleanup timeline 2>/dev/null || logger -t snapper-tick "timeline cleanup $c failed"
     snapper --no-dbus -c "$c" cleanup number 2>/dev/null || logger -t snapper-tick "number cleanup $c failed"
 done

@@ -70,6 +70,6 @@
   ("zu  ·  zi <pkg>", "zypper dup (auto snapshots) · install"),
   ("nmtui  ·  nmcli wifi", "network manager"),
   ("loginctl suspend  ·  hibernate", "sleep / hibernate"),
-  ("snapper -c home list", "list home / root snapshots"),
-  ("~/mySuse/refresh.sh undo", "revert the last refresh safely"),
+  ("snapper -c root list", "list root snapshots (zypper)"),
+  ("snapper rollback <num>", "revert system to snapshot"),
 )

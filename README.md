@@ -1,6 +1,6 @@
 # mySuse
 
-Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots every 15 min, Labwc + Sfwbar (blazing fast windowed Wayland) with KDE Plasma 6 as secondary session, Helium, Floorp, Firefox, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
+Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots on root, Labwc + Sfwbar (blazing fast windowed Wayland) with KDE Plasma 6 as secondary session, Helium, Floorp, Firefox, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
 
 All decisions and hardware options are defined in [config.sh](config.sh).
 
@@ -163,18 +163,13 @@ Both sessions are installed and switchable at the SDDM login screen:
 
 ## Daily Upkeep & Snapshots
 
-- **Updates:** Run `zu` in terminal (an alias for `sudo zypper dup`). Snapper automatically takes pre and post snapshots before and after package changes.
-- **Snapshots list:** Run `snaps` to view root and home snapshot history.
+- **Updates:** Run `zu` in terminal (an alias for `sudo zypper dup`). Snapper automatically takes pre and post snapshots of root before and after package changes.
+- **Snapshots list:** Run `snaps` to view root snapshot history (`snapper -c root list`). User data in `/home` lives on a dedicated subvolume and is never snapshotted or rolled back.
 - **Dotfile updates:** When updating configuration from this repository, run:
   ```bash
   ~/mySuse/refresh.sh
   ```
-  This creates safety snapshots, updates dotfiles, and re-applies Plasma configuration in place.
-- **Undo last change:**
-  ```bash
-  ~/mySuse/refresh.sh undo
-  ```
-  Reverts the changes made by the last refresh run safely.
+  This updates dotfiles (saving previous versions to `~/.backup`) and re-applies live session configurations without restarting.
 
 ---
 

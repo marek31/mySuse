@@ -82,6 +82,6 @@
   ("zu  ·  zi <pkg>", "update all  ·  install (snapper snapshots)"),
   ("nmtui  ·  nmcli device wifi", "wifi"),
   ("loginctl suspend  ·  hibernate", "sleep"),
-  ("snapper -c home list", "snapshots (also root)"),
-  ("~/mySuse/refresh.sh undo", "revert the last refresh"),
+  ("snapper -c root list", "root snapshots (zypper)"),
+  ("snapper rollback <num>", "revert system to snapshot"),
 )
