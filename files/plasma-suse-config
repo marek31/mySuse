@@ -96,7 +96,7 @@ w kcminputrc --group Keyboard --key KeyboardRepeating 0
 w kcminputrc --group Keyboard --key RepeatDelay 200
 w kcminputrc --group Keyboard --key RepeatRate 100
 w kcminputrc --group Mouse --key cursorTheme Bibata-Modern-Classic
-w kcminputrc --group Mouse --key cursorSize 24
+w kcminputrc --group Mouse --key cursorSize 30
 
 # touchpad & mouse (low friction / inertia scrolling matching Windows touchpad.reg)
 w kcminputrc --group Libinput --key ScrollFactor 1.5

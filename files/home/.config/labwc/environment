@@ -10,4 +10,4 @@ _JAVA_AWT_WM_NONREPARENTING=1
 
 # Cursor theme and size (optimal for 4K display)
 XCURSOR_THEME=breeze_cursors
-XCURSOR_SIZE=36
+XCURSOR_SIZE=30
