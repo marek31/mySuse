@@ -80,6 +80,7 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Changelog
 
+- 2026-11-08: Synchronized fast keyboard repeating (200ms delay, 100 repeats/s rate, NumLock off) from Windows settings across Labwc, Xwayland, GNOME/GTK, and KDE Plasma. Reduced mouse scroll lines jumped by 1/3 (Labwc non-touch scrollFactor 0.67, Plasma wheelScrollLines 2 & mouse ScrollFactor 1.0).
 - 2026-11-07: Integrated Noctalia desktop shell (`noctalia-dev/noctalia`) with Labwc: bottom capsule taskbar with launcher, running task buttons, system tray, control center (audio, brightness, Wi-Fi, Bluetooth, night light, power profile), lock screen with fingerprint support, notification daemon, and interactive screenshot & annotation tool.
 - 2026-11-07: Upgraded Labwc desktop experience: integrated custom Tokyo-Night-Modern theme with 8px rounded corners and SVG window controls, 30px balanced 4K cursor scaling, thumbnail Alt-Tab OSD, and restored optimal TLP power settings (removed CPU/GPU frequency floors, balance_performance EPP, ASPM powersave, systemd-boot kernel cmdline power tuning, idle CPU power reduced from ~12W to ~2-3W).
 - 2026-11-07: Added lightweight windowed Wayland desktop session: Labwc + Sfwbar. Integrated Kanshi display scaling (1.25x laptop + 1.5x 4K), Fuzzel launcher, Mako notifications, and dual SDDM session selector.

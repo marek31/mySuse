@@ -5,6 +5,15 @@
 # 1. Import Wayland environment into systemd and DBus user sessions
 dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=labwc:wlroots XDG_SESSION_TYPE=wayland
 
+# 1b. Fast keyboard repeat rate (matching Windows set_fast_keyboard: delay 200ms, rate 100 repeats/s)
+if command -v xset >/dev/null 2>&1; then
+    xset r rate 200 100 &
+fi
+if command -v gsettings >/dev/null 2>&1; then
+    gsettings set org.gnome.desktop.peripherals.keyboard delay 200 2>/dev/null || true
+    gsettings set org.gnome.desktop.peripherals.keyboard repeat-interval 10 2>/dev/null || true
+fi
+
 # 2. Polkit authentication agent (GNOME or KDE fallback)
 for agent in \
     /usr/libexec/polkit-gnome-authentication-agent-1 \

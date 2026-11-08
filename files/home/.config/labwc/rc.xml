@@ -65,6 +65,9 @@
   </windowSwitcher>
 
   <keyboard>
+    <numlock>off</numlock>
+    <repeatRate>100</repeatRate>
+    <repeatDelay>200</repeatDelay>
     <default />
 
     <!-- Terminal & Launcher -->
@@ -224,6 +227,15 @@
       </mousebind>
     </context>
   </mouse>
+
+  <libinput>
+    <device category="non-touch">
+      <scrollFactor>0.67</scrollFactor>
+    </device>
+    <device category="Bluetooth Mouse M336/M337/M535 Mouse">
+      <scrollFactor>0.67</scrollFactor>
+    </device>
+  </libinput>
 
   <windowRules>
     <windowRule identifier="pavucontrol" serverDecoration="yes">
