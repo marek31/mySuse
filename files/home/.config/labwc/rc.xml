@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <labwc_config>
+  <core>
+    <!-- Defer output control completely to kanshi for multi-monitor hotplugging & docking -->
+    <autoOutputs>no</autoOutputs>
+    <autoEnableOutputs>no</autoEnableOutputs>
+  </core>
+
   <desktops>
     <number>4</number>
     <names>
@@ -27,7 +33,12 @@
 
   <theme>
     <name>Tokyo-Night-Modern</name>
-    <cornerRadius>8</cornerRadius>
+    <cornerRadius>10</cornerRadius>
+    <dropShadows>yes</dropShadows>
+    <titleProvider>NLIMC</titleProvider>
+    <titlebar>
+      <layout>icon:iconify,max,close</layout>
+    </titlebar>
     <font place="ActiveWindow">
       <name>Inter</name>
       <size>10</size>

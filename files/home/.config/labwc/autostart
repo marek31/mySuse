@@ -1,13 +1,11 @@
 #!/bin/sh
 # Labwc autostart script for mySuse
+# Sequentially orchestrates core Wayland desktop daemons
 
-# Import Wayland environment into systemd and DBus user sessions
+# 1. Import Wayland environment into systemd and DBus user sessions
 dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=labwc:wlroots XDG_SESSION_TYPE=wayland
 
-# Display configuration & dynamic scaling (kanshi)
-kanshi &
-
-# Polkit authentication agent
+# 2. Polkit authentication agent (GNOME or KDE fallback)
 for agent in \
     /usr/libexec/polkit-gnome-authentication-agent-1 \
     /usr/lib/polkit-gnome-authentication-agent-1 \
@@ -19,8 +17,32 @@ for agent in \
     fi
 done
 
-# EasyEffects background service (Dolby Atmos speaker profile)
-easyeffects --gapplication-service &
+# 3. Dynamic display configuration & multi-monitor automation (Kanshi)
+kanshi &
 
-# Noctalia desktop shell (bar, wallpaper, notifications, lockscreen, control center)
+# 4. Clipboard history manager (wl-clipboard + cliphist)
+if command -v wl-paste >/dev/null 2>&1 && command -v cliphist >/dev/null 2>&1; then
+    wl-paste --type text --watch cliphist store &
+    wl-paste --type image --watch cliphist store &
+fi
+
+# 5. Screen idle, screen blanking & locking (swayidle)
+if command -v swayidle >/dev/null 2>&1; then
+    swayidle -w \
+        timeout 300 'noctalia msg lock 2>/dev/null || swaylock -f -c 1a1b26' \
+        timeout 600 'wlr-randr --output eDP-1 --off 2>/dev/null' \
+        resume 'wlr-randr --output eDP-1 --on 2>/dev/null' \
+        before-sleep 'noctalia msg lock 2>/dev/null || swaylock -f -c 1a1b26' &
+fi
+
+# 6. Audio enhancement daemon (Dolby Atmos quad-speaker profile)
+if command -v easyeffects >/dev/null 2>&1; then
+    easyeffects --gapplication-service &
+fi
+
+# 7. Hardware applets (Network & Bluetooth tray icons)
+command -v nm-applet >/dev/null 2>&1 && nm-applet --indicator &
+command -v blueman-applet >/dev/null 2>&1 && blueman-applet &
+
+# 8. Noctalia desktop shell (capsule bar, wallpaper, notifications, lockscreen, control center)
 noctalia -d &

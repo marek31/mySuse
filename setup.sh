@@ -651,39 +651,39 @@ EOF
         flatpak install -y --noninteractive flathub io.missioncenter.MissionCenter 2>/dev/null || true
     fi
 
-    # Sfwbar taskbar
-    if [[ ! -x /usr/local/bin/sfwbar ]] || [[ ! -f /usr/local/share/sfwbar/.version ]]; then
-        log "building and installing sfwbar..."
-        local ssrc=/var/cache/sfwbar
-        mkdir -p "$ssrc"
-        if [[ -d $ssrc/.git ]]; then
-            git -C "$ssrc" pull -q --ff-only 2>/dev/null || true
+    # Noctalia modern desktop shell (if not already installed via zypper)
+    if ! command -v noctalia >/dev/null 2>&1; then
+        log "building and installing Noctalia from source..."
+        local nsrc=/var/cache/noctalia
+        mkdir -p "$nsrc"
+        if [[ -d $nsrc/.git ]]; then
+            git -C "$nsrc" pull -q --ff-only 2>/dev/null || true
         else
-            git clone -q --depth 1 https://github.com/LBCrion/sfwbar.git "$ssrc" 2>/dev/null || warn "sfwbar clone failed"
+            git clone -q --depth 1 https://github.com/noctalia-dev/noctalia.git "$nsrc" 2>/dev/null || warn "Noctalia clone failed"
         fi
-        if [[ -f $ssrc/meson.build ]]; then
+        if [[ -f $nsrc/meson.build ]]; then
             (
-                cd "$ssrc"
+                cd "$nsrc"
                 rm -rf build
                 meson setup build -Dprefix=/usr/local --buildtype=release >/dev/null 2>&1
                 ninja -C build -j "$(nproc)" >/dev/null 2>&1
                 ninja -C build install >/dev/null 2>&1
             ) && {
-                mkdir -p /usr/local/share/sfwbar
-                date +%F > /usr/local/share/sfwbar/.version
-                log "sfwbar installed to /usr/local/bin/sfwbar"
-            } || warn "sfwbar compilation failed; verify build dependencies"
+                mkdir -p /usr/local/share/noctalia
+                date +%F > /usr/local/share/noctalia/.version
+                log "Noctalia installed to /usr/local/bin/noctalia"
+            } || warn "Noctalia compilation failed; check build dependencies"
         fi
     fi
 }
 
 step_login() {
-    log "login screen: SDDM (Labwc + Sfwbar & KDE Plasma 6 sessions)"
+    log "login screen: SDDM (Labwc + Noctalia & KDE Plasma 6 sessions)"
     mkdir -p /usr/share/wayland-sessions
     put 644 /usr/share/wayland-sessions/labwc-suse.desktop <<EOF
 [Desktop Entry]
 Name=Labwc (mySuse)
-Comment=Lightweight Windowed Wayland Compositor with Sfwbar
+Comment=Modern Stacking Wayland Compositor with Noctalia Shell
 Exec=/usr/local/bin/labwc-suse-session
 Type=Application
 DesktopNames=labwc;wlroots

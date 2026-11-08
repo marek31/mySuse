@@ -15,7 +15,7 @@
 #   snapshots   snapper on root only (pre/post via snapper-zypp-plugin on zypper package changes);
 #               periodic timeline snapshots disabled; /home is never snapshotted (kept separate in @home);
 #               grub2-snapper-plugin lists bootable snapshots in the boot menu
-#   desktop     Wayland: Labwc + Sfwbar (lightweight windowed stacking compositor, Openbox feel)
+#   desktop     Wayland: Labwc + Noctalia (modern windowed stacking compositor and desktop shell)
 #               and KDE Plasma 6 (both installed, selectable at SDDM login)
 #   look        minimal: dark palette, taskbar with window buttons + tray, Inter + JetBrains Mono,
 #               Bibata cursor, Hokusai "Great Wave" wallpaper (public domain)

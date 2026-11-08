@@ -1,5 +1,5 @@
 #!/bin/sh
-# Labwc + Sfwbar session for mySuse: lightweight stacking Wayland compositor.
+# Labwc + Noctalia session for mySuse: modern stacking Wayland compositor.
 # Started by the display manager (SDDM). Log: ~/.local/state/labwc/<date>-labwc.log, 14 days kept.
 export XDG_SESSION_TYPE=wayland
 export XDG_CURRENT_DESKTOP=labwc:wlroots

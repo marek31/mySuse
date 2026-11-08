@@ -1,0 +1,52 @@
+# Tokyo Night / Catppuccin Mocha Modern Labwc themerc-override
+# Subtle borders, rounded corners, drop shadows, and styled controls
+
+# Window borders
+border.width: 1
+window.active.border.color: #3b4261
+window.inactive.border.color: #1f2335
+
+# Titlebar geometry & padding
+window.titlebar.padding.width: 12
+window.titlebar.padding.height: 6
+
+# Titlebar backgrounds (Dark palette)
+window.active.title.bg: Solid
+window.active.title.bg.color: #1a1b26
+window.inactive.title.bg: Solid
+window.inactive.title.bg.color: #16161e
+
+# Title label text
+window.active.label.text.color: #c0caf5
+window.inactive.label.text.color: #565f89
+window.label.text.justify: center
+
+# Window control buttons
+window.button.width: 26
+window.button.height: 26
+window.button.spacing: 6
+window.button.hover.bg.color: #ffffff15
+window.button.hover.bg.corner-radius: 13
+
+# Drop shadows
+window.active.shadow.size: 45
+window.inactive.shadow.size: 25
+window.active.shadow.color: #00000080
+window.inactive.shadow.color: #00000045
+
+# Snapping region overlay
+snapping.overlay.region.bg.color: #7aa2f733
+snapping.overlay.edge.bg.color: #7aa2f733
+snapping.overlay.region.border.width: 2
+snapping.overlay.edge.border.width: 2
+snapping.overlay.region.border.color: #7aa2f7
+snapping.overlay.edge.border.color: #7aa2f7
+
+# Context Menu
+menu.border.width: 1
+menu.border.color: #3b4261
+menu.items.bg.color: #1a1b26
+menu.items.text.color: #c0caf5
+menu.items.active.bg.color: #7aa2f7
+menu.items.active.text.color: #15161e
+menu.separator.color: #292e42
