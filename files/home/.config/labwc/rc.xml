@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <labwc_config>
   <core>
-    <!-- Defer output control completely to kanshi for multi-monitor hotplugging & docking -->
-    <autoOutputs>no</autoOutputs>
-    <autoEnableOutputs>no</autoEnableOutputs>
+    <!-- Automatically enable newly connected displays upon hotplug -->
+    <autoEnableOutputs>yes</autoEnableOutputs>
   </core>
 
   <desktops>
