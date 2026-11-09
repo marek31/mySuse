@@ -44,7 +44,7 @@ dejavu-fonts liberation-fonts croscore-fonts
 google-roboto-fonts symbols-only-nerd-fonts
 
 # --- files, media, desktop apps ---
-foot thunar thunar-volman thunar-plugin-archive gvfs
+foot wlrctl lswt thunar thunar-volman thunar-plugin-archive gvfs
 udisks2 ntfs-3g dosfstools
 okular zathura zathura-plugin-pdf-poppler sioyek xournalpp pdfarranger poppler-tools qpdf ghostwriter glow
 geeqie qimgv imv mpv vlc strawberry gimp kolourpaint krita audacity ffmpeg yt-dlp
