@@ -7,8 +7,9 @@
 
 #section(blue, "Apps & Shell",
   ("Meta+1 .. 6", "taskbar apps (Helium, Files...)"),
-  ("Meta+Return", "terminal (foot)"),
-  ("Meta / Meta+D", "launcher (Noctalia)"),
+  ("Meta+Return", "terminal (footclient)"),
+  ("Meta / Meta+D / Space", "launcher (fuzzel)"),
+  ("Meta+Shift+D", "launcher panel (Noctalia)"),
   ("Meta+A", "control center (Noctalia)"),
   ("Meta+,", "Noctalia settings"),
   ("Meta+B / Shift+B", "Helium / Opera"),

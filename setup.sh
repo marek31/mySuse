@@ -188,7 +188,7 @@ REPO_EOF
     fi
 
     # Kick out unwanted vendor, bloat, or obsolete packages
-    local bloat=(hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman NetworkManager-applet file-roller niri xwayland-satellite greetd tuigreet icewm icewm-default icewm-config-upstream icewm-lang)
+    local bloat=(hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman NetworkManager-applet file-roller niri xwayland-satellite greetd tuigreet icewm icewm-default icewm-config-upstream icewm-lang mako cliphist)
     local to_rm=()
     for p in "${bloat[@]}"; do
         rpm -q "$p" >/dev/null 2>&1 && to_rm+=("$p")
@@ -211,8 +211,11 @@ REPO_EOF
         pkill -f hp-toolbox 2>/dev/null || true
         pkill -f nm-applet 2>/dev/null || true
         pkill -f blueman-applet 2>/dev/null || true
+        pkill -f blueman-tray 2>/dev/null || true
         pkill -f udiskie 2>/dev/null || true
         pkill -f floorp 2>/dev/null || true
+        pkill -f "cliphist store" 2>/dev/null || true
+        killall mako 2>/dev/null || true
         command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database /usr/share/applications 2>/dev/null || true
         command -v kbuildsycoca6 >/dev/null 2>&1 && kbuildsycoca6 2>/dev/null || true
     fi
@@ -392,7 +395,7 @@ step_desktop() {
 PATH=/usr/local/bin:/usr/bin:/usr/sbin:/bin
 # package index refresh so update-notify can count updates
 17 */6 * * * root zypper refresh >/dev/null 2>&1
-# Helium, Floorp, Resilio, RustDesk, fonts, cursor: daily upkeep
+# Helium, Opera, Resilio, RustDesk, fonts, cursor: daily upkeep
 47 * * * * root power-ok 80 && ! find /var/lib/mysuse/apps.stamp -mmin -1440 2>/dev/null | grep -q . && /usr/local/lib/mysuse/setup.sh apps >/dev/null 2>&1 && touch /var/lib/mysuse/apps.stamp
 # monthly btrfs scrub
 0 11 1 * * root btrfs scrub start -Bd / >/dev/null 2>&1 || logger -t mysuse "btrfs scrub reported errors"
@@ -402,8 +405,11 @@ PATH=/usr/local/bin:/usr/bin:/usr/sbin:/bin
 */2 * * * * root battery-guard
 EOF
 
-    # PipeWire user services
-    systemctl --user --global enable pipewire wireplumber pipewire-pulse 2>/dev/null || true
+    # User services (PipeWire audio, Foot server socket, mask duplicate mako)
+    systemctl --user --global enable pipewire wireplumber pipewire-pulse foot-server.socket 2>/dev/null || true
+    systemctl --user --global mask mako.service 2>/dev/null || true
+    as_user systemctl --user enable --now foot-server.socket 2>/dev/null || true
+    as_user systemctl --user mask mako.service 2>/dev/null || true
 
     step_dotfiles
 }

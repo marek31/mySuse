@@ -29,11 +29,7 @@ done
 # 3. Dynamic display configuration & multi-monitor automation (Kanshi)
 kanshi &
 
-# 4. Clipboard history manager (wl-clipboard + cliphist)
-if command -v wl-paste >/dev/null 2>&1 && command -v cliphist >/dev/null 2>&1; then
-    wl-paste --type text --watch cliphist store &
-    wl-paste --type image --watch cliphist store &
-fi
+# 4. Clipboard history manager (handled natively by Noctalia's integrated clipboard daemon)
 
 # 5. Screen idle, screen blanking & locking (swayidle)
 if command -v swayidle >/dev/null 2>&1; then
@@ -49,9 +45,7 @@ if command -v easyeffects >/dev/null 2>&1; then
     easyeffects --gapplication-service &
 fi
 
-# 7. Hardware applets (Network & Bluetooth tray icons)
-command -v nm-applet >/dev/null 2>&1 && nm-applet --indicator &
-command -v blueman-applet >/dev/null 2>&1 && blueman-applet &
+# 7. Hardware applets (Network & Bluetooth handled natively by Noctalia Control Center)
 
 # 8. Noctalia desktop shell (capsule bar, wallpaper, notifications, lockscreen, control center)
 noctalia -d &
