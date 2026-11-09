@@ -585,8 +585,29 @@ step_apps() {
     if [[ -n $h_url ]]; then
         opt_install /opt/helium "$h_url" 1 "$h_url"
         put 755 /usr/local/bin/helium <<'EOF'
-#!/bin/sh
-exec /opt/helium/helium --password-store=gnome-libsecret --enable-features=VaapiVideoDecodeLinuxGL "$@"
+#!/bin/bash
+# Launch Helium with hardware acceleration, secret store, and unpacked extensions
+EXT_BASE="${XDG_DATA_HOME:-$HOME/.local/share}/helium/extensions/unpacked"
+LOAD_EXTS=()
+
+if [[ -d "$EXT_BASE" ]]; then
+    for ext_dir in "$EXT_BASE"/*; do
+        if [[ -d "$ext_dir" && -f "$ext_dir/manifest.json" ]]; then
+            LOAD_EXTS+=("$ext_dir")
+        fi
+    done
+fi
+
+if [[ -d "$HOME/Github/mydata/code/MMBrowserSync/extension" ]]; then
+    LOAD_EXTS+=("$HOME/Github/mydata/code/MMBrowserSync/extension")
+fi
+
+EXT_FLAG=""
+if [[ ${#LOAD_EXTS[@]} -gt 0 ]]; then
+    EXT_FLAG="--load-extension=$(IFS=,; echo "${LOAD_EXTS[*]}")"
+fi
+
+exec /opt/helium/helium --password-store=gnome-libsecret --enable-features=VaapiVideoDecodeLinuxGL $EXT_FLAG "$@"
 EOF
         desktop_entry helium "Helium" /usr/local/bin/helium /opt/helium/product_logo_128.png \
             "Network;WebBrowser;" "text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;"
