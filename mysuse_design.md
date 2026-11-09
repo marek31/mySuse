@@ -71,6 +71,7 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Changelog
 
+- 2026-11-09: Reduced Noctalia taskbar icon and bar dimensions on Dell 4K display (`HDMI-A-1`) by 25% via per-monitor override (`scale = 1.125`, `thickness = 51`, `padding = 8`) while keeping 1.5x on laptop panel. Restored Alt-Tab window switcher visual previews across all monitors (`osd output="all"`, `NextWindow workspace="all"`, and explicit Tokyo Night thumbnail theme properties in `themerc-override`).
 - 2026-11-09: Scaled Noctalia taskbar icons and bar widgets by 1.5x (`scale = 1.5`, `icon_scale = 1.5`, `thickness = 68`, `padding = 10`) for improved readability and touch/target acquisition on high-DPI displays.
 - 2026-11-09: Scaled mouse cursor down by 1/3 (reduced from 30px to 20px) across Labwc environment, GTK 3/4, XSettings, and KDE defaults. Configured libinput adaptive acceleration profile (`accelProfile: adaptive`, `pointerSpeed: 0.2`) across all pointer devices for precision in small micro-movements and speed across long screen distances.
 - 2026-11-09: Removed KDE Plasma 6 secondary desktop environment, configuration scripts, and patterns; streamlined system exclusively around Labwc + Noctalia modern stacking Wayland environment.

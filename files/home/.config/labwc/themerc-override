@@ -50,3 +50,27 @@ menu.items.text.color: #c0caf5
 menu.items.active.bg.color: #7aa2f7
 menu.items.active.text.color: #15161e
 menu.separator.color: #292e42
+
+# On Screen Display (OSD / Alt-Tab Window Switcher)
+osd.bg.color: #1a1b26
+osd.border.color: #7aa2f7
+osd.border.width: 2
+osd.label.text.color: #c0caf5
+
+osd.window-switcher.style-thumbnail.width.max: 80%
+osd.window-switcher.style-thumbnail.padding: 8
+osd.window-switcher.style-thumbnail.item.width: 320
+osd.window-switcher.style-thumbnail.item.height: 240
+osd.window-switcher.style-thumbnail.item.padding: 12
+osd.window-switcher.style-thumbnail.item.active.border.width: 2
+osd.window-switcher.style-thumbnail.item.active.border.color: #7aa2f7
+osd.window-switcher.style-thumbnail.item.active.bg.color: #24283b
+osd.window-switcher.style-thumbnail.item.icon.size: 64
+
+osd.window-switcher.style-classic.width: 650
+osd.window-switcher.style-classic.padding: 8
+osd.window-switcher.style-classic.item.padding.x: 14
+osd.window-switcher.style-classic.item.padding.y: 4
+osd.window-switcher.style-classic.item.active.border.width: 1
+osd.window-switcher.style-classic.item.active.border.color: #7aa2f7
+osd.window-switcher.style-classic.item.active.bg.color: #283457

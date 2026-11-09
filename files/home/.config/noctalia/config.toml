@@ -41,6 +41,12 @@ start = ["launcher", "taskbar"]
 center = []
 end = ["tray", "network", "bluetooth", "volume", "battery", "clock", "control-center"]
 
+# 4K external monitor override: 25% smaller icons/bar (scale 1.125, thickness 51)
+[bar.main.monitor."HDMI-A-1"]
+scale = 1.125
+thickness = 51
+padding = 8
+
 [widget.taskbar]
 icon_scale = 1.5
 group_by_workspace = false

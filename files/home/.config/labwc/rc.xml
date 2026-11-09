@@ -61,7 +61,12 @@
   </theme>
 
   <windowSwitcher preview="yes" outlines="yes">
-    <osd show="yes" style="thumbnail" output="cursor" thumbnailLabelFormat="%T" />
+    <osd show="yes" style="thumbnail" output="all" thumbnailLabelFormat="%T" />
+    <fields>
+      <field content="icon" width="5%" />
+      <field content="desktop_entry_name" width="30%" />
+      <field content="title" width="65%" />
+    </fields>
   </windowSwitcher>
 
   <keyboard>
@@ -133,10 +138,10 @@
       <action name="ToggleAlwaysOnTop" />
     </keybind>
     <keybind key="A-Tab">
-      <action name="NextWindow" />
+      <action name="NextWindow" workspace="all" />
     </keybind>
     <keybind key="A-S-Tab">
-      <action name="PreviousWindow" />
+      <action name="PreviousWindow" workspace="all" />
     </keybind>
 
     <!-- Snapping (Half-screen / Tiling) -->
