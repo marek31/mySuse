@@ -1,7 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=PipeWire
-Comment=Audio server
-Exec=pipewire
-OnlyShowIn=KDE;
-NoDisplay=true

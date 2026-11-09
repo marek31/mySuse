@@ -16,7 +16,6 @@
 #               periodic timeline snapshots disabled; /home is never snapshotted (kept separate in @home);
 #               grub2-snapper-plugin lists bootable snapshots in the boot menu
 #   desktop     Wayland: Labwc + Noctalia (modern windowed stacking compositor and desktop shell)
-#               and KDE Plasma 6 (both installed, selectable at SDDM login)
 #   look        minimal: dark palette, taskbar with window buttons + tray, Inter + JetBrains Mono,
 #               Bibata cursor, Hokusai "Great Wave" wallpaper (public domain)
 #   dev         Go, Rust (rustup), Common Lisp (SBCL), Deno, Claude Code, Antigravity CLI (agy), oh-my-pi (omp), nanobot, Git Credential Manager (GCM), GitHub Desktop
@@ -48,7 +47,7 @@ LANG_FORMATS=pl_PL.UTF-8 # dates, money, paper (A4), units
 CONSOLE_KEYMAP=pl2
 CONSOLE_FONT=eurlatgr   # readable console font
 XKB_LAYOUT=pl           # "pl" basic variant == Polish (programmer's)
-DISPLAY_SCALE=1.25      # laptop panel (eDP-1, 1920x1200 14") in Plasma; 1.0-1.5 are sane
+DISPLAY_SCALE=1.25      # laptop panel (eDP-1, 1920x1200 14") in Kanshi; 1.0-1.5 are sane
 DISPLAY_SCALE_4K=1.5    # external 4K monitors (Dell G3223Q 32"); Windows uses 150 % on it
 
 INSTALL_MODE=""         # free = new partition in the largest unallocated area, keep Windows (dual boot)
@@ -70,7 +69,7 @@ SNAP_ROOT_LIMIT=10          # keep up to 10 package update snapshot pairs
 SNAP_ROOT_LIMIT_IMPORTANT=4 # keep up to 4 marked important
 
 GREETER=sddm            # login screen: sddm (graphical display manager)
-DEFAULT_SESSION=labwc-suse # default session: labwc-suse or plasma-suse
+DEFAULT_SESSION=labwc-suse # default session: labwc-suse
 
 SUDO_TIMEOUT_MIN=1440   # ask for the sudo password once per day
 RESILIO_PORT=55555      # fixed listening port, opened in the firewall

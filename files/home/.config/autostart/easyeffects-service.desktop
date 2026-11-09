@@ -1,6 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=EasyEffects (speaker tuning)
-Exec=easyeffects --service-mode --hide-window
-OnlyShowIn=KDE;
-NoDisplay=true

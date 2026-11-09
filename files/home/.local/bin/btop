@@ -3,16 +3,6 @@ set -euo pipefail
 
 # Check if the actual btop binary is already running
 if pidof /usr/bin/btop >/dev/null 2>&1; then
-    # Focus existing btop window in KWin
-    JS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/mysuse"
-    JS_FILE="$JS_DIR/activate-btop.js"
-    if [ -f "$JS_FILE" ]; then
-        NUM=$(qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript "$JS_FILE" "activate_btop" 2>/dev/null || true)
-        if [ -n "$NUM" ]; then
-            qdbus6 org.kde.KWin "/Scripting/Script$NUM" org.kde.kwin.Script.run 2>/dev/null || true
-            qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.unloadScript "activate_btop" 2>/dev/null || true
-        fi
-    fi
     exit 0
 fi
 

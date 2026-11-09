@@ -19,7 +19,7 @@ if status is-interactive
 
     # Auto-install MMAutoKey once mydata is downloaded from GitHub
     if not test -f ~/.config/autostart/mmautokey.desktop
-        for d in ~/Github/mydata/code/MMAutoKey_linux ~/GitHub/mydata/code/MMAutoKey_linux
+        for d in ~/Github/mydata/code/MMAutoKey ~/GitHub/mydata/code/MMAutoKey ~/Github/mydata/code/MMAutoKey_linux ~/GitHub/mydata/code/MMAutoKey_linux
             if test -f "$d/install.sh"
                 bash "$d/install.sh" >/dev/null 2>&1 &
                 break

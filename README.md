@@ -1,6 +1,6 @@
 # mySuse
 
-Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots on root, Labwc + Noctalia (modern desktop shell on stacking Wayland) with KDE Plasma 6 as secondary session, Helium, Floorp, Firefox, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
+Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots on root, Labwc + Noctalia (modern desktop shell on stacking Wayland), Helium, Floorp, Firefox, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
 
 All decisions and hardware options are defined in [config.sh](config.sh).
 
@@ -51,7 +51,7 @@ You can set up `mySuse` in two ways:
 2. Proceed through the installer:
    - **Partitioning:** Use the Guided Setup. Select Btrfs with snapshots. When installing alongside Windows, YaST automatically targets the unallocated space and reuses the existing EFI partition.
    - **Encryption:** Check "Enable disk encryption" (LUKS2) if desired.
-   - **Desktop:** Pick Generic Desktop / Minimal X / KDE Plasma.
+   - **Desktop:** Pick Generic Desktop / Minimal X.
    - **User:** Set your user name to `marek` and enable sudo privileges.
 3. Finish the installation, reboot into openSUSE, and log in.
 4. Open a terminal and run:
@@ -145,19 +145,16 @@ slmgr /ato
 
 ---
 
-## Desktop Environments: Labwc + Noctalia & KDE Plasma 6
+## Desktop Environment: Labwc + Noctalia
 
-Both sessions are installed and switchable at the SDDM login screen:
+Configured as the primary stacking Wayland desktop:
 
-### 1. Labwc + Noctalia (Default · Lightweight Windowed Stacking + Modern Shell)
+### Labwc + Noctalia (Lightweight Windowed Stacking + Modern Shell)
 - **Compositor:** `labwc` (Openbox-style stacking Wayland compositor). Instantaneous launch, zero-latency window movement, and pure static XML configuration (`~/.config/labwc/rc.xml`).
 - **Desktop Shell:** `noctalia` (Modern Wayland Desktop Shell). Provides a bottom taskbar with integrated launcher, running taskbar buttons with focus/minimize, native DBus system tray, control center (audio, brightness, Wi-Fi, Bluetooth, night light, power profile), lock screen with fingerprint support, notification daemon, and interactive screenshot & annotation tool.
 - **Display & Scaling:** `kanshi` handles ThinkPad X1 1.25x laptop scaling and external Dell 4K 1.5x scaling automatically on hotplug.
+- **Display Manager:** Native SDDM configured with automatic session handling into Labwc.
 - **Keybindings:** Super+Return (terminal), Super+D / Super+Space (Noctalia launcher), Super+A (control center), Super+Comma (settings), Super+Q (close), Super+F (maximise), Super+Left/Right/Up (edge snapping), Super+1..4 (workspaces), Super+L / Super+Esc (Noctalia lock), PrtSc (interactive region screenshot & annotate), Shift+PrtSc (full screen screenshot), Super+Shift+/ (cheat sheet), Right-click desktop (app menu).
-
-### 2. KDE Plasma 6 (Alternative)
-- **Look & Feel:** Configured via the custom look-and-feel package (`org.mysuse.desktop`). Features a 40 px vertical panel on the left edge, borderless maximized windows, animations disabled for zero latency, Inter + JetBrains Mono typography, and Papirus icons.
-- **Display Manager:** Native SDDM configured with automatic session handling (remembers your last chosen session).
 
 ---
 

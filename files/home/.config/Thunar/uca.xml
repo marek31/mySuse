@@ -4,11 +4,16 @@
 	<icon>utilities-terminal</icon>
 	<name>Open Terminal Here</name>
 	<unique-id>1-mysuse-terminal</unique-id>
-	<command>foot --working-directory=%f</command>
+	<command>sh -c 'if [ -d "$1" ]; then exec foot -D "$1"; else exec foot -D "$(dirname "$1")"; fi' _ %f</command>
 	<description>Open a terminal in this folder</description>
 	<patterns>*</patterns>
 	<startup-notify/>
 	<directories/>
+	<audio-files/>
+	<image-files/>
+	<other-files/>
+	<text-files/>
+	<video-files/>
 </action>
 <action>
 	<icon>folder-cloud</icon>

@@ -55,3 +55,11 @@ command -v blueman-applet >/dev/null 2>&1 && blueman-applet &
 
 # 8. Noctalia desktop shell (capsule bar, wallpaper, notifications, lockscreen, control center)
 noctalia -d &
+
+# 9. MMAutoKey background keyboard automation daemon
+for bin in "$HOME/GitHub/mydata/code/MMAutoKey/MMAutoKey_linux" "$HOME/Github/mydata/code/MMAutoKey/MMAutoKey_linux"; do
+    if [ -x "$bin" ]; then
+        pgrep -x MMAutoKey_linux >/dev/null 2>&1 || "$bin" &
+        break
+    fi
+done

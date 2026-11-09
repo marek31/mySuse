@@ -1,5 +1,5 @@
 #!/bin/sh
-# Run as yourself inside KDE Plasma or Labwc: pull the repo, install packages/apps/dev tools added since,
+# Run as yourself inside Labwc: pull the repo, install packages/apps/dev tools added since,
 # update dotfiles (prior versions backed up to ~/.backup), and re-apply live session configuration.
 # Note: Zypper packages automatically take pre/post snapshots on root via snapper-zypp-plugin.
 set -e
@@ -25,8 +25,6 @@ if [ "${XDG_CURRENT_DESKTOP#*labwc}" != "$XDG_CURRENT_DESKTOP" ] || pgrep -x lab
         fi
     fi
 fi
-plasma-suse-config -f 2>/dev/null || true
-plasma-displays -f 2>/dev/null || true
 
 if command -v git-credential-manager >/dev/null 2>&1; then
     if ! git credential-manager github list 2>/dev/null | grep -q ':'; then

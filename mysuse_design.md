@@ -21,23 +21,14 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ---
 
-## Desktop Environments
+## Desktop Environment
 
-### 1. Labwc + Noctalia (Primary · Lightweight Windowed Stacking + Modern Shell)
+### Labwc + Noctalia (Lightweight Windowed Stacking + Modern Shell)
 - **Compositor:** `labwc` stacking Wayland compositor inspired by Openbox. Built in C on top of `wlroots`. Delivers instantaneous application launch, zero background churn, pure static declarative configuration in `~/.config/labwc/rc.xml`, and Tokyo-Night-Modern theme with 8px rounded corners and SVG window controls.
 - **Desktop Shell:** `noctalia` (Modern Wayland Desktop Shell). Delivers a modern bottom taskbar with app launcher, running window taskbar buttons (`widget.taskbar`) with focus/minimize, native DBus StatusNotifierItem (SNI) system tray, control center (audio, brightness, Wi-Fi, Bluetooth, night light, power profile), lock screen with fingerprint support, notification daemon, clipboard manager, and interactive screenshot & annotation tool.
 - **Display & Scaling:** `kanshi` handles dynamic multi-monitor profiles and fractional scaling (1.25x laptop, 1.5x Dell 4K) automatically upon hotplug.
+- **Display Manager:** Native SDDM display manager with automatic Wayland session handling launching directly into Labwc + Noctalia.
 - **Session Glue:** `easyeffects` (Dolby Atmos quad-speaker tuning), `swaylock` (fallback lock).
-
-### 2. KDE Plasma 6 (Secondary · Monolithic DE)
-- **Look & Feel:** Configured via the custom look-and-feel package `org.mysuse.desktop`:
-  - Single 40 px vertical panel on the left edge (application launcher, desktop pager, icon-only tasks, system tray, clock).
-  - Borderless maximized windows and no window borders.
-  - Zero latency: animations disabled (`AnimationDurationFactor 0`).
-  - Dark theme with Papirus-Dark / Breeze-Dark icons and typography set to Inter (UI) and JetBrains Mono (fixed-width).
-  - Clean desktop containment without desktop icons.
-- **Shortcuts:** Clean, ergonomic shortcuts (Super+Return terminal, Super+D KRunner, Super+Q close, Super+F maximize, Super+1..4 desktops, Meta+Shift+/ key cheat sheet).
-- **Display Manager:** Native SDDM display manager with automatic Wayland session handling (select between Labwc and Plasma from the login screen; session is remembered).
 
 ---
 
@@ -80,6 +71,8 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Changelog
 
+- 2026-11-09: Removed KDE Plasma 6 secondary desktop environment, configuration scripts, and patterns; streamlined system exclusively around Labwc + Noctalia modern stacking Wayland environment.
+- 2026-11-09: Fixed MMAutoKey autostart in Labwc, added mmterm and gitpullpush_mydata wrappers, enabled selection-target=both in Foot terminal configuration, and installed Thunar Open Terminal Here shortcut (F4).
 - 2026-11-08: Synchronized fast keyboard repeating (200ms delay, 100 repeats/s rate, NumLock off) from Windows settings across Labwc, Xwayland, GNOME/GTK, and KDE Plasma. Reduced mouse scroll lines jumped by 1/3 (Labwc non-touch scrollFactor 0.67, Plasma wheelScrollLines 2 & mouse ScrollFactor 1.0).
 - 2026-11-07: Integrated Noctalia desktop shell (`noctalia-dev/noctalia`) with Labwc: bottom capsule taskbar with launcher, running task buttons, system tray, control center (audio, brightness, Wi-Fi, Bluetooth, night light, power profile), lock screen with fingerprint support, notification daemon, and interactive screenshot & annotation tool.
 - 2026-11-07: Upgraded Labwc desktop experience: integrated custom Tokyo-Night-Modern theme with 8px rounded corners and SVG window controls, 30px balanced 4K cursor scaling, thumbnail Alt-Tab OSD, and restored optimal TLP power settings (removed CPU/GPU frequency floors, balance_performance EPP, ASPM powersave, systemd-boot kernel cmdline power tuning, idle CPU power reduced from ~12W to ~2-3W).

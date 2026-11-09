@@ -7,9 +7,9 @@ grub2-x86_64-efi efibootmgr cryptsetup btrfs-progs compsize dracut
 snapper snapper-zypp-plugin grub2-snapper-plugin inotify-tools os-prober
 chrony cronie
 
-# --- desktop: Labwc + Noctalia (modern Wayland desktop shell) & KDE Plasma 6 ---
+# --- desktop: Labwc + Noctalia (modern Wayland desktop shell) ---
 labwc noctalia kanshi swaybg swaylock swayidle mako fuzzel wlr-randr grim slurp waybar fontawesome-fonts
-patterns-kde-kde_plasma spectacle sddm
+sddm
 polkit polkit-default-privs polkit-gnome dbus-1 xwayland
 gnome-keyring seahorse dconf xdg-user-dirs xdg-utils wl-clipboard cliphist libnotify-tools earlyoom
 adwaita-icon-theme papirus-icon-theme kf6-breeze-icons breeze5-icons

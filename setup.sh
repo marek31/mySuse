@@ -364,21 +364,8 @@ step_desktop() {
     put 755 /usr/local/bin/resilio < "$FILES/resilio"
     put 755 /usr/local/bin/pcloud-install < "$FILES/pcloud-install"
     put 755 /usr/local/bin/set-swap < "$FILES/set-swap"
-    tpl "$FILES/plasma-displays" | put 755 /usr/local/bin/plasma-displays
-    put 755 /usr/local/bin/plasma-keys < "$FILES/plasma-keys"
-    tpl "$FILES/plasma-suse-config" | put 755 /usr/local/bin/plasma-suse-config
-    put 755 /usr/local/bin/plasma-suse-session < "$FILES/plasma-suse-session"
     put 755 /usr/local/bin/labwc-suse-session < "$FILES/labwc-suse-session"
     put 755 /usr/local/bin/win11-vm < "$FILES/win11-vm"
-
-    # Install mySuse look-and-feel package system-wide so plasma-apply-lookandfeel finds it
-    local lnf_src=$FILES/home/.local/share/plasma/look-and-feel/org.mysuse.desktop
-    local lnf_dst=/usr/share/plasma/look-and-feel/org.mysuse.desktop
-    if [[ -d $lnf_src ]]; then
-        mkdir -p "$lnf_dst"
-        cp -r "$lnf_src"/* "$lnf_dst/"
-        tpl "$lnf_src/contents/layouts/org.kde.plasma.desktop-layout.js" | put 644 "$lnf_dst/contents/layouts/org.kde.plasma.desktop-layout.js"
-    fi
 
     if [[ $HERE != /usr/local/lib/mysuse ]]; then
         rm -rf /usr/local/lib/mysuse.new
@@ -435,7 +422,6 @@ step_dotfiles() {
     fi
 
     if command -v typst >/dev/null 2>&1; then
-        (cd "$FILES/wallpaper" && typst compile keys-plasma.typ "$UHOME/Pictures/Wallpapers/keys-plasma.png" 2>/dev/null) || true
         (cd "$FILES/wallpaper" && typst compile keys-labwc.typ "$UHOME/Pictures/Wallpapers/keys-labwc.png" 2>/dev/null) || true
         chown "$USERNAME:$USERNAME" "$UHOME/Pictures/Wallpapers"/keys-*.png 2>/dev/null || true
     fi
@@ -445,10 +431,24 @@ step_dotfiles() {
         chown -R "$USERNAME:$USERNAME" "$UHOME/mySuse" 2>/dev/null || true
     fi
 
-    # Clean up obsolete niri configs from home directory
-    rm -rf "$UHOME/.config/niri" \
+    # Clean up obsolete plasma and niri configs
+    rm -rf "$UHOME/.config/plasma"* \
+           "$UHOME/.config/kwinrc" \
+           "$UHOME/.config/plasmarc" \
+           "$UHOME/.local/share/plasma" \
+           "$UHOME/.local/share/applications/plasma-keys.desktop" \
+           "$UHOME/Pictures/Wallpapers/keys-plasma.png" \
+           "$UHOME/.local/state/plasma" \
+           "$UHOME/.local/state/mysuse/plasma-"* \
+           "$UHOME/.local/share/mysuse/activate-btop.js" \
+           "$UHOME/.config/niri" \
            "$UHOME/.config/qt5ct" "$UHOME/.config/qt6ct" \
            "$UHOME/Pictures/Wallpapers/keys-niri.png" 2>/dev/null || true
+    rm -f /usr/local/bin/plasma-* \
+          /usr/share/wayland-sessions/plasma-suse.desktop \
+          /usr/share/wayland-sessions/plasma.desktop \
+          /usr/share/wayland-sessions/plasmawayland.desktop 2>/dev/null || true
+    rm -rf /usr/share/plasma/look-and-feel/org.mysuse.desktop 2>/dev/null || true
 
     # MMAutoKey: install if mydata repo has been downloaded
     local d
@@ -678,7 +678,7 @@ EOF
 }
 
 step_login() {
-    log "login screen: SDDM (Labwc + Noctalia & KDE Plasma 6 sessions)"
+    log "login screen: SDDM (Labwc + Noctalia session)"
     mkdir -p /usr/share/wayland-sessions
     put 644 /usr/share/wayland-sessions/labwc-suse.desktop <<EOF
 [Desktop Entry]
@@ -689,14 +689,8 @@ Type=Application
 DesktopNames=labwc;wlroots
 EOF
 
-    put 644 /usr/share/wayland-sessions/plasma-suse.desktop <<EOF
-[Desktop Entry]
-Name=Plasma (mySuse)
-Comment=KDE Plasma 6 (Wayland)
-Exec=/usr/local/bin/plasma-suse-session
-Type=Application
-DesktopNames=KDE
-EOF
+    # Clean up obsolete plasma session entries
+    rm -f /usr/share/wayland-sessions/plasma-suse.desktop 2>/dev/null || true
 
     # Configure SDDM to remember sessions and pre-select DEFAULT_SESSION
     local def_sess=${DEFAULT_SESSION:-labwc-suse}

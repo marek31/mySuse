@@ -1,0 +1,13 @@
+[Unit]
+Description=MMAutoKey keyboard hotkeys and automation daemon
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/GitHub/mydata/code/MMAutoKey/MMAutoKey_linux
+Restart=on-failure
+RestartSec=2s
+KillMode=process
+
+[Install]
+WantedBy=default.target
