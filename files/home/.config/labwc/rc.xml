@@ -245,6 +245,7 @@
     <device category="touchpad">
       <accelProfile>adaptive</accelProfile>
       <tap>yes</tap>
+      <scrollFactor>0.75</scrollFactor>
     </device>
     <device category="Bluetooth Mouse M336/M337/M535 Mouse">
       <accelProfile>adaptive</accelProfile>
