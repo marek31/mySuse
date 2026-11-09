@@ -103,7 +103,7 @@
       <action name="Execute" command="helium" />
     </keybind>
     <keybind key="W-S-b">
-      <action name="Execute" command="floorp" />
+      <action name="Execute" command="opera" />
     </keybind>
     <keybind key="W-a">
       <action name="Execute" command="noctalia msg panel-toggle control-center" />
@@ -185,7 +185,7 @@
       <action name="Execute" command="wlrctl toplevel focus app_id:foot 2>/dev/null || foot" />
     </keybind>
     <keybind key="W-4">
-      <action name="Execute" command="wlrctl toplevel focus app_id:floorp 2>/dev/null || floorp" />
+      <action name="Execute" command="wlrctl toplevel focus app_id:opera 2>/dev/null || opera" />
     </keybind>
     <keybind key="W-5">
       <action name="Execute" command="wlrctl toplevel focus app_id:io.missioncenter.MissionCenter 2>/dev/null || flatpak run io.missioncenter.MissionCenter" />

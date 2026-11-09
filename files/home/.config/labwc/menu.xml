@@ -11,8 +11,8 @@
     <item label="Web Browser (Helium)">
       <action name="Execute" command="helium" />
     </item>
-    <item label="Floorp">
-      <action name="Execute" command="floorp" />
+    <item label="Web Browser (Opera)">
+      <action name="Execute" command="opera" />
     </item>
     <item label="File Manager (Thunar)">
       <action name="Execute" command="thunar" />

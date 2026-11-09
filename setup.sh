@@ -202,12 +202,17 @@ REPO_EOF
               /etc/xdg/autostart/blueman.desktop \
               /usr/share/applications/hp-toolbox.desktop \
               /usr/share/applications/hp-*.desktop \
-              /usr/share/applications/*kweather*.desktop 2>/dev/null || true
+              /usr/share/applications/*kweather*.desktop \
+              /usr/share/applications/floorp.desktop \
+              /usr/local/share/applications/floorp.desktop \
+              /usr/local/bin/floorp 2>/dev/null || true
+        rm -rf /opt/floorp 2>/dev/null || true
         pkill -f hp-systray 2>/dev/null || true
         pkill -f hp-toolbox 2>/dev/null || true
         pkill -f nm-applet 2>/dev/null || true
         pkill -f blueman-applet 2>/dev/null || true
         pkill -f udiskie 2>/dev/null || true
+        pkill -f floorp 2>/dev/null || true
         command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database /usr/share/applications 2>/dev/null || true
         command -v kbuildsycoca6 >/dev/null 2>&1 && kbuildsycoca6 2>/dev/null || true
     fi
@@ -563,8 +568,8 @@ font_zip() {
 }
 
 step_apps() {
-    log "upstream applications: Helium, Floorp, Resilio, fonts"
-    local h_url f_url
+    log "upstream applications: Helium, Resilio, ytfzf, fonts"
+    local h_url
     h_url=$(gh_asset "imputnet/helium-linux" '.*-x86_64_linux\.tar\.xz$') || true
     if [[ -n $h_url ]]; then
         opt_install /opt/helium "$h_url" 1 "$h_url"
@@ -615,18 +620,19 @@ EXT_EOF
         warn "Helium installation skipped (could not fetch release asset)"
     fi
 
-    f_url=$(gh_asset "Floorp-Projects/Floorp" 'floorp.*linux-x86_64\.tar\.xz$') || true
-    if [[ -n $f_url ]]; then
-        opt_install /opt/floorp "$f_url" 1 "$f_url"
-        desktop_entry floorp "Floorp" /opt/floorp/floorp /opt/floorp/browser/chrome/icons/default/default128.png \
-            "Network;WebBrowser;" "text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;"
-        # Prevent Floorp from staying resident in background when window is closed
-        put 644 /opt/floorp/browser/defaults/preferences/nobackground.js <<'EOF'
-pref("browser.tabs.closeWindowWithLastTab", true);
-pref("floorp.workspaces.v4.config", "{\"manageOnBms\":false,\"showWorkspaceNameOnToolbar\":true,\"closePopupAfterClick\":false,\"exitOnLastTabClose\":true}");
-EOF
-    else
-        warn "Floorp installation skipped (could not fetch release asset)"
+    # ytfzf (YouTube CLI search and player)
+    if [[ ! -x /usr/local/bin/ytfzf ]]; then
+        log "installing ytfzf"
+        local ytmp
+        ytmp=$(mktemp -d /tmp/ytfzf.XXXXXX)
+        if curl -fsSL https://github.com/pystardust/ytfzf/archive/refs/tags/v2.6.2.tar.gz -o "$ytmp/ytfzf.tar.gz"; then
+            tar -xzf "$ytmp/ytfzf.tar.gz" -C "$ytmp"
+            (cd "$ytmp/ytfzf-2.6.2" && make install doc addons)
+            log "ytfzf installed successfully"
+        else
+            warn "ytfzf download failed"
+        fi
+        rm -rf "$ytmp"
     fi
 
     # Resilio Sync

@@ -35,7 +35,7 @@ sane-backends sane-airscan simple-scan avahi nss-mdns
 libreoffice libreoffice-l10n-pl myspell-pl_PL myspell-en_US hyphen-pl mythes-pl
 
 # --- browsers & media runtime ---
-MozillaFirefox
+MozillaFirefox opera
 libXfixes3 libva2 fuse fuse3
 
 # --- fonts ---
@@ -47,7 +47,7 @@ google-roboto-fonts symbols-only-nerd-fonts
 foot wlrctl lswt thunar thunar-volman thunar-plugin-archive gvfs
 udisks2 ntfs-3g dosfstools
 okular zathura zathura-plugin-pdf-poppler sioyek xournalpp pdfarranger poppler-tools qpdf ghostwriter glow
-geeqie qimgv imv mpv vlc strawberry gimp kolourpaint krita audacity ffmpeg yt-dlp
+geeqie qimgv imv mpv vlc strawberry gimp kolourpaint krita audacity ffmpeg yt-dlp chafa
 remmina kdeconnect-kde qbittorrent calibre kate qalculate-qt fsearch qdirstat gparted
 meld kdiff3 krename ncmpcpp keepassxc restic rclone flatpak
 

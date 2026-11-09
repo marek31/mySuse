@@ -1,6 +1,6 @@
 # mySuse
 
-Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots on root, Labwc + Noctalia (modern desktop shell on stacking Wayland), Helium, Floorp, Firefox, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
+Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots on root, Labwc + Noctalia (modern desktop shell on stacking Wayland), Helium, Opera, Firefox, ytfzf, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
 
 All decisions and hardware options are defined in [config.sh](config.sh).
 

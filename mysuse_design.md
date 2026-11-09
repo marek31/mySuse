@@ -71,7 +71,8 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Changelog
 
-- 2026-11-09: Reconfigured keybindings to Windows-style taskbar launching (Meta+1..6 focuses or launches Helium, Thunar, Foot, Floorp, Mission Center, GitHub Desktop), mapped workspaces to Meta+F1..F4, enabled foot Page Up/Down and two-finger touchpad scrolling, and tuned touchpad scrolling sensitivity.
+- 2026-11-09: Replaced Floorp with Opera in package lists, pinned taskbars, and keybindings (Meta+4, Meta+Shift+B) to eliminate idle CPU drain. Integrated ytfzf with mpv hardware acceleration for lightweight terminal-based YouTube browsing.
+- 2026-11-09: Reconfigured keybindings to Windows-style taskbar launching (Meta+1..6 focuses or launches Helium, Thunar, Foot, Opera, Mission Center, GitHub Desktop), mapped workspaces to Meta+F1..F4, enabled foot Page Up/Down and two-finger touchpad scrolling, and tuned touchpad scrolling sensitivity.
 - 2026-11-09: Reduced Noctalia taskbar icon and bar dimensions on Dell 4K display (`HDMI-A-1`) by 25% via per-monitor override (`scale = 1.125`, `thickness = 51`, `padding = 8`) while keeping 1.5x on laptop panel. Restored Alt-Tab window switcher visual previews across all monitors (`osd output="all"`, `NextWindow workspace="all"`, and explicit Tokyo Night thumbnail theme properties in `themerc-override`).
 - 2026-11-09: Restored SDDM Breeze theme with Qt6 greeter, purged IceWM sessions, unified display session to a single `Labwc` entry, and enabled system-wide fingerprint authentication (`pam-config -a --fprintd`) across SDDM login, sudo, polkit, and Noctalia lockscreen.
 - 2026-11-09: Scaled Noctalia taskbar icons and bar widgets by 1.5x (`scale = 1.5`, `icon_scale = 1.5`, `thickness = 68`, `padding = 10`) for improved readability and touch/target acquisition on high-DPI displays.

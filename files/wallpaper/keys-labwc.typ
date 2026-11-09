@@ -11,7 +11,7 @@
   ("Meta / Meta+D", "launcher (Noctalia)"),
   ("Meta+A", "control center (Noctalia)"),
   ("Meta+,", "Noctalia settings"),
-  ("Meta+B / Shift+B", "Helium / Floorp"),
+  ("Meta+B / Shift+B", "Helium / Opera"),
   ("Meta+E", "files (Thunar)"),
   ("Shift+Esc", "btop (system monitor)"),
 )
