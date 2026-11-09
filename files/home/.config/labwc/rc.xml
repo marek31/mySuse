@@ -83,7 +83,7 @@
       <action name="Execute" command="fuzzel" />
     </keybind>
     <keybind key="W-Return">
-      <action name="Execute" command="footclient" />
+      <action name="Execute" command="foot" />
     </keybind>
     <keybind key="W-d">
       <action name="Execute" command="fuzzel" />
@@ -112,7 +112,7 @@
       <action name="Execute" command="noctalia msg settings-toggle" />
     </keybind>
     <keybind key="S-Escape">
-      <action name="Execute" command="footclient -e btop" />
+      <action name="Execute" command="foot -e btop" />
     </keybind>
 
     <!-- Window Management -->
@@ -182,7 +182,7 @@
       <action name="Execute" command="wlrctl toplevel focus app_id:thunar 2>/dev/null || thunar" />
     </keybind>
     <keybind key="W-3">
-      <action name="Execute" command="wlrctl toplevel focus app_id:foot 2>/dev/null || footclient" />
+      <action name="Execute" command="wlrctl toplevel focus app_id:foot 2>/dev/null || foot" />
     </keybind>
     <keybind key="W-4">
       <action name="Execute" command="wlrctl toplevel focus app_id:opera 2>/dev/null || opera" />

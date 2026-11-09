@@ -405,10 +405,9 @@ PATH=/usr/local/bin:/usr/bin:/usr/sbin:/bin
 */2 * * * * root battery-guard
 EOF
 
-    # User services (PipeWire audio, Foot server socket, mask duplicate mako)
-    systemctl --user --global enable pipewire wireplumber pipewire-pulse foot-server.socket 2>/dev/null || true
+    # User services (PipeWire audio, mask duplicate mako)
+    systemctl --user --global enable pipewire wireplumber pipewire-pulse 2>/dev/null || true
     systemctl --user --global mask mako.service 2>/dev/null || true
-    as_user systemctl --user enable --now foot-server.socket 2>/dev/null || true
     as_user systemctl --user mask mako.service 2>/dev/null || true
 
     step_dotfiles
