@@ -8,7 +8,7 @@ snapper snapper-zypp-plugin grub2-snapper-plugin inotify-tools os-prober
 chrony cronie
 
 # --- desktop: Labwc + Noctalia (modern Wayland desktop shell) ---
-labwc noctalia kanshi swaybg swaylock swayidle fuzzel wlr-randr grim slurp waybar fontawesome-fonts
+labwc noctalia kanshi swaybg swaylock swayidle fuzzel wlr-randr grim slurp fontawesome-fonts
 sddm sddm-greeter-qt6 plasma6-sddm-theme-openSUSE
 polkit polkit-default-privs polkit-gnome dbus-1 xwayland
 gnome-keyring seahorse dconf xdg-user-dirs xdg-utils wl-clipboard libnotify-tools earlyoom

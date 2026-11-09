@@ -71,6 +71,7 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Changelog
 
+- 2026-11-09: Pruned obsolete bar, notification, and KDE artifacts: removed Waybar, Sfwbar, and Mako config trees, purged leftover powerdevilrc and kscreenlockerrc, and updated cheat sheet commands for Noctalia.
 - 2026-11-09: Optimized system latency and pruned ~150 MB redundant RAM: enabled foot daemon client/server socket (footclient sub-5ms launch), promoted Fuzzel to primary keyboard launcher (Super, Meta+Space, Meta+D), masked Mako in favor of Noctalia's unified notification daemon, and purged redundant background applets (nm-applet, blueman-applet, cliphist).
 - 2026-11-09: Configured mpv save-position-on-quit with write-filename-in-watch-later-config, updated gitpullpush_mydata wrapper to delegate to compiled gitpullpush binary when present, and enhanced mmterm to strip Windows .exe extensions when matching Linux binaries exist.
 - 2026-11-09: Replaced Floorp with Opera in package lists, pinned taskbars, and keybindings (Meta+4, Meta+Shift+B) to eliminate idle CPU drain. Integrated ytfzf with mpv hardware acceleration for lightweight terminal-based YouTube browsing.

@@ -188,7 +188,7 @@ REPO_EOF
     fi
 
     # Kick out unwanted vendor, bloat, or obsolete packages
-    local bloat=(hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman NetworkManager-applet file-roller niri xwayland-satellite greetd tuigreet icewm icewm-default icewm-config-upstream icewm-lang mako cliphist)
+    local bloat=(hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman NetworkManager-applet file-roller niri xwayland-satellite greetd tuigreet icewm icewm-default icewm-config-upstream icewm-lang mako cliphist waybar sfwbar)
     local to_rm=()
     for p in "${bloat[@]}"; do
         rpm -q "$p" >/dev/null 2>&1 && to_rm+=("$p")

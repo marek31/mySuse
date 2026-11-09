@@ -62,10 +62,10 @@
   ("wlr-randr --output DP-1 --scale 1.5", "set 4K scaling manually"),
 )
 
-#cmd(yellow, "Labwc & Sfwbar",
+#cmd(yellow, "Labwc & Noctalia",
   ("labwc --reconfigure", "reload rc.xml keybinds & themes"),
-  ("killall -SIGUSR1 sfwbar", "reload taskbar & tray in place"),
-  ("sfwbar", "lightweight Wayland taskbar & tray"),
+  ("noctalia msg config-reload", "reload shell & taskbar config"),
+  ("noctalia msg lock", "lock screen with fingerprint"),
 )
 
 #cmd(pink, "System & Snapshots",
