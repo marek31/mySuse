@@ -3,6 +3,11 @@
 MYDATA="${HOME}/GitHub/mydata"
 [ -d "$MYDATA" ] || MYDATA="${HOME}/Github/mydata"
 
+GPP="$MYDATA/code/gitpullpush/gitpullpush"
+if [ -x "$GPP" ]; then
+    exec "$GPP" "$@"
+fi
+
 if [ -d "$MYDATA" ]; then
     echo "Syncing $MYDATA..."
     cd "$MYDATA"
