@@ -152,10 +152,26 @@
       <action name="SnapToEdge" direction="right" />
     </keybind>
     <keybind key="W-Up">
-      <action name="SnapToEdge" direction="up" />
+      <action name="Maximize" />
     </keybind>
     <keybind key="W-Down">
-      <action name="ToggleMaximize" direction="both" />
+      <action name="If">
+        <query maximized="both" />
+        <then>
+          <action name="UnMaximize" />
+        </then>
+        <else>
+          <action name="If">
+            <query tiled="any" />
+            <then>
+              <action name="UnSnap" />
+            </then>
+            <else>
+              <action name="Iconify" />
+            </else>
+          </action>
+        </else>
+      </action>
     </keybind>
 
     <!-- Pinned Taskbar Apps (Meta+N: focus running or launch) -->

@@ -36,8 +36,8 @@
 #section(yellow, "Snapping & Tiling",
   ("Meta+Left", "snap to left half"),
   ("Meta+Right", "snap to right half"),
-  ("Meta+Up", "snap to top half / max"),
-  ("Meta+Down", "restore window size"),
+  ("Meta+Up", "maximize window (full screen)"),
+  ("Meta+Down", "restore / minimize window"),
   ("Drag to edge", "Aero snap half / quarter"),
 )
 
