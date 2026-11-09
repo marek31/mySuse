@@ -6,6 +6,7 @@
   size: 13.2pt, cols: 4, margin: (left: 54pt, right: 54pt, top: 60pt, bottom: 84pt))
 
 #section(blue, "Apps & Shell",
+  ("Meta+1 .. 6", "taskbar apps (Helium, Files...)"),
   ("Meta+Return", "terminal (foot)"),
   ("Meta / Meta+D", "launcher (Noctalia)"),
   ("Meta+A", "control center (Noctalia)"),
@@ -13,7 +14,6 @@
   ("Meta+B / Shift+B", "Helium / Floorp"),
   ("Meta+E", "files (Thunar)"),
   ("Shift+Esc", "btop (system monitor)"),
-  ("Right-click", "desktop context menu"),
 )
 
 #section(orange, "Screenshots",
@@ -42,8 +42,8 @@
 )
 
 #section(aqua, "Workspaces",
-  ("Meta+1 .. 4", "switch to workspace 1..4"),
-  ("Meta+Shift+1 .. 4", "send window to 1..4"),
+  ("Meta+F1 .. F4", "switch to workspace 1..4"),
+  ("Meta+Shift+F1 .. F4", "send window to 1..4"),
   ("Taskbar pager", "click 1 2 3 4 to switch"),
 )
 

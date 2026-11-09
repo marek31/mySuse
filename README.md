@@ -154,7 +154,7 @@ Configured as the primary stacking Wayland desktop:
 - **Desktop Shell:** `noctalia` (Modern Wayland Desktop Shell). Provides a bottom taskbar with integrated launcher, running taskbar buttons with focus/minimize, native DBus system tray, control center (audio, brightness, Wi-Fi, Bluetooth, night light, power profile), lock screen with fingerprint support, notification daemon, and interactive screenshot & annotation tool.
 - **Display & Scaling:** `kanshi` handles ThinkPad X1 1.25x laptop scaling and external Dell 4K 1.5x scaling automatically on hotplug.
 - **Display Manager:** Native SDDM configured with automatic session handling into Labwc.
-- **Keybindings:** Super+Return (terminal), Super+D / Super+Space (Noctalia launcher), Super+A (control center), Super+Comma (settings), Super+Q (close), Super+F (maximise), Super+Left/Right/Up (edge snapping), Super+1..4 (workspaces), Super+L / Super+Esc (Noctalia lock), PrtSc (interactive region screenshot & annotate), Shift+PrtSc (full screen screenshot), Super+Shift+/ (cheat sheet), Right-click desktop (app menu).
+- **Keybindings:** Super+Return (terminal), Super+D / Super+Space (Noctalia launcher), Super+A (control center), Super+Comma (settings), Super+Q (close), Super+F (maximise), Super+Left/Right/Up (edge snapping), Super+1..6 (taskbar apps), Super+F1..F4 (workspaces), Super+L / Super+Esc (Noctalia lock), PrtSc (interactive region screenshot & annotate), Shift+PrtSc (full screen screenshot), Super+Shift+/ (cheat sheet), Right-click desktop (app menu).
 
 ---
 

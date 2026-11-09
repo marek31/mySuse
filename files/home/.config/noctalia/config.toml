@@ -68,6 +68,7 @@ icon_scale = 1.5
 group_by_workspace = false
 hide_empty_workspaces = true
 show_window_title = false
+pinned = ["helium", "thunar", "foot", "floorp"]
 
 [wallpaper]
 enabled = true
