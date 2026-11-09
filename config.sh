@@ -69,7 +69,7 @@ SNAP_ROOT_LIMIT=10          # keep up to 10 package update snapshot pairs
 SNAP_ROOT_LIMIT_IMPORTANT=4 # keep up to 4 marked important
 
 GREETER=sddm            # login screen: sddm (graphical display manager)
-DEFAULT_SESSION=labwc-suse # default session: labwc-suse
+DEFAULT_SESSION=labwc   # default session: labwc (single clean entry)
 
 SUDO_TIMEOUT_MIN=1440   # ask for the sudo password once per day
 RESILIO_PORT=55555      # fixed listening port, opened in the firewall

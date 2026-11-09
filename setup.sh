@@ -188,7 +188,7 @@ REPO_EOF
     fi
 
     # Kick out unwanted vendor, bloat, or obsolete packages
-    local bloat=(hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman NetworkManager-applet file-roller niri xwayland-satellite greetd tuigreet)
+    local bloat=(hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman NetworkManager-applet file-roller niri xwayland-satellite greetd tuigreet icewm icewm-default icewm-config-upstream icewm-lang)
     local to_rm=()
     for p in "${bloat[@]}"; do
         rpm -q "$p" >/dev/null 2>&1 && to_rm+=("$p")
@@ -196,6 +196,7 @@ REPO_EOF
     if [[ ${#to_rm[@]} -gt 0 ]]; then
         log "purging unwanted packages: ${to_rm[*]}..."
         zypper --non-interactive rm -u -y "${to_rm[@]}" 2>/dev/null || true
+        rm -rf /usr/share/xsessions/* 2>/dev/null || true
         rm -f /etc/xdg/autostart/hp-systray.desktop \
               /etc/xdg/autostart/nm-applet.desktop \
               /etc/xdg/autostart/blueman.desktop \
@@ -269,7 +270,14 @@ EOF
 }
 
 step_security() {
-    log "security hardening: sysctl, apparmor, firewall"
+    log "security hardening: sysctl, apparmor, firewall, fingerprint"
+
+    # Enable fingerprint authentication system-wide (sudo, login, polkit, SDDM, lockscreen)
+    local pam_cfg; pam_cfg=$(command -v pam-config || echo "/usr/sbin/pam-config")
+    if [[ -x $pam_cfg ]]; then
+        log "enabling fingerprint authentication via pam-config..."
+        "$pam_cfg" -a --fprintd 2>/dev/null || true
+    fi
 
     put 644 /etc/sysctl.d/99-mysuse-hardening.conf < "$FILES/sysctl-hardening.conf"
     sysctl --system >/dev/null 2>&1 || true
@@ -445,10 +453,10 @@ step_dotfiles() {
            "$UHOME/.config/qt5ct" "$UHOME/.config/qt6ct" \
            "$UHOME/Pictures/Wallpapers/keys-niri.png" 2>/dev/null || true
     rm -f /usr/local/bin/plasma-* \
-          /usr/share/wayland-sessions/plasma-suse.desktop \
-          /usr/share/wayland-sessions/plasma.desktop \
-          /usr/share/wayland-sessions/plasmawayland.desktop 2>/dev/null || true
-    rm -rf /usr/share/plasma/look-and-feel/org.mysuse.desktop 2>/dev/null || true
+          /usr/share/wayland-sessions/plasma* \
+          /usr/share/wayland-sessions/labwc-suse.desktop 2>/dev/null || true
+    rm -rf /usr/share/plasma/look-and-feel/org.mysuse.desktop \
+           /usr/share/xsessions/* 2>/dev/null || true
 
     # MMAutoKey: install if mydata repo has been downloaded
     local d
@@ -678,39 +686,46 @@ EOF
 }
 
 step_login() {
-    log "login screen: SDDM (Labwc + Noctalia session)"
+    log "login screen: SDDM with Breeze theme (single Labwc session)"
     mkdir -p /usr/share/wayland-sessions
-    put 644 /usr/share/wayland-sessions/labwc-suse.desktop <<EOF
+    put 644 /usr/share/wayland-sessions/labwc.desktop <<EOF
 [Desktop Entry]
-Name=Labwc (mySuse)
+Name=Labwc
 Comment=Modern Stacking Wayland Compositor with Noctalia Shell
 Exec=/usr/local/bin/labwc-suse-session
+Icon=labwc
 Type=Application
 DesktopNames=labwc;wlroots
 EOF
 
-    # Clean up obsolete plasma session entries
-    rm -f /usr/share/wayland-sessions/plasma-suse.desktop 2>/dev/null || true
+    # Clean up duplicate / obsolete session entries so Labwc is the ONLY entry on the login screen
+    rm -f /usr/share/wayland-sessions/labwc-suse.desktop \
+          /usr/share/wayland-sessions/plasma*.desktop 2>/dev/null || true
+    rm -rf /usr/share/xsessions/* 2>/dev/null || true
 
-    # Configure SDDM to remember sessions and pre-select DEFAULT_SESSION
-    local def_sess=${DEFAULT_SESSION:-labwc-suse}
+    # Link breeze theme in SDDM themes if breeze-openSUSE is present
+    if [[ -d /usr/share/sddm/themes/breeze-openSUSE && ! -d /usr/share/sddm/themes/breeze ]]; then
+        ln -s breeze-openSUSE /usr/share/sddm/themes/breeze 2>/dev/null || true
+    fi
+
+    # Configure SDDM to use Breeze theme and pre-select Labwc
+    local def_sess=${DEFAULT_SESSION:-labwc}
     mkdir -p /etc/sddm.conf.d /var/lib/sddm
     put 644 /etc/sddm.conf.d/10-mysuse.conf <<EOF
 [Theme]
-Current=breeze
+Current=breeze-openSUSE
+CursorTheme=Bibata-Modern-Classic
 
 [Users]
 RememberLastSession=true
 RememberLastUser=true
 EOF
 
-    if [[ ! -f /var/lib/sddm/state.conf ]] || ! grep -q "Session=" /var/lib/sddm/state.conf 2>/dev/null; then
-        put 644 /var/lib/sddm/state.conf <<EOF
+    put 644 /var/lib/sddm/state.conf <<EOF
 [Last]
 Session=/usr/share/wayland-sessions/${def_sess}.desktop
 User=$USERNAME
 EOF
-    fi
 
     # Clean up obsolete greetd session if previously enabled
     systemctl disable greetd 2>/dev/null || true

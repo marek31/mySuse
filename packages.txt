@@ -9,7 +9,7 @@ chrony cronie
 
 # --- desktop: Labwc + Noctalia (modern Wayland desktop shell) ---
 labwc noctalia kanshi swaybg swaylock swayidle mako fuzzel wlr-randr grim slurp waybar fontawesome-fonts
-sddm
+sddm sddm-greeter-qt6 plasma6-sddm-theme-openSUSE
 polkit polkit-default-privs polkit-gnome dbus-1 xwayland
 gnome-keyring seahorse dconf xdg-user-dirs xdg-utils wl-clipboard cliphist libnotify-tools earlyoom
 adwaita-icon-theme papirus-icon-theme kf6-breeze-icons breeze5-icons

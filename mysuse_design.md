@@ -27,7 +27,7 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 - **Compositor:** `labwc` stacking Wayland compositor inspired by Openbox. Built in C on top of `wlroots`. Delivers instantaneous application launch, zero background churn, pure static declarative configuration in `~/.config/labwc/rc.xml`, and Tokyo-Night-Modern theme with 8px rounded corners and SVG window controls.
 - **Desktop Shell:** `noctalia` (Modern Wayland Desktop Shell). Delivers a modern bottom taskbar with app launcher, running window taskbar buttons (`widget.taskbar`) with focus/minimize, native DBus StatusNotifierItem (SNI) system tray, control center (audio, brightness, Wi-Fi, Bluetooth, night light, power profile), lock screen with fingerprint support, notification daemon, clipboard manager, and interactive screenshot & annotation tool.
 - **Display & Scaling:** `kanshi` handles dynamic multi-monitor profiles and fractional scaling (1.25x laptop, 1.5x Dell 4K) automatically upon hotplug.
-- **Display Manager:** Native SDDM display manager with automatic Wayland session handling launching directly into Labwc + Noctalia.
+- **Display Manager:** Native SDDM display manager with Breeze theme and automatic Wayland session handling into a single clean `Labwc` entry. System-wide fingerprint authentication enabled via `pam-config --fprintd` for SDDM, sudo, polkit, and Noctalia lockscreen.
 - **Session Glue:** `easyeffects` (Dolby Atmos quad-speaker tuning), `swaylock` (fallback lock).
 
 ---
@@ -72,6 +72,7 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 ## Changelog
 
 - 2026-11-09: Reduced Noctalia taskbar icon and bar dimensions on Dell 4K display (`HDMI-A-1`) by 25% via per-monitor override (`scale = 1.125`, `thickness = 51`, `padding = 8`) while keeping 1.5x on laptop panel. Restored Alt-Tab window switcher visual previews across all monitors (`osd output="all"`, `NextWindow workspace="all"`, and explicit Tokyo Night thumbnail theme properties in `themerc-override`).
+- 2026-11-09: Restored SDDM Breeze theme with Qt6 greeter, purged IceWM sessions, unified display session to a single `Labwc` entry, and enabled system-wide fingerprint authentication (`pam-config -a --fprintd`) across SDDM login, sudo, polkit, and Noctalia lockscreen.
 - 2026-11-09: Scaled Noctalia taskbar icons and bar widgets by 1.5x (`scale = 1.5`, `icon_scale = 1.5`, `thickness = 68`, `padding = 10`) for improved readability and touch/target acquisition on high-DPI displays.
 - 2026-11-09: Scaled mouse cursor down by 1/3 (reduced from 30px to 20px) across Labwc environment, GTK 3/4, XSettings, and KDE defaults. Configured libinput adaptive acceleration profile (`accelProfile: adaptive`, `pointerSpeed: 0.2`) across all pointer devices for precision in small micro-movements and speed across long screen distances.
 - 2026-11-09: Removed KDE Plasma 6 secondary desktop environment, configuration scripts, and patterns; streamlined system exclusively around Labwc + Noctalia modern stacking Wayland environment.
