@@ -76,21 +76,18 @@
 
     <!-- Terminal & Launcher -->
     <keybind key="Super_L" onRelease="yes">
-      <action name="Execute" command="fuzzel" />
+      <action name="Execute" command="noctalia msg panel-toggle launcher" />
     </keybind>
     <keybind key="Super_R" onRelease="yes">
-      <action name="Execute" command="fuzzel" />
+      <action name="Execute" command="noctalia msg panel-toggle launcher" />
     </keybind>
     <keybind key="W-Return">
       <action name="Execute" command="foot" />
     </keybind>
     <keybind key="W-d">
-      <action name="Execute" command="fuzzel" />
+      <action name="Execute" command="noctalia msg panel-toggle launcher" />
     </keybind>
     <keybind key="W-space">
-      <action name="Execute" command="fuzzel" />
-    </keybind>
-    <keybind key="W-S-d">
       <action name="Execute" command="noctalia msg panel-toggle launcher" />
     </keybind>
 

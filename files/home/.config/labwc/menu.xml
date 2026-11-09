@@ -4,8 +4,8 @@
     <item label="Terminal (foot)">
       <action name="Execute" command="foot" />
     </item>
-    <item label="Application Launcher (fuzzel)">
-      <action name="Execute" command="fuzzel" />
+    <item label="Application Launcher (Noctalia)">
+      <action name="Execute" command="noctalia msg panel-toggle launcher" />
     </item>
     <separator />
     <item label="Web Browser (Helium)">

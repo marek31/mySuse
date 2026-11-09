@@ -188,7 +188,7 @@ REPO_EOF
     fi
 
     # Kick out unwanted vendor, bloat, or obsolete packages
-    local bloat=(hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman NetworkManager-applet file-roller niri xwayland-satellite greetd tuigreet icewm icewm-default icewm-config-upstream icewm-lang mako cliphist waybar sfwbar)
+    local bloat=(hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman NetworkManager-applet file-roller niri xwayland-satellite greetd tuigreet icewm icewm-default icewm-config-upstream icewm-lang mako cliphist waybar sfwbar fuzzel)
     local to_rm=()
     for p in "${bloat[@]}"; do
         rpm -q "$p" >/dev/null 2>&1 && to_rm+=("$p")
@@ -382,6 +382,7 @@ step_desktop() {
     put 755 /usr/local/bin/set-swap < "$FILES/set-swap"
     put 755 /usr/local/bin/labwc-suse-session < "$FILES/labwc-suse-session"
     put 755 /usr/local/bin/win11-vm < "$FILES/win11-vm"
+    put 755 /usr/local/bin/helium-install-extensions < "$FILES/helium-install-extensions"
 
     # NetworkManager auto-save Wi-Fi passwords system-wide
     mkdir -p /etc/NetworkManager/dispatcher.d
@@ -626,6 +627,11 @@ SRCH_EOF
 }
 EXT_EOF
         cp /etc/chromium/policies/managed/extensions.json /etc/opt/chrome/policies/managed/extensions.json 2>/dev/null || true
+
+        if [[ -f $FILES/helium-install-extensions ]]; then
+            log "installing Helium browser extensions..."
+            as_user python3 "$FILES/helium-install-extensions" 2>/dev/null || true
+        fi
     else
         warn "Helium installation skipped (could not fetch release asset)"
     fi
