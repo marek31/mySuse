@@ -196,29 +196,31 @@ REPO_EOF
     if [[ ${#to_rm[@]} -gt 0 ]]; then
         log "purging unwanted packages: ${to_rm[*]}..."
         zypper --non-interactive rm -u -y "${to_rm[@]}" 2>/dev/null || true
-        rm -rf /usr/share/xsessions/* 2>/dev/null || true
-        rm -f /etc/xdg/autostart/hp-systray.desktop \
-              /etc/xdg/autostart/nm-applet.desktop \
-              /etc/xdg/autostart/blueman.desktop \
-              /usr/share/applications/hp-toolbox.desktop \
-              /usr/share/applications/hp-*.desktop \
-              /usr/share/applications/*kweather*.desktop \
-              /usr/share/applications/floorp.desktop \
-              /usr/local/share/applications/floorp.desktop \
-              /usr/local/bin/floorp 2>/dev/null || true
-        rm -rf /opt/floorp 2>/dev/null || true
-        pkill -f hp-systray 2>/dev/null || true
-        pkill -f hp-toolbox 2>/dev/null || true
-        pkill -f nm-applet 2>/dev/null || true
-        pkill -f blueman-applet 2>/dev/null || true
-        pkill -f blueman-tray 2>/dev/null || true
-        pkill -f udiskie 2>/dev/null || true
-        pkill -f floorp 2>/dev/null || true
-        pkill -f "cliphist store" 2>/dev/null || true
-        killall mako 2>/dev/null || true
-        command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database /usr/share/applications 2>/dev/null || true
-        command -v kbuildsycoca6 >/dev/null 2>&1 && kbuildsycoca6 2>/dev/null || true
     fi
+
+    # Unconditionally remove obsolete sessions, bloat autostart entries, and uninstalled browsers
+    rm -rf /usr/share/xsessions/* 2>/dev/null || true
+    rm -f /etc/xdg/autostart/hp-systray.desktop \
+          /etc/xdg/autostart/nm-applet.desktop \
+          /etc/xdg/autostart/blueman.desktop \
+          /usr/share/applications/hp-toolbox.desktop \
+          /usr/share/applications/hp-*.desktop \
+          /usr/share/applications/*kweather*.desktop \
+          /usr/share/applications/floorp.desktop \
+          /usr/local/share/applications/floorp.desktop \
+          /usr/local/bin/floorp 2>/dev/null || true
+    rm -rf /opt/floorp /home/*/.config/floorp /home/*/.cache/floorp 2>/dev/null || true
+    pkill -f hp-systray 2>/dev/null || true
+    pkill -f hp-toolbox 2>/dev/null || true
+    pkill -f nm-applet 2>/dev/null || true
+    pkill -f blueman-applet 2>/dev/null || true
+    pkill -f blueman-tray 2>/dev/null || true
+    pkill -f udiskie 2>/dev/null || true
+    pkill -f floorp 2>/dev/null || true
+    pkill -f "cliphist store" 2>/dev/null || true
+    killall mako 2>/dev/null || true
+    command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database /usr/share/applications 2>/dev/null || true
+    command -v kbuildsycoca6 >/dev/null 2>&1 && kbuildsycoca6 2>/dev/null || true
 
     # Install base utilities first so downstream tools never fail for missing jq/curl
     zypper --ignore-unknown in -y --no-recommends jq curl ca-certificates-mozilla tar xz unzip

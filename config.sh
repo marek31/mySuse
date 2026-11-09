@@ -23,7 +23,7 @@
 #   vm          KVM/QEMU, libvirt, virt-manager, swtpm (TPM 2.0), OVMF UEFI for Windows 11
 #   upkeep      browsers auto-update once a day, update notifications, monthly btrfs scrub,
 #               smartd, earlyoom, hibernate at 5 % battery, USB automount (udisks2)
-#   browsers    Helium (default) + Floorp: upstream tarballs in /opt, updated by `setup.sh apps`;
+#   browsers    Helium (default) + Opera: upstream tarball / repo, updated by `setup.sh apps`;
 #               Firefox from zypper
 #   office      LibreOffice (Polish UI pack + spelling)
 #   printing    CUPS + cups-browsed + avahi (wifi/IPP Everywhere), sane-airscan for network scanners
