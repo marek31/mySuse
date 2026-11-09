@@ -383,6 +383,10 @@ step_desktop() {
     put 755 /usr/local/bin/labwc-suse-session < "$FILES/labwc-suse-session"
     put 755 /usr/local/bin/win11-vm < "$FILES/win11-vm"
 
+    # NetworkManager auto-save Wi-Fi passwords system-wide
+    mkdir -p /etc/NetworkManager/dispatcher.d
+    put 755 /etc/NetworkManager/dispatcher.d/99-save-wifi-psk.sh < "$FILES/nm-save-wifi-psk.sh"
+
     if [[ $HERE != /usr/local/lib/mysuse ]]; then
         rm -rf /usr/local/lib/mysuse.new
         cp -r "$HERE" /usr/local/lib/mysuse.new

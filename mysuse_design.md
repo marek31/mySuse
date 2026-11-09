@@ -71,6 +71,7 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Changelog
 
+- 2026-11-09: Ensured persistent Wi-Fi passwords across reconnects: updated existing profiles to psk-flags 0 (system-stored keyfile) and installed NetworkManager dispatcher script 99-save-wifi-psk.sh to automatically save PSK secrets permanently upon connection.
 - 2026-11-09: Fixed 4K display automation: configured Kanshi with exact EDID matching for Dell G3223Q (3840x2160@60Hz, 1.5x scale, clamshell profile), converted Kanshi to an auto-restarting systemd user service, and pruned manual wdisplays utility.
 - 2026-11-09: Pruned obsolete bar, notification, and KDE artifacts: removed Waybar, Sfwbar, and Mako config trees, purged leftover powerdevilrc and kscreenlockerrc, and updated cheat sheet commands for Noctalia.
 - 2026-11-09: Optimized system latency and pruned ~150 MB redundant RAM: enabled foot daemon client/server socket (footclient sub-5ms launch), promoted Fuzzel to primary keyboard launcher (Super, Meta+Space, Meta+D), masked Mako in favor of Noctalia's unified notification daemon, and purged redundant background applets (nm-applet, blueman-applet, cliphist).
