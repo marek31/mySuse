@@ -26,13 +26,14 @@ speed = 3.0
 # Left vertical taskbar with launcher, running task buttons, system tray, audio, battery, and clock
 [bar.main]
 position = "left"
-thickness = 46
+thickness = 68
+scale = 1.5
 background_opacity = 0.94
 compositor_blur = true
 radius = 0
 margin_ends = 0
 margin_edge = 0
-padding = 8
+padding = 10
 widget_spacing = 6
 shadow = false
 capsule = true
@@ -41,6 +42,7 @@ center = []
 end = ["tray", "network", "bluetooth", "volume", "battery", "clock", "control-center"]
 
 [widget.taskbar]
+icon_scale = 1.5
 group_by_workspace = false
 hide_empty_workspaces = true
 show_window_title = false
