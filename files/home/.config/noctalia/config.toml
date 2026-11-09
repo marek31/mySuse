@@ -41,11 +41,27 @@ start = ["launcher", "taskbar"]
 center = []
 end = ["tray", "network", "bluetooth", "volume", "battery", "clock", "control-center"]
 
-# 4K external monitor override: 25% smaller icons/bar (scale 1.125, thickness 51)
+# Laptop internal display (14" 1920x1200): scaled down so icons fit comfortably
+[bar.main.monitor."eDP-1"]
+scale = 1.15
+thickness = 52
+padding = 7
+
+# 4K external monitor override (Dell G3223Q 3840x2160 via HDMI or USB-C/DP)
 [bar.main.monitor."HDMI-A-1"]
-scale = 1.125
-thickness = 51
-padding = 8
+scale = 1.5
+thickness = 68
+padding = 10
+
+[bar.main.monitor."DP-1"]
+scale = 1.5
+thickness = 68
+padding = 10
+
+[bar.main.monitor."DP-2"]
+scale = 1.5
+thickness = 68
+padding = 10
 
 [widget.taskbar]
 icon_scale = 1.5
