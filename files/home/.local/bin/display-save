@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+"""
+display-save: Captures the active Wayland display layout (resolutions, positions, scales, EDID)
+and saves it as a permanent profile in ~/.config/kanshi/config.
+"""
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+def get_active_outputs():
+    try:
+        raw = subprocess.check_output(["wlr-randr", "--json"])
+        return json.loads(raw)
+    except Exception as e:
+        print(f"Error reading wlr-randr: {e}", file=sys.stderr)
+        sys.exit(1)
+
+def main():
+    outputs = get_active_outputs()
+    lines = []
+    mon_names = []
+
+    for out in outputs:
+        if not out.get("enabled"):
+            continue
+        name = out["name"]
+        make = (out.get("make") or "").strip()
+        model = (out.get("model") or "").strip()
+        serial = (out.get("serial") or "").strip()
+
+        # Build exact Kanshi criteria
+        if name != "eDP-1" and make and model:
+            s = serial if serial else "Unknown"
+            crit = f'"{make} {model} {s}"'
+            mon_names.append(f"{model}")
+        else:
+            crit = name
+            mon_names.append(name)
+
+        curr_mode = next((m for m in out.get("modes", []) if m.get("current")), None)
+        if not curr_mode:
+            continue
+        w, h = curr_mode["width"], curr_mode["height"]
+        hz = round(curr_mode["refresh"])
+        x = out.get("position", {}).get("x", 0)
+        y = out.get("position", {}).get("y", 0)
+        scale = out.get("scale", 1.0)
+        scale_str = f"{scale:.2f}".rstrip("0").rstrip(".")
+
+        lines.append(f"    output {crit} enable mode {w}x{h}@{hz}Hz position {x},{y} scale {scale_str}")
+
+    if not lines:
+        print("No active outputs found to save.", file=sys.stderr)
+        return
+
+    profile_id = "_".join(mon_names).replace(" ", "_").replace(".", "_")
+    profile_block = f"""
+# Auto-saved layout for {", ".join(mon_names)}
+profile saved_{profile_id} {{
+""" + "\n".join(lines) + """
+    exec noctalia msg config-reload 2>/dev/null || true
+}
+"""
+
+    kanshi_path = Path.home() / ".config" / "kanshi" / "config"
+    kanshi_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Read existing config and check if profile already exists
+    existing = kanshi_path.read_text() if kanshi_path.exists() else ""
+    if f"profile saved_{profile_id}" in existing:
+        # Replace existing profile block
+        import re
+        pattern = re.compile(rf"# Auto-saved layout for[^\n]*\nprofile saved_{profile_id}\s*\{{[^}}]*\}}\n?", re.MULTILINE)
+        new_content = pattern.sub("", existing).rstrip() + "\n" + profile_block
+        kanshi_path.write_text(new_content)
+    else:
+        # Prepend after header so it takes high matching priority
+        parts = existing.split("\n\n", 1)
+        if len(parts) == 2:
+            new_content = parts[0] + "\n" + profile_block + "\n" + parts[1]
+        else:
+            new_content = profile_block + "\n" + existing
+        kanshi_path.write_text(new_content)
+
+    # Restart kanshi to apply and listen
+    subprocess.run(["systemctl", "--user", "restart", "kanshi.service"], check=False)
+    subprocess.run([
+        "notify-send",
+        "-a", "Displays",
+        "Display Layout Preserved",
+        f"Saved layout for {len(lines)} monitor(s) permanently in Kanshi."
+    ], check=False)
+
+    print(f"Successfully saved profile for {', '.join(mon_names)} to {kanshi_path}")
+
+if __name__ == "__main__":
+    main()

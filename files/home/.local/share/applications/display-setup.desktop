@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Display Settings (Auto-Preserve)
+Comment=Configure displays with wdisplays and save permanently to Kanshi
+Exec=display-setup
+Icon=preferences-desktop-display
+Categories=Settings;HardwareSettings;
+Keywords=display;monitor;screen;resolution;scale;kanshi;wdisplays;
+Terminal=false

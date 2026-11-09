@@ -1,0 +1,19 @@
+#!/bin/sh
+# display-setup: Graphical display configuration with automatic Kanshi persistence
+# Launches wdisplays so you can adjust layout, scale, and resolution visually.
+# When closed, automatically locks in and preserves the settings permanently.
+
+if ! command -v wdisplays >/dev/null 2>&1; then
+    notify-send -u critical "wdisplays not found" "Please install wdisplays to configure displays graphically."
+    exit 1
+fi
+
+# Run wdisplays GUI
+wdisplays "$@"
+
+# Upon closing, automatically save the live layout into Kanshi
+if command -v display-save >/dev/null 2>&1; then
+    display-save
+elif [ -x "$HOME/.local/bin/display-save" ]; then
+    "$HOME/.local/bin/display-save"
+fi
