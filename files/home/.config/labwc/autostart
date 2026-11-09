@@ -26,8 +26,8 @@ for agent in \
     fi
 done
 
-# 3. Dynamic display configuration & multi-monitor automation (Kanshi)
-kanshi &
+# 3. Dynamic display configuration & multi-monitor automation (Kanshi systemd service)
+systemctl --user start kanshi.service 2>/dev/null || kanshi &
 
 # 4. Clipboard history manager (handled natively by Noctalia's integrated clipboard daemon)
 

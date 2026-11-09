@@ -188,7 +188,7 @@ REPO_EOF
     fi
 
     # Kick out unwanted vendor, bloat, or obsolete packages
-    local bloat=(hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman NetworkManager-applet file-roller niri xwayland-satellite greetd tuigreet icewm icewm-default icewm-config-upstream icewm-lang mako cliphist waybar sfwbar)
+    local bloat=(hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman NetworkManager-applet file-roller niri xwayland-satellite greetd tuigreet icewm icewm-default icewm-config-upstream icewm-lang mako cliphist waybar sfwbar wdisplays)
     local to_rm=()
     for p in "${bloat[@]}"; do
         rpm -q "$p" >/dev/null 2>&1 && to_rm+=("$p")
@@ -405,9 +405,10 @@ PATH=/usr/local/bin:/usr/bin:/usr/sbin:/bin
 */2 * * * * root battery-guard
 EOF
 
-    # User services (PipeWire audio, mask duplicate mako)
-    systemctl --user --global enable pipewire wireplumber pipewire-pulse 2>/dev/null || true
+    # User services (PipeWire audio, Kanshi display hotplug, mask duplicate mako)
+    systemctl --user --global enable pipewire wireplumber pipewire-pulse kanshi.service 2>/dev/null || true
     systemctl --user --global mask mako.service 2>/dev/null || true
+    as_user systemctl --user enable --now kanshi.service 2>/dev/null || true
     as_user systemctl --user mask mako.service 2>/dev/null || true
 
     step_dotfiles
