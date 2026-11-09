@@ -14,6 +14,6 @@ _JAVA_AWT_WM_NONREPARENTING=1
 # LIBVA_DRIVER_NAME=nvidia
 # __NV_PRIME_RENDER_OFFLOAD=1
 
-# Cursor theme and size (optimal for 4K display)
+# Cursor theme and size (optimal for 4K display, 20px)
 XCURSOR_THEME=breeze_cursors
-XCURSOR_SIZE=30
+XCURSOR_SIZE=20

@@ -229,10 +229,21 @@
   </mouse>
 
   <libinput>
+    <device category="default">
+      <accelProfile>adaptive</accelProfile>
+    </device>
     <device category="non-touch">
+      <accelProfile>adaptive</accelProfile>
+      <pointerSpeed>0.2</pointerSpeed>
       <scrollFactor>0.67</scrollFactor>
     </device>
+    <device category="touchpad">
+      <accelProfile>adaptive</accelProfile>
+      <tap>yes</tap>
+    </device>
     <device category="Bluetooth Mouse M336/M337/M535 Mouse">
+      <accelProfile>adaptive</accelProfile>
+      <pointerSpeed>0.2</pointerSpeed>
       <scrollFactor>0.67</scrollFactor>
     </device>
   </libinput>

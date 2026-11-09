@@ -71,6 +71,7 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Changelog
 
+- 2026-11-09: Scaled mouse cursor down by 1/3 (reduced from 30px to 20px) across Labwc environment, GTK 3/4, XSettings, and KDE defaults. Configured libinput adaptive acceleration profile (`accelProfile: adaptive`, `pointerSpeed: 0.2`) across all pointer devices for precision in small micro-movements and speed across long screen distances.
 - 2026-11-09: Removed KDE Plasma 6 secondary desktop environment, configuration scripts, and patterns; streamlined system exclusively around Labwc + Noctalia modern stacking Wayland environment.
 - 2026-11-09: Fixed MMAutoKey autostart in Labwc, added mmterm and gitpullpush_mydata wrappers, enabled selection-target=both in Foot terminal configuration, and installed Thunar Open Terminal Here shortcut (F4).
 - 2026-11-08: Synchronized fast keyboard repeating (200ms delay, 100 repeats/s rate, NumLock off) from Windows settings across Labwc, Xwayland, GNOME/GTK, and KDE Plasma. Reduced mouse scroll lines jumped by 1/3 (Labwc non-touch scrollFactor 0.67, Plasma wheelScrollLines 2 & mouse ScrollFactor 1.0).
