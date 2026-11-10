@@ -204,8 +204,9 @@ REPO_EOF
           /usr/share/applications/*kweather*.desktop \
           /usr/share/applications/floorp.desktop \
           /usr/local/share/applications/floorp.desktop \
+          /home/*/.local/share/applications/floorp.desktop \
           /usr/local/bin/floorp 2>/dev/null || true
-    rm -rf /opt/floorp /home/*/.config/floorp /home/*/.cache/floorp 2>/dev/null || true
+    rm -rf /opt/floorp /home/*/.config/floorp /home/*/.cache/floorp /home/*/.mozilla/floorp 2>/dev/null || true
     pkill -f hp-systray 2>/dev/null || true
     pkill -f hp-toolbox 2>/dev/null || true
     pkill -f nm-applet 2>/dev/null || true
@@ -644,6 +645,11 @@ EXT_EOF
     else
         warn "Helium installation skipped (could not fetch release asset)"
     fi
+
+    # Purge Floorp browser unconditionally
+    rm -rf /opt/floorp /usr/share/applications/floorp.desktop /usr/local/share/applications/floorp.desktop /usr/local/bin/floorp 2>/dev/null || true
+    rm -rf /home/*/.config/floorp /home/*/.cache/floorp /home/*/.mozilla/floorp /home/*/.local/share/applications/floorp.desktop 2>/dev/null || true
+    pkill -f floorp 2>/dev/null || true
 
     # ytfzf (YouTube CLI search and player)
     if [[ ! -x /usr/local/bin/ytfzf ]]; then
