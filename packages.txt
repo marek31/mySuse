@@ -47,7 +47,7 @@ google-roboto-fonts symbols-only-nerd-fonts
 foot wlrctl lswt thunar thunar-volman thunar-plugin-archive gvfs
 udisks2 ntfs-3g dosfstools
 okular zathura zathura-plugin-pdf-poppler sioyek xournalpp pdfarranger poppler-tools qpdf ghostwriter glow
-geeqie qimgv imv mpv vlc strawberry gimp kolourpaint krita audacity ffmpeg yt-dlp chafa
+geeqie qimgv imv exiv2 mpv vlc strawberry gimp kolourpaint krita audacity ffmpeg yt-dlp chafa
 remmina kdeconnect-kde qbittorrent calibre kate qalculate-qt fsearch qdirstat gparted
 meld kdiff3 krename ncmpcpp keepassxc restic rclone flatpak
 

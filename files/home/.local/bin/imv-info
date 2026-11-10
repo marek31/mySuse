@@ -1,0 +1,36 @@
+#!/bin/sh
+# Fast EXIF and camera metadata extractor for imv overlay
+[ -z "$1" ] || [ ! -f "$1" ] && exit 0
+command -v exiv2 >/dev/null 2>&1 || exit 0
+
+exiv2 "$1" 2>/dev/null | awk -F': +' '
+    /Camera make/ && $2 != "" { make=$2 }
+    /Camera model/ && $2 != "" { model=$2 }
+    /Exposure time/ && $2 != "" { exposure=$2 }
+    /Aperture/ && $2 != "" { ap=$2 }
+    /ISO speed/ && $2 != "" { iso="ISO" $2 }
+    /Focal length/ && $2 != "" { fl=$2 }
+    /Image timestamp/ && $2 != "" { dt=$2 }
+    END {
+        cam = model
+        if (make && index(model, make) == 0) {
+            cam = make " " model
+        } else if (!cam) {
+            cam = make
+        }
+
+        res = ""
+        if (cam) res = res " | " cam
+        settings = ""
+        if (fl) settings = settings fl " "
+        if (ap) settings = settings ap " "
+        if (exposure) settings = settings exposure " "
+        if (iso) settings = settings iso " "
+        if (settings) {
+            sub(/[ \t]+$/, "", settings)
+            res = res " | " settings
+        }
+        if (dt) res = res " | " dt
+        print res
+    }
+'

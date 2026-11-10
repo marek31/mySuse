@@ -375,6 +375,8 @@ step_desktop() {
     put 755 /usr/local/bin/taskbar-app < "$FILES/home/.local/bin/taskbar-app"
     put 755 /usr/local/bin/foot-open < "$FILES/home/.local/bin/foot-open"
     put 755 /usr/local/bin/idle-manager < "$FILES/home/.local/bin/idle-manager"
+    put 755 /usr/local/bin/imv-dir < "$FILES/home/.local/bin/imv-dir"
+    put 755 /usr/local/bin/imv-info < "$FILES/home/.local/bin/imv-info"
 
     # NetworkManager auto-save Wi-Fi passwords system-wide
     mkdir -p /etc/NetworkManager/dispatcher.d
@@ -427,6 +429,7 @@ step_dotfiles() {
     done < <(find "$FILES/home" -type f -print0)
     as_user chmod +x "$UHOME/.local/bin/"* 2>/dev/null || true
     chmod 755 "$UHOME/.config/labwc/autostart" 2>/dev/null || true
+    as_user mkdir -p "$UHOME/Github/mydata/t/_screenshots"
 
     # Wallpapers
     as_user mkdir -p "$UHOME/Pictures/Wallpapers"

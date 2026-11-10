@@ -23,6 +23,11 @@ corner_radius_scale = 1.0
 enabled = false
 speed = 3.0
 
+[shell.screenshot]
+directory = "@HOME@/Github/mydata/t/_screenshots"
+filename_pattern = "%Y-%m-%d %H-%M-%S"
+format = "jpeg"
+
 # Left vertical taskbar with launcher, running task buttons, system tray, audio, battery, and clock
 [bar.main]
 position = "left"

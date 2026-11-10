@@ -1,0 +1,19 @@
+#!/bin/sh
+# Open imv with directory context so Left/Right arrows navigate sibling images
+set -e
+
+if [ $# -eq 0 ]; then
+    exec imv .
+fi
+
+target="$1"
+if [ $# -gt 1 ]; then
+    exec imv "$@"
+elif [ -d "$target" ]; then
+    exec imv "$target"
+elif [ -f "$target" ]; then
+    dir=$(dirname "$target")
+    exec imv -n "$target" "$dir"
+else
+    exec imv "$target"
+fi
