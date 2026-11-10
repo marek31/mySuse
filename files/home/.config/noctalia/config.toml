@@ -95,12 +95,12 @@ transition_duration = 100
 [idle.behavior.lock]
 timeout = 3600
 action = "lock"
-enabled = true
+enabled = false
 
 [idle.behavior.screen-off]
-timeout = 3660
+timeout = 3900
 action = "screen_off"
-enabled = true
+enabled = false
 
 [[control_center.shortcuts]]
 type = "wifi"

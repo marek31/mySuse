@@ -31,12 +31,14 @@ systemctl --user start kanshi.service 2>/dev/null || kanshi &
 
 # 4. Clipboard history manager (handled natively by Noctalia's integrated clipboard daemon)
 
-# 5. Screen idle, screen blanking & locking (swayidle)
-if command -v swayidle >/dev/null 2>&1; then
+# 5. Screen idle, screen blanking & locking (idle-manager: 30m on battery, 1h on charger)
+if command -v idle-manager >/dev/null 2>&1 || [[ -x "$HOME/.local/bin/idle-manager" ]]; then
+    idle-manager &
+elif command -v swayidle >/dev/null 2>&1; then
     swayidle -w \
-        timeout 300 'noctalia msg lock 2>/dev/null || swaylock -f -c 1a1b26' \
-        timeout 600 'wlr-randr --output eDP-1 --off 2>/dev/null' \
-        resume 'wlr-randr --output eDP-1 --on 2>/dev/null' \
+        timeout 1800 'noctalia msg lock 2>/dev/null || swaylock -f -c 1a1b26' \
+        timeout 2100 'noctalia msg dpms-off 2>/dev/null || wlr-randr --output eDP-1 --off 2>/dev/null' \
+        resume 'noctalia msg dpms-on 2>/dev/null || wlr-randr --output eDP-1 --on 2>/dev/null' \
         before-sleep 'noctalia msg lock 2>/dev/null || swaylock -f -c 1a1b26' &
 fi
 

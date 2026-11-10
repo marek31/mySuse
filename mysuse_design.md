@@ -71,6 +71,7 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Changelog
 
+- 2026-11-10: Configured dynamic screen lock and idle timeout management (`idle-manager`): 30 minutes on battery, 1 hour on charger (AC), automatic display off shortly after, and verified fingerprint authentication support across SDDM, PAM (`pam_fprintd`), and Noctalia lockscreen.
 - 2026-11-10: Reinforced complete removal of Floorp browser: added unconditional purge of `/opt/floorp`, desktop launchers, and configuration caches across both `step_packages` and `step_apps` in `setup.sh`, and masked existing user desktop entries.
 - 2026-11-10: Configured SDDM Chili theme with clean blur and typography defaults; updated `packages.txt` for Qt5 greeter and QtQuick dependencies.
 - 2026-11-10: Enhanced Foot terminal: mapped `Control+v`, `Control+Shift+v`, and `XF86Paste` to clipboard-paste (resolving paste blocking from MMAutoKey interception), added `foot-open` smart launcher with Kate line fragment support, and enabled clickable URL/file path detection with mouse bindings (`Control+Left/Right-Click`) and keyboard jump labels (`Control+Shift+o`).

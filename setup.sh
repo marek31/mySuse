@@ -372,6 +372,7 @@ step_desktop() {
     put 755 /usr/local/bin/helium-install-extensions < "$FILES/helium-install-extensions"
     put 755 /usr/local/bin/taskbar-app < "$FILES/home/.local/bin/taskbar-app"
     put 755 /usr/local/bin/foot-open < "$FILES/home/.local/bin/foot-open"
+    put 755 /usr/local/bin/idle-manager < "$FILES/home/.local/bin/idle-manager"
 
     # NetworkManager auto-save Wi-Fi passwords system-wide
     mkdir -p /etc/NetworkManager/dispatcher.d

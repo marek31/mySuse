@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# idle-manager: Dynamic screen lock & display idle timeout manager for Labwc / Wayland.
+# Configures:
+#   - On Battery: lock after 30 minutes (1800s), screen off after 35 minutes (2100s)
+#   - On AC (charger): lock after 1 hour (3600s), screen off after 65 minutes (3900s)
+#   - Before sleep: lock immediately
+#   - Activity: wakes monitors via dpms-on
+#   - Unlocking: fingerprint reader supported natively via Noctalia and fprintd
+set -euo pipefail
+
+SWAYIDLE_PID=""
+
+is_on_ac() {
+    for ps in /sys/class/power_supply/AC* /sys/class/power_supply/Mains* /sys/class/power_supply/ADP*; do
+        if [[ -f "$ps/online" && $(cat "$ps/online" 2>/dev/null) == "1" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+apply_timeouts() {
+    local lock_sec off_sec mode
+    if is_on_ac; then
+        lock_sec=3600
+        off_sec=3900
+        mode="AC (charger: 1h lock, 65m screen-off)"
+    else
+        lock_sec=1800
+        off_sec=2100
+        mode="Battery (30m lock, 35m screen-off)"
+    fi
+
+    # Terminate previous swayidle instance if running
+    if [[ -n "$SWAYIDLE_PID" ]] && kill -0 "$SWAYIDLE_PID" 2>/dev/null; then
+        kill "$SWAYIDLE_PID" 2>/dev/null || true
+        wait "$SWAYIDLE_PID" 2>/dev/null || true
+    fi
+
+    # Kill any dangling external swayidle instances to avoid duplicated triggers
+    pkill -x -P $$ swayidle 2>/dev/null || true
+
+    swayidle -w \
+        timeout "$lock_sec" 'noctalia msg lock 2>/dev/null || swaylock -f -c 1a1b26' \
+        timeout "$off_sec" 'noctalia msg dpms-off 2>/dev/null || wlr-randr --output eDP-1 --off 2>/dev/null' \
+        resume 'noctalia msg dpms-on 2>/dev/null || wlr-randr --output eDP-1 --on 2>/dev/null' \
+        before-sleep 'noctalia msg lock 2>/dev/null || swaylock -f -c 1a1b26' &
+    SWAYIDLE_PID=$!
+}
+
+cleanup() {
+    if [[ -n "$SWAYIDLE_PID" ]]; then
+        kill "$SWAYIDLE_PID" 2>/dev/null || true
+    fi
+    exit 0
+}
+
+trap cleanup EXIT INT TERM HUP
+
+apply_timeouts
+
+# Monitor udev power_supply subsystem for AC plug/unplug events
+CURRENT_STATE=$(is_on_ac && echo "1" || echo "0")
+udevadm monitor --subsystem-match=power_supply --udev 2>/dev/null | while read -r _; do
+    sleep 1
+    NEW_STATE=$(is_on_ac && echo "1" || echo "0")
+    if [[ "$NEW_STATE" != "$CURRENT_STATE" ]]; then
+        CURRENT_STATE="$NEW_STATE"
+        apply_timeouts
+    fi
+done
