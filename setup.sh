@@ -88,6 +88,8 @@ tpl() {
         -e "s|@SCALE@|$DISPLAY_SCALE|g" \
         -e "s|@SCALE_4K@|$DISPLAY_SCALE_4K|g" \
         -e "s|@XKB@|$XKB_LAYOUT|g" \
+        -e "s|@HOSTNAME@|$HOSTNAME|g" \
+        -e "s|@RESILIO_PORT@|$RESILIO_PORT|g" \
         "$1"
 }
 
@@ -297,7 +299,7 @@ step_security() {
         firewall-cmd --permanent --add-port=1714-1764/udp >/dev/null 2>&1 || true
         firewall-cmd --reload >/dev/null 2>&1 || true
     elif [[ -f $FILES/nftables.conf ]]; then
-        put 644 /etc/nftables.conf < "$FILES/nftables.conf"
+        tpl "$FILES/nftables.conf" | put 644 /etc/nftables.conf
         systemctl enable --now nftables 2>/dev/null || true
     fi
 
