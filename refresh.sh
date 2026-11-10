@@ -10,7 +10,7 @@ cd "$(dirname "$0")"
 # Pull latest repository changes
 git pull --ff-only || true
 
-sudo ./setup.sh swap packages security desktop vm apps login devtools speakers
+sudo ./setup.sh packages security desktop vm apps login devtools speakers
 
 # Re-apply live session configuration
 if [ "${XDG_CURRENT_DESKTOP#*labwc}" != "$XDG_CURRENT_DESKTOP" ] || pgrep -x labwc >/dev/null 2>&1; then

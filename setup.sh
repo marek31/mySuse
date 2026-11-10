@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Stage 2 - run as root, inside the install chroot (install.sh does it) or on the running openSUSE system.
 # Safe to re-run. Usage: sudo ./setup.sh [all | step...]
-# Steps: base packages user security snapper desktop vm apps login devtools speakers dotfiles finish
+# Steps: base swap packages user security snapper desktop vm apps login devtools speakers finish
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 # shellcheck source=config.sh
@@ -46,8 +46,6 @@ setkv() {
 }
 
 in_chroot() { [[ $(stat -c %d:%i /) != "$(stat -c %d:%i /proc/1/root/. 2>/dev/null)" ]]; }
-in_vmware() { grep -qi vmware /sys/class/dmi/id/sys_vendor 2>/dev/null || [[ $(systemd-detect-virt 2>/dev/null) == "vmware" ]]; }
-in_vm() { in_vmware || systemd-detect-virt --quiet 2>/dev/null; }
 as_user() {
     local vars=(HOME="$UHOME" USER="$USERNAME" LOGNAME="$USERNAME"
         PATH="$UHOME/.local/bin:$UHOME/.cargo/bin:/usr/local/bin:/usr/bin:/usr/sbin:/bin")
@@ -95,15 +93,13 @@ tpl() {
 
 ensure_swap() {
     local target_gib=$SWAP_GIB
-    if in_vm; then
-        target_gib=8
-    fi
-    local target_min_mb=$(( (target_gib * 1024) - 256 ))
-    local cur_swap_mb
-    cur_swap_mb=$(awk '/SwapTotal/ {print int($2/1024)}' /proc/meminfo 2>/dev/null || echo 0)
-    if [[ $cur_swap_mb -lt $target_min_mb || ! -f /swap/swapfile ]]; then
-        log "ensuring ${target_gib}GB on-disk swapfile on /swap/swapfile (currently $((cur_swap_mb / 1024))GB)..."
+    if [[ ! -f /swap/swapfile ]]; then
+        log "creating ${target_gib}GB on-disk swapfile on /swap/swapfile..."
         bash "$FILES/set-swap" "$target_gib"
+    else
+        if ! grep -q /swap/swapfile /proc/swaps 2>/dev/null; then
+            swapon /swap/swapfile 2>/dev/null || true
+        fi
     fi
 
     if [[ -f /swap/swapfile ]]; then
@@ -234,11 +230,6 @@ REPO_EOF
         pkgs+=($line)
     done < "$HERE/packages.txt"
 
-    if in_vmware; then
-        log "VMware detected: adding open-vm-tools-desktop"
-        pkgs+=(open-vm-tools-desktop)
-    fi
-
     log "installing ${#pkgs[@]} packages..."
     zypper --non-interactive --ignore-unknown in -y --no-recommends --auto-agree-with-licenses --force-resolution "${pkgs[@]}" || warn "some packages could not be installed"
     zypper dup -y --from packman --allow-vendor-change || true
@@ -321,8 +312,6 @@ step_security() {
         lpadmin -p "Brother_DCP-L2530DW_series" -o Duplex=None -o sides=one-sided -o cupsPrintQuality=Normal -o Collate=True 2>/dev/null || true
         as_user lpoptions -d "Brother_DCP-L2530DW_series" -o Duplex=None -o sides=one-sided -o cupsPrintQuality=Normal -o Collate=True -o copies=1 2>/dev/null || true
     fi
-
-    ensure_swap
 }
 
 step_snapper() {
@@ -359,12 +348,7 @@ step_snapper() {
 
 step_desktop() {
     log "desktop environment: TLP, thermald, PipeWire, helper scripts, dotfiles"
-    if ! in_vmware; then
-        systemctl enable --now tlp tlp-pd thermald 2>/dev/null || true
-    else
-        log "VMware detected: enabling vmtoolsd"
-        systemctl enable --now vmtoolsd 2>/dev/null || true
-    fi
+    systemctl enable --now tlp tlp-pd thermald 2>/dev/null || true
     systemctl enable --now earlyoom 2>/dev/null || true
     systemctl enable --now udisks2 2>/dev/null || true
     systemctl enable --now bluetooth 2>/dev/null || true

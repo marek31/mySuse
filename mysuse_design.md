@@ -71,6 +71,9 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Changelog
 
+- 2026-11-10: Pruned all VM guest logic (in_vm/in_vmware guest detection, open-vm-tools, vmtoolsd, VM-specific 8GB swap fallback) while retaining full host virtualization capabilities (KVM, libvirt, swtpm, virt-manager, win11-vm helper).
+- 2026-11-09: Configured swap size to 32GB on fresh installations (`config.sh`, `install.sh`, and `setup.sh`) while preventing swap recreation or resizing during `refresh.sh` and existing system updates.
+
 - 2026-11-09: Uninstalled Floorp browser: removed binary tree (/opt/floorp), desktop launchers, user configuration (~/.config/floorp, ~/.cache/floorp), and updated setup.sh cleanup routines to purge leftover Floorp files unconditionally.
 - 2026-11-09: Restored Noctalia application launcher panel with single-key Meta toggle behavior (`noctalia msg panel-toggle launcher` on Super_L, Super_R, Meta+D, and Meta+Space; tap to open, tap to close). Purged Fuzzel from system packages, configs, and wallpaper cheat sheet. Automated installation of recommended Helium browser extensions (Bitwarden, Consent-O-Matic, Ghostery, Raindrop.io, uBlock Origin, Unhook, Video Downloader Pro, Youtube Volume Scroll) via CRX3 unpacking to `~/.local/share/helium/extensions/unpacked/` and dynamic `--load-extension` flags in `/usr/local/bin/helium` and `helium.desktop`.
 - 2026-11-09: Ensured persistent Wi-Fi passwords across reconnects: updated existing profiles to psk-flags 0 (system-stored keyfile) and installed NetworkManager dispatcher script 99-save-wifi-psk.sh to automatically save PSK secrets permanently upon connection.

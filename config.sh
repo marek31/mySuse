@@ -7,7 +7,7 @@
 #               AX211 wifi, SOF audio, Synaptics 06cb:00fc fingerprint reader, USB4/Thunderbolt
 #   disk        X1: dual boot - openSUSE goes into unallocated space between C: and Windows Recovery,
 #               sharing Windows' 260 MB EFI partition (grub next to Windows Boot Manager, os-prober menu).
-#               VM/blank disk: GPT, 1 GiB EFI + 1 GiB /boot + rest. Either way /boot is plain ext4 and the
+#               Blank disk: GPT, 1 GiB EFI + 1 GiB /boot + rest. Either way /boot is plain ext4 and the
 #               rest btrfs inside LUKS2 (argon2id, ENCRYPT=yes): the initramfs asks
 #               for the passphrase once, ~2 s, no grub wait. ENCRYPT=no = plain btrfs, no passphrase
 #   swap        plain swapfile on disk (@swap subvolume); no zram, zswap disabled
@@ -58,7 +58,7 @@ ENCRYPT=yes             # no = plain btrfs, boots without a passphrase; yes = LU
 LUKS_ITER_MS=2000       # argon2id unlock time: ~2 s at boot, cryptsetup default
 BOOT_MIB=1024           # unencrypted /boot (kernels + initramfs)
 ESP_MIB=1024
-SWAP_GIB=16             # = RAM
+SWAP_GIB=32             # 32 GB on fresh system
 BTRFS_OPTS="noatime,compress=zstd:1"
 REPO_OSS=https://download.opensuse.org/tumbleweed/repo/oss
 REPO_NON_OSS=https://download.opensuse.org/tumbleweed/repo/non-oss

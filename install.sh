@@ -28,7 +28,7 @@ free_areas() {
 
 echo "mySuse installer - openSUSE Tumbleweed - $HOSTNAME - log: $LOG"
 [[ $EUID -eq 0 ]] || die "run as root"
-[[ -d /sys/firmware/efi ]] || die "not booted in UEFI mode - enable EFI in the VM/BIOS settings and boot the live ISO again"
+[[ -d /sys/firmware/efi ]] || die "not booted in UEFI mode - enable EFI in the BIOS settings and boot the live ISO again"
 ping -c1 -W5 download.opensuse.org >/dev/null || die "no network connection available"
 
 mapfile -t DISKS < <(lsblk -dnpo NAME,TYPE,RO | awk '$2 == "disk" && $3 == 0 {print $1}' |

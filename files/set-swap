@@ -1,10 +1,10 @@
 #!/bin/bash
 # Configure or resize swap to a dedicated Btrfs subvolume at /swap/swapfile.
 # Safe for Snapper: /swap is a separate subvolume, so root snapshots never fail.
-# Usage: sudo set-swap [size_in_GB]  (default: 8)
+# Usage: sudo set-swap [size_in_GB]  (default: 32)
 set -euo pipefail
 [[ $EUID -eq 0 ]] || { echo "Run as root: sudo $0 $*" >&2; exit 1; }
-SIZE="${1:-8}"
+SIZE="${1:-32}"
 
 echo "Setting swap to ${SIZE} GB on /swap/swapfile..."
 swapoff -a 2>/dev/null || true
