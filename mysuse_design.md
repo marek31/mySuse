@@ -69,3 +69,8 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ---
 
+## Changelog
+
+- 2026-11-10: Configured SDDM Chili theme with clean blur and typography defaults; updated `packages.txt` for Qt5 greeter and QtQuick dependencies.
+- 2026-11-10: Enhanced Foot terminal: mapped `Control+v`, `Control+Shift+v`, and `XF86Paste` to clipboard-paste (resolving paste blocking from MMAutoKey interception), added `foot-open` smart launcher with Kate line fragment support, and enabled clickable URL/file path detection with mouse bindings (`Control+Left/Right-Click`) and keyboard jump labels (`Control+Shift+o`).
+- 2026-11-10: Upgraded taskbar application launching (Meta+1..0 and Meta+Shift+1..0): created dynamic `taskbar-app` script to automatically detect apps at taskbar positions 1..10 (ordered by Noctalia pinned items followed by running unpinned windows). Added Windows-style focus, minimize-toggle, window cycling, and new instance spawning (`--new`). Updated Labwc keybindings, Noctalia pinned defaults, and wallpaper cheat sheet.

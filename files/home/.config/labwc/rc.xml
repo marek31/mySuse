@@ -170,25 +170,29 @@
       </action>
     </keybind>
 
-    <!-- Pinned Taskbar Apps (Meta+N: focus running or launch) -->
-    <keybind key="W-1">
-      <action name="Execute" command="wlrctl toplevel focus app_id:helium 2>/dev/null || helium" />
-    </keybind>
-    <keybind key="W-2">
-      <action name="Execute" command="wlrctl toplevel focus app_id:thunar 2>/dev/null || thunar" />
-    </keybind>
-    <keybind key="W-3">
-      <action name="Execute" command="wlrctl toplevel focus app_id:foot 2>/dev/null || foot" />
-    </keybind>
-    <keybind key="W-4">
-      <action name="Execute" command="wlrctl toplevel focus app_id:opera 2>/dev/null || opera" />
-    </keybind>
-    <keybind key="W-5">
-      <action name="Execute" command="wlrctl toplevel focus app_id:io.missioncenter.MissionCenter 2>/dev/null || flatpak run io.missioncenter.MissionCenter" />
-    </keybind>
-    <keybind key="W-6">
-      <action name="Execute" command="wlrctl toplevel focus app_id:github-desktop 2>/dev/null || github-desktop" />
-    </keybind>
+    <!-- Taskbar Apps (Meta+1..0: focus/toggle or launch app at taskbar position 1..10) -->
+    <keybind key="W-1"><action name="Execute" command="taskbar-app 1" /></keybind>
+    <keybind key="W-2"><action name="Execute" command="taskbar-app 2" /></keybind>
+    <keybind key="W-3"><action name="Execute" command="taskbar-app 3" /></keybind>
+    <keybind key="W-4"><action name="Execute" command="taskbar-app 4" /></keybind>
+    <keybind key="W-5"><action name="Execute" command="taskbar-app 5" /></keybind>
+    <keybind key="W-6"><action name="Execute" command="taskbar-app 6" /></keybind>
+    <keybind key="W-7"><action name="Execute" command="taskbar-app 7" /></keybind>
+    <keybind key="W-8"><action name="Execute" command="taskbar-app 8" /></keybind>
+    <keybind key="W-9"><action name="Execute" command="taskbar-app 9" /></keybind>
+    <keybind key="W-0"><action name="Execute" command="taskbar-app 10" /></keybind>
+
+    <!-- Taskbar Apps New Instance (Meta+Shift+1..0) -->
+    <keybind key="W-S-1"><action name="Execute" command="taskbar-app --new 1" /></keybind>
+    <keybind key="W-S-2"><action name="Execute" command="taskbar-app --new 2" /></keybind>
+    <keybind key="W-S-3"><action name="Execute" command="taskbar-app --new 3" /></keybind>
+    <keybind key="W-S-4"><action name="Execute" command="taskbar-app --new 4" /></keybind>
+    <keybind key="W-S-5"><action name="Execute" command="taskbar-app --new 5" /></keybind>
+    <keybind key="W-S-6"><action name="Execute" command="taskbar-app --new 6" /></keybind>
+    <keybind key="W-S-7"><action name="Execute" command="taskbar-app --new 7" /></keybind>
+    <keybind key="W-S-8"><action name="Execute" command="taskbar-app --new 8" /></keybind>
+    <keybind key="W-S-9"><action name="Execute" command="taskbar-app --new 9" /></keybind>
+    <keybind key="W-S-0"><action name="Execute" command="taskbar-app --new 10" /></keybind>
 
     <!-- Workspaces 1..4 (Meta+Fn) -->
     <keybind key="W-F1"><action name="GoToDesktop" to="1" /></keybind>

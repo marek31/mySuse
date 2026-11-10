@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+"""foot-open: Smart URL and local file opener for Foot terminal.
+
+Handles:
+- Web URLs (http://, https://, ftp://, git://) -> opens in default browser via xdg-open
+- Local file URIs (file:///path/to/file#L123-L145) -> opens in Kate editor at specified line
+- Local filesystem paths (/path/to/file:123, ~/.config/...) -> opens in editor or file manager
+- General fallback -> xdg-open
+"""
+
+import os
+import re
+import sys
+import subprocess
+import urllib.parse
+
+def main():
+    if len(sys.argv) < 2:
+        sys.exit(0)
+
+    target = sys.argv[1].strip().strip('\'"<>[]()')
+    if not target:
+        sys.exit(0)
+
+    # Strip sentence-ending punctuation if trailing
+    while len(target) > 1 and target[-1] in ',;:!?':
+        target = target[:-1]
+    if target.endswith('.') and not target.endswith('/.'):
+        target = target[:-1]
+
+    # 1. Standard web/network URLs
+    if re.match(r'^(https?|ftp|git|mailto|ssh)://', target) or target.startswith('www.'):
+        subprocess.Popen(['xdg-open', target], start_new_session=True)
+        return
+
+    # 2. file:// URIs
+    if target.startswith('file://'):
+        parsed = urllib.parse.urlsplit(target)
+        file_path = urllib.parse.unquote(parsed.path)
+        line = None
+        if parsed.fragment:
+            m = re.match(r'L?(\d+)', parsed.fragment)
+            if m:
+                line = m.group(1)
+        open_file_or_path(file_path, line)
+        return
+
+    # 3. Local paths with optional :line or :line:col (e.g. /path/to/file:42:10 or ~/.config/foot/foot.ini:25)
+    line = None
+    m = re.search(r':(\d+)(?::\d+)?$', target)
+    if m:
+        candidate = target[:m.start()]
+        expanded = os.path.expanduser(candidate)
+        if os.path.exists(expanded):
+            open_file_or_path(expanded, m.group(1))
+            return
+
+    # 4. Plain local paths
+    expanded = os.path.expanduser(target)
+    if os.path.exists(expanded):
+        open_file_or_path(expanded, None)
+        return
+
+    # 5. Fallback
+    subprocess.Popen(['xdg-open', target], start_new_session=True)
+
+def open_file_or_path(path, line):
+    if not os.path.exists(path):
+        subprocess.Popen(['xdg-open', path], start_new_session=True)
+        return
+
+    # If it's a directory, open file manager
+    if os.path.isdir(path):
+        subprocess.Popen(['xdg-open', path], start_new_session=True)
+        return
+
+    # If line number specified, prefer Kate if installed
+    if line:
+        kate = subprocess.run(['which', 'kate'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if kate.returncode == 0:
+            subprocess.Popen(['kate', '--line', str(line), path], start_new_session=True)
+            return
+
+    # Default file open
+    subprocess.Popen(['xdg-open', path], start_new_session=True)
+
+if __name__ == '__main__':
+    main()

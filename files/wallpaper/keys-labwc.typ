@@ -6,7 +6,8 @@
   size: 13.2pt, cols: 4, margin: (left: 54pt, right: 54pt, top: 60pt, bottom: 84pt))
 
 #section(blue, "Apps & Shell",
-  ("Meta+1 .. 6", "taskbar apps (Helium, Files...)"),
+  ("Meta+1 .. 0", "taskbar app 1..10 (focus / toggle)"),
+  ("Meta+Shift+1 .. 0", "new instance of taskbar app"),
   ("Meta+Return", "terminal (foot)"),
   ("Meta / Meta+D / Space", "launcher toggle (Noctalia)"),
   ("Meta+A", "control center (Noctalia)"),

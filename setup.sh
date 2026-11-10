@@ -369,6 +369,8 @@ step_desktop() {
     put 755 /usr/local/bin/labwc-suse-session < "$FILES/labwc-suse-session"
     put 755 /usr/local/bin/win11-vm < "$FILES/win11-vm"
     put 755 /usr/local/bin/helium-install-extensions < "$FILES/helium-install-extensions"
+    put 755 /usr/local/bin/taskbar-app < "$FILES/home/.local/bin/taskbar-app"
+    put 755 /usr/local/bin/foot-open < "$FILES/home/.local/bin/foot-open"
 
     # NetworkManager auto-save Wi-Fi passwords system-wide
     mkdir -p /etc/NetworkManager/dispatcher.d
@@ -732,17 +734,18 @@ EOF
           /usr/share/wayland-sessions/plasma*.desktop 2>/dev/null || true
     rm -rf /usr/share/xsessions/* 2>/dev/null || true
 
-    # Link breeze theme in SDDM themes if breeze-openSUSE is present
-    if [[ -d /usr/share/sddm/themes/breeze-openSUSE && ! -d /usr/share/sddm/themes/breeze ]]; then
-        ln -s breeze-openSUSE /usr/share/sddm/themes/breeze 2>/dev/null || true
+    # Install Chili SDDM theme
+    if [[ -d "$FILES/sddm-theme-chili" ]]; then
+        mkdir -p /usr/share/sddm/themes/chili
+        cp -a "$FILES/sddm-theme-chili/." /usr/share/sddm/themes/chili/
     fi
 
-    # Configure SDDM to use Breeze theme and pre-select Labwc
+    # Configure SDDM to use Chili theme and pre-select Labwc
     local def_sess=${DEFAULT_SESSION:-labwc}
     mkdir -p /etc/sddm.conf.d /var/lib/sddm
     put 644 /etc/sddm.conf.d/10-mysuse.conf <<EOF
 [Theme]
-Current=breeze-openSUSE
+Current=chili
 CursorTheme=Bibata-Modern-Classic
 
 [Users]
