@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# Every install decision lives here. install.sh and setup.sh source this file.
+# Every install decision lives here. refresh.sh sources this file.
 #
 # Decisions (openSUSE Tumbleweed):
 #   distro      openSUSE Tumbleweed x86_64, systemd, btrfs + snapper, Packman multimedia
@@ -23,7 +23,7 @@
 #   vm          KVM/QEMU, libvirt, virt-manager, swtpm (TPM 2.0), OVMF UEFI for Windows 11
 #   upkeep      browsers auto-update once a day, update notifications, monthly btrfs scrub,
 #               smartd, earlyoom, hibernate at 5 % battery, USB automount (udisks2)
-#   browsers    Helium (default) + Opera: upstream tarball / repo, updated by `setup.sh apps`;
+#   browsers    Helium (default) + Opera: upstream tarball / repo, updated by `refresh.sh apps`;
 #               Firefox from zypper
 #   office      LibreOffice (Polish UI pack + spelling)
 #   printing    CUPS + cups-browsed + avahi (wifi/IPP Everywhere), sane-airscan for network scanners
@@ -51,9 +51,9 @@ DISPLAY_SCALE=1.25      # laptop panel (eDP-1, 1920x1200 14") in Kanshi; 1.0-1.5
 DISPLAY_SCALE_4K=1.5    # external 4K monitors (Dell G3223Q 32"); Windows uses 150 % on it
 
 INSTALL_MODE=""         # free = new partition in the largest unallocated area, keep Windows (dual boot)
-                        # wipe = erase a whole disk; empty = install.sh asks (default free if there is space)
+                        # wipe = erase a whole disk; empty = refresh.sh asks (default free if there is space)
 MIN_FREE_GIB=40         # smallest unallocated area offered for "free"
-DISK=""                 # wipe mode only, e.g. /dev/nvme0n1; empty = install.sh asks
+DISK=""                 # wipe mode only, e.g. /dev/nvme0n1; empty = refresh.sh asks
 ENCRYPT=yes             # no = plain btrfs, boots without a passphrase; yes = LUKS2 on everything except /boot
 LUKS_ITER_MS=2000       # argon2id unlock time: ~2 s at boot, cryptsetup default
 BOOT_MIB=1024           # unencrypted /boot (kernels + initramfs)
@@ -68,7 +68,6 @@ REPO_PACKMAN=https://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Tumbleweed
 SNAP_ROOT_LIMIT=10          # keep up to 10 package update snapshot pairs
 SNAP_ROOT_LIMIT_IMPORTANT=4 # keep up to 4 marked important
 
-GREETER=sddm            # login screen: sddm (graphical display manager)
 DEFAULT_SESSION=labwc   # default session: labwc (single clean entry)
 
 SUDO_TIMEOUT_MIN=1440   # ask for the sudo password once per day

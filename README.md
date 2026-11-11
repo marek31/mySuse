@@ -13,7 +13,7 @@ All decisions and hardware options are defined in [config.sh](config.sh).
 Grab openSUSE Tumbleweed from the official download page:
 <https://get.opensuse.org/tumbleweed/>
 
-- **Recommended:** Network Image (x86_64) for a fresh net-install, or the KDE/GNOME Live Image if you prefer running `install.sh` directly from a live environment.
+- **Recommended:** Network Image (x86_64) for a fresh net-install, or the KDE/GNOME Live Image if you prefer running `refresh.sh` directly from a live environment.
 - **Write it to USB** (at least 2 GB):
   - Windows: [Rufus](https://rufus.ie/) -> pick the ISO -> Start -> choose **DD Image mode** when prompted.
   - Linux: `dd bs=4M if=openSUSE-Tumbleweed-*.iso of=/dev/sdX status=progress; sync`
@@ -43,6 +43,16 @@ Grab openSUSE Tumbleweed from the official download page:
 
 ## Setup Methods
 
+There is one script, `refresh.sh`. It works out where it runs and calls `sudo` itself:
+
+| Where | What it does |
+|---|---|
+| Live USB, no mySuse on disk | Installs: partitions, LUKS2 + btrfs, bootstraps, configures in a chroot |
+| Live USB, mySuse already on disk | Asks to resume, reopens and remounts it, then finishes the bootstrap and configuration |
+| Installed system | `git pull`, then brings the system back to what this repo defines |
+
+If a run is interrupted (Wi-Fi drop, power loss), run it again: it continues at the step that did not finish. If the repo changed in between, it re-runs all steps. Every step is safe to repeat. `./refresh.sh apps` (or any step list) runs only those steps.
+
 You can set up `mySuse` in two ways:
 
 ### Option A: Standard YaST Install (Recommended)
@@ -59,7 +69,7 @@ You can set up `mySuse` in two ways:
    sudo zypper install -y git
    git clone https://github.com/marek31/mySuse
    cd mySuse
-   sudo ./setup.sh all
+   ./refresh.sh
    ```
 
 ### Option B: Scripted Install from Live USB
@@ -71,12 +81,12 @@ If booted into an openSUSE Live desktop/rescue ISO:
    zypper in -y git
    git clone https://github.com/marek31/mySuse
    cd mySuse
-   ./install.sh
+   ./refresh.sh
    ```
-   `install.sh` handles partitioning, LUKS2 encryption (argon2id), btrfs subvolumes (`@`, `@home`, `@snapshots`, etc.), bootstrapping base packages via `zypper --root /mnt`, configuring fstab, and executing `setup.sh` in chroot.
-3. Remove the USB stick and reboot.
+   It handles partitioning, LUKS2 encryption (argon2id), btrfs subvolumes (`@`, `@home`, `@snapshots`, etc.), bootstrapping base packages via `zypper --root /mnt` and fstab, then configures the system in a chroot. It asks for the login password of `marek`.
+3. Remove the USB stick, reboot, log in and run `~/mySuse/refresh.sh` once more (speaker tuning and user services need the running system).
 
-If an installation or setup run ever gets interrupted (e.g. Wi-Fi drop), simply boot back into the live session and run `./resume.sh` to remount the filesystems and pick up right where it stopped.
+If the install is interrupted, boot the live USB again and run `./refresh.sh`. It finds the existing install, asks whether to resume it, and carries on where it stopped.
 
 ---
 
@@ -86,7 +96,7 @@ If an installation or setup run ever gets interrupted (e.g. Wi-Fi drop), simply 
 |---|---|
 | Fingerprint reader | `fprintd-enroll` (enables biometric auth for sudo and the lock screen) |
 | Firmware updates | `fwupdmgr refresh && fwupdmgr update` |
-| Speaker tuning | `sudo ~/mySuse/setup.sh speakers` (converts Lenovo's Dolby Atmos profile from the Windows partition into an EasyEffects preset) |
+| Speaker tuning | `~/mySuse/refresh.sh speakers` (converts Lenovo's Dolby Atmos profile from the Windows partition into an EasyEffects preset) |
 | Resilio Sync | `resilio` (starts service and opens WebUI on localhost:55555) |
 | pCloud storage | `cloud setup` (browser auth), then `cloud open` to mount `~/pCloud` on demand |
 | Dev tools | `claude`, `agy` (Antigravity CLI), `omp` (oh-my-pi), `cargo`, `go`, `sbcl`, `git-credential-manager` |
@@ -162,11 +172,11 @@ Configured as the primary stacking Wayland desktop:
 
 - **Updates:** Run `zu` in terminal (an alias for `sudo zypper dup`). Snapper automatically takes pre and post snapshots of root before and after package changes.
 - **Snapshots list:** Run `snaps` to view root snapshot history (`snapper -c root list`). User data in `/home` lives on a dedicated subvolume and is never snapshotted or rolled back.
-- **Dotfile updates:** When updating configuration from this repository, run:
+- **Configuration updates:** After changing this repository, or to undo drift on the system, run:
   ```bash
   ~/mySuse/refresh.sh
   ```
-  This updates dotfiles (saving previous versions to `~/.backup`) and re-applies live session configurations without restarting.
+  It pulls the repo, re-applies every step (previous dotfiles are saved to `~/.backup`, system files to `/root/.backup`) and reloads Labwc and Noctalia without logging out. The initramfs and grub.cfg are rebuilt only when their inputs changed.
 
 ---
 
@@ -176,9 +186,7 @@ Configured as the primary stacking Wayland desktop:
 |---|---|
 | `config.sh` | Central settings: hostname, user, locale, scaling, disk layout, snapshot rules |
 | `packages.txt` | Package manifest installed via zypper |
-| `install.sh` | Automated partitioner, LUKS formatter, btrfs setup, and bootstrap installer |
-| `setup.sh` | Post-install system configuration, hardening, services, desktop, and app build |
-| `refresh.sh` | Safe live desktop updates with snapshot rollback safety net |
-| `resume.sh` | Rescue chroot runner for live ISO environments |
+| `refresh.sh` | The only script: install from a live USB, resume an interrupted run, refresh the installed system |
+| `test_refresh.sh` | Self-check of the step runner's resume logic (`bash test_refresh.sh`, no root) |
 | `files/` | Configuration templates, dotfiles, wallpapers, and desktop integration scripts |
 | `mysuse_design.md` | Architectural rationale, implementation notes, and distribution design log |

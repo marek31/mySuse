@@ -1,4 +1,4 @@
-// Labwc + Noctalia key cheat sheet, rendered to ~/Pictures/Wallpapers/keys-labwc.png by setup.sh.
+// Labwc + Noctalia key cheat sheet, rendered to ~/Pictures/Wallpapers/keys-labwc.png by refresh.sh.
 #import "keys-style.typ": *
 
 #show: sheet.with("Labwc + Noctalia  ·  x1-suse",

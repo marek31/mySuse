@@ -14,6 +14,7 @@ SELF=$HERE/$(basename "${BASH_SOURCE[0]}")
 source "$HERE/config.sh"
 FILES=$HERE/files
 UHOME=/home/$USERNAME
+STATE_DIR=/var/lib/mysuse
 ALL_STEPS=(base packages user security snapper desktop vm apps login devtools speakers finish)
 
 log() { printf '\e[1;34m==> %s\e[0m\n' "$*"; }
@@ -1074,7 +1075,7 @@ step_vm() {
 
 step_finish() {
     # only regenerate when boot inputs changed: dracut is the slowest part of a routine refresh
-    local stamp=/var/lib/mysuse/boot.sha sum
+    local stamp=$STATE_DIR/boot.sha sum
     sum=$({ cat /etc/default/grub /etc/sysconfig/bootloader /etc/crypttab /etc/vconsole.conf \
         /etc/dracut.conf.d/* 2>/dev/null || true; } | sha256sum)
     if [[ -f /boot/grub2/grub.cfg && $(cat "$stamp" 2>/dev/null) == "$sum" ]]; then
@@ -1084,7 +1085,7 @@ step_finish() {
     log "regenerating dracut initramfs and bootloader configuration"
     dracut --force --hostonly 2>/dev/null || true
     update-bootloader --refresh 2>/dev/null || grub2-mkconfig -o /boot/grub2/grub.cfg 2>/dev/null || true
-    mkdir -p /var/lib/mysuse
+    mkdir -p "$STATE_DIR"
     echo "$sum" > "$stamp"
 }
 
@@ -1101,13 +1102,13 @@ repo_hash() {
 
 # Named steps run as asked. No steps: all of them, resuming an interrupted run of the same repo content.
 run_steps() {
-    local s state=/var/lib/mysuse/progress hash
+    local s state=$STATE_DIR/progress hash
     if [[ $# -gt 0 ]]; then
         for s; do declare -F "step_$s" >/dev/null || die "unknown step '$s' (steps: ${ALL_STEPS[*]} dotfiles)"; done
         for s; do "step_$s"; done
         return 0
     fi
-    mkdir -p /var/lib/mysuse
+    mkdir -p "$STATE_DIR"
     hash=$(repo_hash)
     [[ $(head -n1 "$state" 2>/dev/null) == "$hash" ]] || echo "$hash" > "$state"
     for s in "${ALL_STEPS[@]}"; do
@@ -1120,6 +1121,7 @@ run_steps() {
 
 # ---------------------------------------------------------------- main
 
+[[ ${BASH_SOURCE[0]} == "$0" ]] || return 0   # sourced by test_refresh.sh: functions only
 [[ $EUID -eq 0 ]] || exec sudo bash "$SELF" "$@"
 
 # pull as the repo owner (git refuses a repo owned by someone else), then restart with the new script
