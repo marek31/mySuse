@@ -1,0 +1,7 @@
+Defaults timestamp_timeout=@SUDO_TIMEOUT_MIN@, timestamp_type=global
+Defaults !targetpw
+Defaults:ALL !targetpw
+Defaults !rootpw
+Defaults:ALL !rootpw
+%wheel ALL=(ALL:ALL) ALL
+@USERNAME@ ALL=(ALL:ALL) ALL

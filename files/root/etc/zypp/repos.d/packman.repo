@@ -1,0 +1,8 @@
+[packman]
+name=Packman (full multimedia codecs)
+enabled=1
+autorefresh=1
+baseurl=https://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Tumbleweed
+priority=90
+type=rpm-md
+keeppackages=0

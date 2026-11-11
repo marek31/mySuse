@@ -1,0 +1,11 @@
+PATH=/usr/local/bin:/usr/bin:/usr/sbin:/bin
+# package index refresh so update-notify can count updates
+17 */6 * * * root zypper refresh >/dev/null 2>&1
+# Helium, Resilio, fonts, cursor: daily upkeep from the root-owned copy of the repo
+47 * * * * root power-ok 80 && ! find /var/lib/mysuse/apps.stamp -mmin -1440 2>/dev/null | grep -q . && bash /usr/local/lib/mysuse/refresh.sh apps >/dev/null 2>&1 && touch /var/lib/mysuse/apps.stamp
+# monthly btrfs scrub
+0 11 1 * * root btrfs scrub start -Bd / >/dev/null 2>&1 || logger -t mysuse "btrfs scrub reported errors"
+# plocate index
+30 12 * * * root updatedb
+# hibernate at 5 % battery
+*/2 * * * * root battery-guard

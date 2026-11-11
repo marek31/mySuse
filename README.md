@@ -2,7 +2,7 @@
 
 Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots on root, Labwc + Noctalia (modern desktop shell on stacking Wayland), Helium, Opera, Firefox, ytfzf, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
 
-All decisions and hardware options are defined in [config.sh](config.sh).
+Everything is in [refresh.sh](refresh.sh) (settings and package list at the top) and [files/](files).
 
 ---
 
@@ -13,7 +13,7 @@ All decisions and hardware options are defined in [config.sh](config.sh).
 Grab openSUSE Tumbleweed from the official download page:
 <https://get.opensuse.org/tumbleweed/>
 
-- **Recommended:** Network Image (x86_64) for a fresh net-install, or the KDE/GNOME Live Image if you prefer running `refresh.sh` directly from a live environment.
+- **Recommended:** Network Image (x86_64) or the offline DVD image.
 - **Write it to USB** (at least 2 GB):
   - Windows: [Rufus](https://rufus.ie/) -> pick the ISO -> Start -> choose **DD Image mode** when prompted.
   - Linux: `dd bs=4M if=openSUSE-Tumbleweed-*.iso of=/dev/sdX status=progress; sync`
@@ -41,21 +41,7 @@ Grab openSUSE Tumbleweed from the official download page:
 
 ---
 
-## Setup Methods
-
-There is one script, `refresh.sh`. It works out where it runs and calls `sudo` itself:
-
-| Where | What it does |
-|---|---|
-| Live USB, no mySuse on disk | Installs: partitions, LUKS2 + btrfs, bootstraps, configures in a chroot |
-| Live USB, mySuse already on disk | Asks to resume, reopens and remounts it, then finishes the bootstrap and configuration |
-| Installed system | `git pull`, then brings the system back to what this repo defines |
-
-If a run is interrupted (Wi-Fi drop, power loss), run it again: it continues at the step that did not finish. If the repo changed in between, it re-runs all steps. Every step is safe to repeat. `./refresh.sh apps` (or any step list) runs only those steps.
-
-You can set up `mySuse` in two ways:
-
-### Option A: Standard YaST Install (Recommended)
+## Setup
 
 1. Boot the openSUSE Tumbleweed installer USB.
 2. Proceed through the installer:
@@ -71,22 +57,18 @@ You can set up `mySuse` in two ways:
    cd mySuse
    ./refresh.sh
    ```
+5. Reboot and pick **Labwc** on the login screen.
 
-### Option B: Scripted Install from Live USB
+`refresh.sh` is the only script. Run it as yourself: it does `git pull`, then re-runs itself with `sudo`.
 
-If booted into an openSUSE Live desktop/rescue ISO:
-1. Ensure network connectivity is up.
-2. Open a root terminal:
-   ```bash
-   zypper in -y git
-   git clone https://github.com/marek31/mySuse
-   cd mySuse
-   ./refresh.sh
-   ```
-   It handles partitioning, LUKS2 encryption (argon2id), btrfs subvolumes (`@`, `@home`, `@snapshots`, etc.), bootstrapping base packages via `zypper --root /mnt` and fstab, then configures the system in a chroot. It asks for the login password of `marek`.
-3. Remove the USB stick, reboot, log in and run `~/mySuse/refresh.sh` once more (speaker tuning and user services need the running system).
+| Situation | Command | What happens |
+|---|---|---|
+| First run after the install | `./refresh.sh` | All steps: files, packages, system, apps, user, vm, boot |
+| Something failed in the middle | `./refresh.sh` again | Steps that already finished are skipped (if the repo is unchanged) |
+| Repo changed, or the system drifted | `./refresh.sh` | All steps again; every step is safe to repeat |
+| Only one part | `./refresh.sh apps vm` | Just those steps |
 
-If the install is interrupted, boot the live USB again and run `./refresh.sh`. It finds the existing install, asks whether to resume it, and carries on where it stopped.
+Config files are not written by the script but copied from `files/root` (to `/`) and `files/home` (to `~`), with `@NAME@` replaced by the setting `NAME` from the top of `refresh.sh`. A file that differs is backed up first (`/root/.backup`, `~/.backup`) and then replaced. Errors are printed on screen and stop the run; fix them and run `./refresh.sh` again. `./refresh.sh selftest` checks the resume and file-copy logic without root.
 
 ---
 
@@ -96,7 +78,6 @@ If the install is interrupted, boot the live USB again and run `./refresh.sh`. I
 |---|---|
 | Fingerprint reader | `fprintd-enroll` (enables biometric auth for sudo and the lock screen) |
 | Firmware updates | `fwupdmgr refresh && fwupdmgr update` |
-| Speaker tuning | `~/mySuse/refresh.sh speakers` (converts Lenovo's Dolby Atmos profile from the Windows partition into an EasyEffects preset) |
 | Resilio Sync | `resilio` (starts service and opens WebUI on localhost:55555) |
 | pCloud storage | `cloud setup` (browser auth), then `cloud open` to mount `~/pCloud` on demand |
 | Dev tools | `claude`, `agy` (Antigravity CLI), `omp` (oh-my-pi), `cargo`, `go`, `sbcl`, `git-credential-manager` |
@@ -184,9 +165,8 @@ Configured as the primary stacking Wayland desktop:
 
 | File | Purpose |
 |---|---|
-| `config.sh` | Central settings: hostname, user, locale, scaling, disk layout, snapshot rules |
-| `packages.txt` | Package manifest installed via zypper |
-| `refresh.sh` | The only script: install from a live USB, resume an interrupted run, refresh the installed system |
-| `test_refresh.sh` | Self-check of the step runner's resume logic (`bash test_refresh.sh`, no root) |
-| `files/` | Configuration templates, dotfiles, wallpapers, and desktop integration scripts |
+| `refresh.sh` | The only script: settings, package list, steps. Configures a fresh install, resumes a failed run, brings the system back to this repo |
+| `files/root/` | System files, same paths as under `/` (sudoers, repos, SDDM, cron, policies, `/usr/local/bin` helpers) |
+| `files/home/` | Dotfiles, same paths as under `~` |
+| `files/wallpaper/`, `files/audio/` | Cheat-sheet wallpaper source; Lenovo Dolby XML the EasyEffects presets were made from |
 | `mysuse_design.md` | Architectural rationale, implementation notes, and distribution design log |

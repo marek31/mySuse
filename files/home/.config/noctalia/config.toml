@@ -24,7 +24,7 @@ enabled = false
 speed = 3.0
 
 [shell.screenshot]
-directory = "@HOME@/Github/mydata/t/_screenshots"
+directory = "@UHOME@/Github/mydata/t/_screenshots"
 filename_pattern = "%Y-%m-%d %H-%M-%S"
 format = "jpeg"
 

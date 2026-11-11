@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Labwc
+Comment=Modern Stacking Wayland Compositor with Noctalia Shell
+Exec=/usr/local/bin/labwc-suse-session
+Icon=labwc
+Type=Application
+DesktopNames=labwc;wlroots

@@ -46,7 +46,7 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Security
 
-- **Firewall:** `firewalld` (or `nftables`) configured with default-drop inbound policy. Ports opened selectively for Resilio Sync (55555/tcp, 3838/udp), Tailscale (41641/udp), KDE Connect (1714-1764 LAN), and mDNS.
+- **Firewall:** `firewalld` configured with default-drop inbound policy. Ports opened selectively for Resilio Sync (55555/tcp, 3838/udp), Tailscale (41641/udp), KDE Connect (1714-1764 LAN), and mDNS.
 - **Hardening:** Sysctl parameters (`files/sysctl-hardening.conf`) restricting dmesg, kptr, unprivileged BPF, and ptrace scope.
 - **AppArmor:** Enabled in enforce mode across all active profiles.
 - **Root Security:** Root account locked; administrative privileges mediated exclusively through `sudo` with daily timestamp caching.
@@ -70,22 +70,55 @@ Architectural choices, rationale, and operational notes for running openSUSE Tum
 
 ## Single Entry Point: `refresh.sh` (ADR)
 
-- **Context:** four scripts (`install.sh`, `setup.sh`, `refresh.sh`, `resume.sh`) duplicated logging, root checks and chroot entry. Each also had its own idea of which steps to run, so a refresh skipped `base`, `user`, `snapper` and `finish`, and drift there was never corrected.
-- **Decision:** one script picks its mode itself. A chroot or a non-live root runs the configuration steps. A live USB (`root=live:` / `rd.live.image` on the kernel command line, or an overlay root) installs, or resumes when a partition labelled `root` (LUKS or btrfs) exists. With no arguments it always runs all steps.
-- **Resume invariant (frozen):** `/var/lib/mysuse/progress` = line 1 is the sha256 of the repo content (excluding `.git`), followed by one finished step per line. A step is skipped only when the hash matches. The file is deleted after a complete run, so the next run is a full one. Named steps (`refresh.sh apps`) bypass this file. `test_refresh.sh` checks it.
-- **Live-side idempotence:** subvolume creation, mounts, repo add, bootstrap install, fstab/crypttab and `grub2-install` are all safe to repeat, so resuming a live install simply re-runs them.
-- **Pull then re-exec:** `git pull` runs as the repo owner (git rejects repos owned by another user), then the script `exec`s itself so the pulled version runs. The root-owned copy in `/usr/local/lib/mysuse` (used by cron) has no `.git` and never pulls.
-- **`finish` is gated:** dracut + grub.cfg are regenerated only when the hash of `/etc/default/grub`, `/etc/sysconfig/bootloader`, `/etc/crypttab`, `/etc/vconsole.conf` and `/etc/dracut.conf.d/*` changes (`/var/lib/mysuse/boot.sha`).
+- **Context:** four scripts (`install.sh`, `setup.sh`, `refresh.sh`, `resume.sh`) duplicated logging and root checks, and about 300 lines of config files were embedded as heredocs.
+- **Decision:** the system is installed with the standard openSUSE installer (user `marek`, btrfs + snapshots). `refresh.sh` only configures it. There is no live-USB, partitioning or chroot code (dead end, see below).
+- **Files, not code (frozen layout):** `files/root/<path>` is deployed to `/<path>` and `files/home/<path>` to `~/<path>` by one `deploy` loop. It replaces `@NAME@` with the setting `NAME` from the top of `refresh.sh` (text files only), skips unchanged files, backs up changed ones (`/root/.backup`, `~/.backup`) and replaces them atomically. The file mode comes from git (644/755). Exception: sudoers is chmod 440 afterwards.
+- **Steps:** `files packages system apps user vm boot`. `files` runs first because `packages` needs the repo files it deploys.
+- **Resume invariant (frozen):** `/var/lib/mysuse/progress` = line 1 is the sha256 of the repo content (excluding `.git`), followed by one finished step per line. A step is skipped only when the hash matches. The file is deleted after a complete run, so the next run is a full one. Named steps (`refresh.sh apps`) bypass this file. `./refresh.sh selftest` checks it (and `deploy`).
+- **One file:** settings, the package list and the self-check live in `refresh.sh`. Everything that is a file on the target system lives in `files/`. No log files: errors print on screen, and a stop ends with "fix the error above, then run ./refresh.sh again". `may` marks commands that are allowed to fail harmlessly (already done, not installed, not logged in); everything else either stops the run or prints a `WARNING`.
+- **Pull, then sudo:** run as the user, the script does `git pull`, then `exec sudo bash refresh.sh`, so the pulled version runs as root. `sudo ./refresh.sh` and cron skip the pull. The root-owned copy in `/usr/local/lib/mysuse` (cron runs `apps` from it daily) has no `.git`.
+- **`boot` is gated:** dracut + grub.cfg are regenerated only when the hash of `/etc/default/grub`, `/etc/sysconfig/bootloader`, `/etc/crypttab`, `/etc/vconsole.conf` and `/etc/dracut.conf.d/*` changes (`/var/lib/mysuse/boot.sha`).
+- **Upstream downloads:** one `fetch URL DEST` (tar or zip, `DEST/.version` = URL, skipped when unchanged or the app is running). Packaged in Tumbleweed OSS instead (checked 2026-11-11): `noctalia`, `jetbrains-mono-fonts`. Not packaged: Cascadia Code, Bibata, ytfzf, Mission Center (Flathub), Helium, GCM, Resilio.
+
+## Dead Ends
+
+- **Scripted install from a live USB** (partitioning, LUKS, `zypper --root`, chroot, resume by partition label): about 250 lines of the most fragile code, used for one install every few years. The standard installer does the same job better.
+- **Speaker tuning at every refresh:** the EasyEffects presets made from the Lenovo Dolby XML are committed under `files/home/.local/share/easyeffects`, so regenerating them was redundant. To regenerate: `python3 dolby_to_easyeffects.py files/audio/DEV_0287_*.xml --all-profiles --enable autogain --autoload` from <https://github.com/antoinecellerier/speaker-tuning-to-easyeffects>.
 
 ## Known Gotchas
 
-- Do not edit `refresh.sh` while it runs: bash reads scripts incrementally. `git pull` is safe because git replaces files instead of rewriting them in place, and the script re-execs right after.
-- A scripted install creates `marek` without a password. `step_user` prompts for one when stdin is a TTY and the account is locked (`passwd -S` = `L`/`NP`); without that, SDDM cannot log in because root is locked too.
-- `speakers` and user services need the booted system: the install's chroot run skips them, and the first `refresh.sh` after boot does them.
+- A new `@NAME@` placeholder in `files/` also needs its line in `render()`. An unlisted placeholder is copied literally, which is how `@DEFAULT_AUDIO_SINK@` (wpctl syntax in `rc.xml`) survives.
+- Do not edit `refresh.sh` while it runs: bash reads scripts incrementally. `git pull` is safe because git replaces files instead of rewriting them in place.
+- Kernel options are written to `/etc/default/grub`. On a system without GRUB2 (e.g. systemd-boot) the `system` step warns and skips them.
+- `taskbar-app`, `foot-open`, `idle-manager`, `imv-dir` and `imv-info` live in `/usr/local/bin` (the SDDM session's PATH has no `~/.local/bin`). The `files` step deletes old copies from `~/.local/bin` so they cannot shadow updates.
+
+---
+
+## Decisions (openSUSE Tumbleweed on x1-suse)
+
+| Area | Decision |
+|---|---|
+| target | ThinkPad X1 Carbon Gen 10 (21CC): i5-1250P, Iris Xe, 16 GB, 512 GB NVMe, 14" 1920x1200, AX211 wifi, SOF audio, Synaptics 06cb:00fc fingerprint reader, USB4 |
+| disk | standard installer: btrfs + snapshots, dual boot next to Windows (shared EFI partition, os-prober menu), LUKS2 optional |
+| swap | plain swapfile in the `/swap` subvolume for hibernation; no zram, zswap disabled |
+| snapshots | snapper on root only (zypper pre/post pairs), no timeline, `/home` never snapshotted, bootable snapshots in grub |
+| desktop | Labwc + Noctalia on Wayland; dark palette, Inter + JetBrains Mono, Bibata cursor, Hokusai "Great Wave" wallpaper |
+| dev | Go, Rust (rustup), SBCL, Deno, Claude Code, Antigravity CLI, oh-my-pi, nanobot, Git Credential Manager, GitHub Desktop |
+| remote | Remmina, KDE Connect (LAN-only firewall rule), Tailscale |
+| vm | KVM/QEMU, libvirt, virt-manager, swtpm (TPM 2.0), OVMF UEFI for Windows 11 |
+| upkeep | `refresh.sh apps` daily from cron, update notifications, monthly btrfs scrub, earlyoom, hibernate at 5 % battery |
+| browsers | Helium (default, upstream tarball), Opera and Firefox from zypper |
+| office / printing | LibreOffice with Polish UI and spelling; CUPS + avahi (IPP Everywhere), sane-airscan |
+| sync | Resilio Sync (`resilio`) and pCloud via rclone (`cloud`), nothing autostarted |
+| power / security | TLP, thermald; firewalld default-deny inbound, sysctl hardening, AppArmor, no sshd; sudo once a day, fingerprint accepted |
 
 ---
 
 ## Changelog
+
+- 2026-11-11: Merged `config.sh`, `packages.txt` and `test_refresh.sh` into `refresh.sh` (settings and `PACKAGES` at the top, `./refresh.sh selftest`). Removed the log file and colored helpers: errors print on screen and stop the run. Placeholder `@HOME@` renamed `@UHOME@`; the unused `XKB_LAYOUT` is gone; the decisions list moved here.
+
+- 2026-11-11: Shrank `refresh.sh` to configure-only (no live USB). Config heredocs moved to `files/root` and deployed by the same loop as dotfiles. Packman is a repo file; snapper uses `set-config`; one `fetch` covers all upstream downloads; dev tools use one install table. Dropped: `speakers` step (presets already committed), noctalia source build and JetBrains zip (both in OSS), nftables fallback (firewalld only), legacy plasma/niri/greetd/home-snapper cleanups, `/usr/local/lib/mysuse` `.git`. Removed install-only settings from `config.sh`.
 
 - 2026-11-11: Merged `install.sh`, `setup.sh`, `resume.sh` and the old `refresh.sh` into one `refresh.sh` (install / resume / refresh, step progress file, `test_refresh.sh`). Simplifications: removed the `swap` step (duplicated `base`), the python fallback in `gh_asset` (jq is always installed first), the second Floorp purge in `apps`, duplicate session/xsession cleanups and `mkdir`s, the extra jq/curl install, the swaybg fallback (autostart always starts Noctalia), the GitHub-auth note (README checklist) and the unused `GREETER` setting. `finish` now skips dracut when boot inputs are unchanged. Scripted installs now prompt for the user's login password.
 - 2026-11-10: Configured dynamic screen lock and idle timeout management (`idle-manager`): 30 minutes on battery, 1 hour on charger (AC), automatic display off shortly after, and verified fingerprint authentication support across SDDM, PAM (`pam_fprintd`), and Noctalia lockscreen.

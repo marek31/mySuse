@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Windows 11 VM
+Exec=/usr/local/bin/win11-vm start
+Icon=qemu
+Categories=System;Emulator;
+Terminal=false
