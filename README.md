@@ -1,172 +1,196 @@
 # mySuse
 
-Scripts that configure openSUSE Tumbleweed on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs + snapper snapshots on root, Labwc + Noctalia (modern desktop shell on stacking Wayland), Helium, Opera, Firefox, ytfzf, LibreOffice, Wi-Fi printers and scanners, Resilio Sync, and pCloud.
+Turns a basic openSUSE Tumbleweed install on a ThinkPad X1 Carbon Gen 10 into `x1-suse`: rolling Linux, btrfs with snapper snapshots on root, Labwc + Noctalia on Wayland, Helium, Opera, Firefox, LibreOffice, Wi-Fi printing and scanning, Resilio Sync and pCloud.
 
-Everything is in [refresh.sh](refresh.sh) (settings and package list at the top) and [files/](files).
+The whole thing is one script, [refresh.sh](refresh.sh) (host and user names plus the package list at the top), and [files/](files), the config files it copies.
 
 ---
 
 ## Install
 
-### 1. Download the ISO
+### 1. ISO and USB
 
-Grab openSUSE Tumbleweed from the official download page:
-<https://get.opensuse.org/tumbleweed/>
+Get openSUSE Tumbleweed from <https://get.opensuse.org/tumbleweed/> (Network Image or offline DVD, x86_64) and write it to a USB stick of 2 GB or more:
 
-- **Recommended:** Network Image (x86_64) or the offline DVD image.
-- **Write it to USB** (at least 2 GB):
-  - Windows: [Rufus](https://rufus.ie/) -> pick the ISO -> Start -> choose **DD Image mode** when prompted.
-  - Linux: `dd bs=4M if=openSUSE-Tumbleweed-*.iso of=/dev/sdX status=progress; sync`
+- Windows: [Rufus](https://rufus.ie/), pick the ISO, Start, choose **DD Image mode** when asked.
+- Linux: `dd bs=4M if=openSUSE-Tumbleweed-*.iso of=/dev/sdX status=progress; sync`
 
-### 2. Prepare Windows (Dual Boot or VM Migration)
+### 2. Prepare Windows (dual boot, or before moving it into a VM)
 
-1. **OEM Product Key:** If wiping Windows to run it in a VM later, record your motherboard license key:
+1. **OEM product key** - note it if Windows goes into a VM later:
    ```powershell
    (Get-CimInstance -ClassName SoftwareLicensingService).OA3xOriginalProductKey
    # Saved ThinkPad X1 Key: Q4W3R-TNBK9-XD88X-TTXKP-TMQH2
    ```
-2. **BitLocker:** Save your recovery key (`manage-bde -protectors -get C:` in an administrator PowerShell) and suspend protection in Control Panel > BitLocker > Suspend protection. Turning Secure Boot off can trigger a recovery prompt on the next boot if this is skipped.
-3. **Fast Startup:** Disable fast startup in Control Panel > Power Options > "Choose what the power buttons do" > uncheck "Turn on fast startup". This prevents Windows from leaving NTFS partitions in an unclean hibernated state.
-4. **Make room (if dual-booting):** Open `diskmgmt.msc`, right-click drive C:, and select "Shrink Volume". Leave the freed space **unallocated** (80-100 GiB recommended; 40 GiB minimum). Skip if wiping entire drive.
-5. **Hardware Clock:** Set Windows to keep the RTC in UTC by running in an admin PowerShell:
+2. **BitLocker** - save the recovery key (`manage-bde -protectors -get C:` in an admin PowerShell) and suspend protection. Without that, turning Secure Boot off can trigger a recovery prompt.
+3. **Fast Startup off** - Control Panel > Power Options > "Choose what the power buttons do". Otherwise Windows leaves its NTFS partitions half-hibernated.
+4. **Make room** - `diskmgmt.msc`, right-click C:, "Shrink Volume", leave the space **unallocated** (80-100 GiB is comfortable, 40 GiB minimum).
+5. **Clock in UTC** (admin PowerShell):
    ```powershell
    reg add "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeIsUniversal /t REG_DWORD /d 1 /f
    ```
 
-### 3. BIOS Settings
+### 3. BIOS
 
-- Press **F1** on boot to enter ThinkPad BIOS setup.
-- Under Security, turn **Secure Boot off** (so custom kernels, out-of-tree modules, and third-party boot components load without signing friction). Keep UEFI enabled.
-- Press **F12** on boot to select the USB drive.
+F1 at boot: Security > **Secure Boot off**, keep UEFI on. F12 at boot picks the USB stick.
+
+### 4. openSUSE installer
+
+- **Partitioning:** guided setup, Btrfs with snapshots. Next to Windows it uses the unallocated space and shares the EFI partition.
+- **Encryption:** tick "Enable disk encryption" (LUKS2) if you want it.
+- **Desktop:** Generic Desktop / Minimal X.
+- **Keyboard, time zone:** Polish, Europe/Warsaw (the script leaves these as the installer set them).
+- **User:** `marek`, with sudo rights.
+
+### 5. Run the script
+
+After the first boot, log in and open a terminal:
+
+```bash
+sudo zypper install -y git
+git clone https://github.com/marek31/mySuse
+cd mySuse
+./refresh.sh
+```
+
+Reboot and pick **Labwc** on the login screen.
 
 ---
 
-## Setup
+## refresh.sh
 
-1. Boot the openSUSE Tumbleweed installer USB.
-2. Proceed through the installer:
-   - **Partitioning:** Use the Guided Setup. Select Btrfs with snapshots. When installing alongside Windows, YaST automatically targets the unallocated space and reuses the existing EFI partition.
-   - **Encryption:** Check "Enable disk encryption" (LUKS2) if desired.
-   - **Desktop:** Pick Generic Desktop / Minimal X.
-   - **User:** Set your user name to `marek` and enable sudo privileges.
-3. Finish the installation, reboot into openSUSE, and log in.
-4. Open a terminal and run:
-   ```bash
-   sudo zypper install -y git
-   git clone https://github.com/marek31/mySuse
-   cd mySuse
-   ./refresh.sh
-   ```
-5. Reboot and pick **Labwc** on the login screen.
-
-`refresh.sh` is the only script. Run it as yourself: it does `git pull`, then re-runs itself with `sudo`.
+Run it as yourself. It does `git pull`, then runs the pulled version again with `sudo`.
 
 | Situation | Command | What happens |
 |---|---|---|
-| First run after the install | `./refresh.sh` | All steps: files, packages, system, apps, user, vm, boot |
-| Something failed in the middle | `./refresh.sh` again | Steps that already finished are skipped (if the repo is unchanged) |
-| Repo changed, or the system drifted | `./refresh.sh` | All steps again; every step is safe to repeat |
-| Only one part | `./refresh.sh apps vm` | Just those steps |
+| First run after the install | `./refresh.sh` | all steps: `files packages system apps user` |
+| Something failed half way | `./refresh.sh` again | finished steps are skipped (as long as the repo didn't change) |
+| Repo changed, or the system drifted | `./refresh.sh` | every step again - each one is safe to repeat |
+| Only one part | `./refresh.sh apps` | just the named steps |
+| Check the resume logic | `./refresh.sh selftest` | no root needed |
 
-Config files are not written by the script but copied from `files/root` (to `/`) and `files/home` (to `~`), with `@NAME@` replaced by the setting `NAME` from the top of `refresh.sh`. A file that differs is backed up first (`/root/.backup`, `~/.backup`) and then replaced. Errors are printed on screen and stop the run; fix them and run `./refresh.sh` again. `./refresh.sh selftest` checks the resume and file-copy logic without root.
+- **Config files are files, not code.** `files/root` is copied to `/` and `files/home` to `~` (rsync, only files whose content differs). Whatever gets replaced is kept in `/root/.backup/<date>` or `~/.backup/<date>`.
+- **Errors** print on screen and stop the run with "fix the error above, then run ./refresh.sh again". `may` in the script marks commands that are allowed to fail (already done, not installed, not logged in). `WARNING:` lines are problems that don't stop the run.
+- **Upstream apps are pinned.** Helium, Bibata, Cascadia Code and Git Credential Manager are downloaded from fixed release URLs in `step_apps` / `step_user`. To update one (Helium especially - it's a browser), change the version in its URL and run `./refresh.sh apps`. Releases: [Helium](https://github.com/imputnet/helium-linux/releases), [GCM](https://github.com/git-ecosystem/git-credential-manager/releases).
 
----
-
-## First Login Checklist
-
-| Task | Command / Action |
+| Step | What it does |
 |---|---|
-| Fingerprint reader | `fprintd-enroll` (enables biometric auth for sudo and the lock screen) |
-| Firmware updates | `fwupdmgr refresh && fwupdmgr update` |
-| Resilio Sync | `resilio` (starts service and opens WebUI on localhost:55555) |
-| pCloud storage | `cloud setup` (browser auth), then `cloud open` to mount `~/pCloud` on demand |
-| Dev tools | `claude`, `agy` (Antigravity CLI), `omp` (oh-my-pi), `cargo`, `go`, `sbcl`, `git-credential-manager` |
-| GitHub auth | `git credential-manager github login` (OAuth login stored in GNOME Keyring) or launch `github-desktop` |
-| Tailscale mesh | `sudo tailscale up`, then `sudo tailscale set --operator=$USER` |
-| Windows 11 VM | `win11-vm create <path/to/win11.iso>` (TPM 2.0, UEFI, VirtIO) or `virt-manager` |
-| KDE Connect | Pair from tray icon (firewall opens ports 1714-1764 for LAN) |
-| MMAutoKey | Clone `mydata` (`git clone https://github.com/marek31/mydata ~/Github/mydata`) — MMAutoKey installs and autostarts automatically |
-| Wallpapers | Default cheat sheet is generated from `files/wallpaper/*.typ`. Great Wave is in `~/Pictures/Wallpapers/great-wave.jpg` |
+| `files` | copies `files/root` and `files/home`, removes leftovers of files dropped from the repo |
+| `packages` | removes unwanted packages, installs `PACKAGES`, switches codecs to Packman |
+| `system` | host name, locale, groups, services, firewall, snapper, printer, SDDM, libvirt, swapfile and kernel command line |
+| `apps` | Helium, Bibata cursor, Cascadia Code, Resilio Sync, ytfzf, Mission Center (Flathub), Helium extensions |
+| `user` | rustup, Claude Code, Antigravity CLI, Deno, oh-my-pi, nanobot, Git Credential Manager, MMAutoKey, wallpapers |
 
 ---
 
-## Windows 11 VM Setup & Offline / Local Account Activation
+## After the first login
 
-Running Windows 11 in a KVM virtual machine using the ThinkPad's extracted OEM license key without linking a Microsoft Account:
-
-- **Saved Motherboard Key:** `Q4W3R-TNBK9-XD88X-TTXKP-TMQH2`
-- Helper script: `win11-vm` (installed to `/usr/local/bin/win11-vm`)
-
-### 1. Create and Start VM
-```bash
-win11-vm create ~/Downloads/Win11_24H2_English_x64.iso 64
-```
-This provisions a 64 GiB VirtIO disk (CoW disabled, Snapper snapshots excluded), 4 vCPUs, 8 GB RAM, `swtpm` TPM 2.0 emulator, and OVMF UEFI Secure Boot firmware.
-
-### 2. Disk Driver (During Setup)
-At the *"Where do you want to install Windows?"* prompt:
-1. Click **Load driver** -> **Browse**.
-2. Select the VirtIO CD drive (`virtio-win`) -> `vioscsi\w11\amd64` (or `amd64\w11`).
-3. Select the detected virtual disk to continue installation.
-
-### 3. Bypass Microsoft Account (Local Account Setup)
-When the installer asks for network or Microsoft account sign-in:
-1. Press `Shift + F10` to open Command Prompt.
-2. Run:
-   ```cmd
-   oobe\bypassnro
-   ```
-3. The VM restarts. When returning to the network screen, click **I don't have internet** -> **Continue with limited setup**.
-4. Enter your desired local username and password.
-
-### 4. Install VirtIO Guest Tools
-Once on the desktop:
-1. Open File Explorer and navigate to the `virtio-win` CD drive.
-2. Run `virtio-win-gt-x64.exe` to install drivers for network, graphics, and memory ballooning.
-
-### 5. Activate Windows
-Open Command Prompt as **Administrator** inside the VM:
-```cmd
-slmgr /ipk Q4W3R-TNBK9-XD88X-TTXKP-TMQH2
-slmgr /ato
-```
-- `/ipk`: registers the OEM product key.
-- `/ato`: contacts Microsoft activation servers (activates machine-level license; no Microsoft account required).
-- Verify status with `slmgr /xpr` (or run `win11-vm key` from host Linux).
-
----
-
-## Desktop Environment: Labwc + Noctalia
-
-Configured as the primary stacking Wayland desktop:
-
-### Labwc + Noctalia (Lightweight Windowed Stacking + Modern Shell)
-- **Compositor:** `labwc` (Openbox-style stacking Wayland compositor). Instantaneous launch, zero-latency window movement, and pure static XML configuration (`~/.config/labwc/rc.xml`).
-- **Desktop Shell:** `noctalia` (Modern Wayland Desktop Shell). Provides a bottom taskbar with integrated launcher, running taskbar buttons with focus/minimize, native DBus system tray, control center (audio, brightness, Wi-Fi, Bluetooth, night light, power profile), lock screen with fingerprint support, notification daemon, and interactive screenshot & annotation tool.
-- **Display & Scaling:** `kanshi` handles ThinkPad X1 1.25x laptop scaling and external Dell 4K 1.5x scaling automatically on hotplug.
-- **Display Manager:** Native SDDM with Chili theme configured with automatic session handling into Labwc.
-- **Keybindings:** Super+Return (terminal), Super+D / Super+Space (Noctalia launcher), Super+A (control center), Super+Comma (settings), Super+Q (close), Super+F (maximise), Super+Left/Right/Up (edge snapping), Super+1..0 (taskbar apps by position), Super+Shift+1..0 (new instance), Super+F1..F4 (workspaces), Super+L / Super+Esc (Noctalia lock), PrtSc (interactive region screenshot & annotate), Shift+PrtSc (full screen screenshot), Super+Shift+/ (cheat sheet), Right-click desktop (app menu).
-
----
-
-## Daily Upkeep & Snapshots
-
-- **Updates:** Run `zu` in terminal (an alias for `sudo zypper dup`). Snapper automatically takes pre and post snapshots of root before and after package changes.
-- **Snapshots list:** Run `snaps` to view root snapshot history (`snapper -c root list`). User data in `/home` lives on a dedicated subvolume and is never snapshotted or rolled back.
-- **Configuration updates:** After changing this repository, or to undo drift on the system, run:
-  ```bash
-  ~/mySuse/refresh.sh
-  ```
-  It pulls the repo, re-applies every step (previous dotfiles are saved to `~/.backup`, system files to `/root/.backup`) and reloads Labwc and Noctalia without logging out. The initramfs and grub.cfg are rebuilt only when their inputs changed.
-
----
-
-## Files
-
-| File | Purpose |
+| Task | How |
 |---|---|
-| `refresh.sh` | The only script: settings, package list, steps. Configures a fresh install, resumes a failed run, brings the system back to this repo |
-| `files/root/` | System files, same paths as under `/` (sudoers, repos, SDDM, cron, policies, `/usr/local/bin` helpers) |
-| `files/home/` | Dotfiles, same paths as under `~` |
-| `files/wallpaper/`, `files/audio/` | Cheat-sheet wallpaper source; Lenovo Dolby XML the EasyEffects presets were made from |
-| `mysuse_design.md` | Architectural rationale, implementation notes, and distribution design log |
+| Fingerprint | `fprintd-enroll` (then it works for sudo, SDDM and the lock screen) |
+| Firmware | `fwupdmgr refresh && fwupdmgr update` |
+| GitHub | `git credential-manager github login` (stored in GNOME Keyring), or GitHub Desktop |
+| mydata, MMAutoKey | `git clone https://github.com/marek31/mydata ~/Desktop` (the folder must be empty), then `./refresh.sh user` |
+| Resilio Sync | `resilio` starts it and opens the WebUI on 127.0.0.1:8888 |
+| pCloud | `cloud setup` (browser login), `cloud open` mounts `~/pCloud`; folder pairs for `cloud sync` go in `~/.config/cloud-sync.conf` |
+| Tailscale | `sudo tailscale up`, then `sudo tailscale set --operator=$USER` |
+| KDE Connect | pair from the tray icon (ports 1714-1764 are open) |
+| Windows 11 VM | `win11-vm create <iso>`, see below |
+
+---
+
+## Desktop: Labwc + Noctalia
+
+- **Labwc** - Openbox-style stacking Wayland compositor, Tokyo-Night-Modern theme, configured in `~/.config/labwc/rc.xml`.
+- **Noctalia** - the shell: bar on the left with launcher, taskbar, tray, control center (audio, brightness, Wi-Fi, Bluetooth, night light, power profile), notifications, clipboard history, screenshots, lock screen with fingerprint, polkit agent.
+- **kanshi** - monitor layouts on hotplug: laptop panel at 1.25, external 4K (Dell G3223Q) at 1.5 to its right. `display-setup` opens wdisplays and saves what you arrange as a new kanshi profile.
+- **SDDM** with the Chili theme; Labwc is the only session.
+- **idle-manager** - locks after 30 min on battery, 1 h on the charger, screen off 5 min later.
+- **Speakers** - the X1's quad speakers get Lenovo's Dolby tuning through EasyEffects. The presets (made with [speaker-tuning-to-easyeffects](https://github.com/antoinecellerier/speaker-tuning-to-easyeffects) from the Windows audio driver) are in `files/home/.local/share/easyeffects` and are just copied, so no Windows partition is needed. The internal speaker loads `Dolby-Dynamic-Balanced` automatically.
+
+Keys (Meta = Super; Meta+Shift+/ shows the cheat sheet):
+
+| Keys | Action |
+|---|---|
+| Meta+Return | terminal (foot) |
+| Meta, Meta+D, Meta+Space | launcher |
+| Meta+A / Meta+, | control center / Noctalia settings |
+| Meta+1..0, Meta+Shift+1..0 | taskbar app 1..10: focus, minimise, cycle / new instance |
+| Meta+B / Meta+Shift+B | Helium / Opera |
+| Meta+E | Thunar |
+| Shift+Esc | btop |
+| Meta+Q, Alt+F4 | close window |
+| Meta+F / Meta+Shift+F | maximise / fullscreen |
+| Meta+Left/Right/Up/Down | snap left/right, maximise, restore or minimise |
+| Meta+F1..F4 / Meta+Shift+F1..F4 | go to / send to workspace |
+| Meta+L, Meta+Esc | lock |
+| PrtSc / Shift+PrtSc | region screenshot with annotation / full screen |
+
+---
+
+## Daily use
+
+- **Updates:** `zu` (= `sudo zypper dup`). Snapper takes a snapshot before and after every zypper change; a desktop notice appears when updates are waiting.
+- **Snapshots:** `snaps` lists them, `snapper rollback <n>` goes back. `/home` is a separate subvolume and is never snapshotted or rolled back.
+- **Config changes:** edit the repo, then `~/mySuse/refresh.sh`. Labwc and Noctalia reload without logging out.
+
+---
+
+## Windows 11 VM (local account, offline activation)
+
+KVM/QEMU with libvirt, `swtpm` for TPM 2.0, OVMF UEFI with Secure Boot, q35 with host CPU passthrough, VirtIO disk and network. The VM folders (`~/VMs`, `/var/lib/libvirt/images`) have btrfs copy-on-write turned off, which avoids fragmentation and slow I/O.
+
+1. **Create:** `win11-vm create ~/Downloads/Win11_24H2_English_x64.iso 64` - 64 GiB disk, 4 vCPUs, 8 GB RAM. Later `win11-vm start`, or use `virt-manager`.
+2. **Disk driver:** at "Where do you want to install Windows?" click Load driver > Browse > `virtio-win` CD > `vioscsi\w11\amd64`.
+3. **No Microsoft account:** at the network screen press Shift+F10, run `oobe\bypassnro`. After the restart choose "I don't have internet" > "Continue with limited setup".
+4. **Guest tools:** on the desktop run `virtio-win-gt-x64.exe` from the `virtio-win` CD.
+5. **Activate** (admin Command Prompt in the VM): `slmgr /ipk Q4W3R-TNBK9-XD88X-TTXKP-TMQH2`, then `slmgr /ato`. Check with `slmgr /xpr`.
+
+---
+
+## How it's built
+
+### System
+
+| Area | Choice |
+|---|---|
+| hardware | ThinkPad X1 Carbon Gen 10 (21CC): i5-1250P, Iris Xe, 16 GB, 512 GB NVMe, 14" 1920x1200, AX211 Wi-Fi, SOF audio, Synaptics 06cb:00fc fingerprint, USB4 |
+| packages | zypper with OSS, Non-OSS and Packman (priority 90, vendor switched) for full codecs; GitHub Desktop from mwt-packages |
+| disk | installer defaults: btrfs subvolumes, `/home` separate, optional LUKS2 |
+| snapshots | root only, zypper pre/post pairs (10 kept, 4 important), no timeline snapshots, bootable snapshots in grub |
+| hibernation | 32 GB swapfile in `/swap`; `resume=UUID=... resume_offset=...` on the kernel command line; zswap off, no zram; hibernates at 5 % battery |
+| power | TLP tuned for Alder Lake (`files/root/etc/tlp.d/10-x1.conf`), thermald; kernel options `pcie_aspm=force i915.enable_psr=1 i915.enable_fbc=1 nvme.noacpi=1` for deep package C-states |
+| security | firewalld (only mDNS, Resilio 55555/tcp + 3838/udp, Tailscale 41641/udp, KDE Connect 1714-1764), sysctl hardening, AppArmor, no sshd; sudo asks for your password once a day, fingerprint works too |
+| browsers | Helium (default, upstream tarball, extensions installed by `helium-install-extensions`), Opera and Firefox from zypper |
+| sync | Resilio Sync (`resilio`) and pCloud through rclone (`cloud`); nothing autostarts. The official pCloud app: `pcloud-install` |
+| dev | Go, Rust, SBCL, Deno, Typst, Claude Code, Antigravity CLI, oh-my-pi, nanobot, Git Credential Manager, GitHub Desktop |
+
+### Decisions
+
+- **The installer installs, the script configures.** A scripted live-USB install (partitioning, LUKS, `zypper --root`, chroot) was tried and dropped: around 250 lines of the most fragile code, for one install every few years.
+- **Files, not heredocs.** Anything that ends up as a file on the system is a real file under `files/`, laid out like its target. The script copies them with rsync and holds no file contents itself. Values (user name, scales, ports) are written straight into the files - one user, one laptop.
+- **Resume.** `/var/lib/mysuse/progress` holds the hash of the repo content, then one finished step per line. A step is skipped only if the hash still matches; the file is deleted after a complete run. Named steps ignore it.
+- **Defaults where they are good enough.** Keyboard, console font, time zone and autologin-off come from the installer. Labwc's own session file, imv's and foot's default keys, and libinput's default acceleration are kept. Theme colours for foot, GTK and Qt come from Noctalia.
+- **Upstream downloads only for what Tumbleweed doesn't package** (checked 2026-11-11): Helium, Git Credential Manager, Resilio, Bibata, Cascadia Code, ytfzf, Mission Center (Flathub). `noctalia` and `jetbrains-mono-fonts` come from OSS.
+
+### Gotchas
+
+- Don't edit `refresh.sh` while it runs - bash reads scripts as it goes. `git pull` is safe because git replaces the file instead of rewriting it.
+- `taskbar-app`, `foot-open`, `idle-manager`, `imv-dir`, `imv-info` live in `/usr/local/bin`, because the SDDM session's PATH has no `~/.local/bin`.
+- Files removed from `files/` stay on the system until they're added to the leftovers list in `step_files`.
+- The kernel command line is set as a whole in `/etc/default/grub` (GRUB2, the installer's default).
+- The `mydata` repo lives in `~/Desktop`: MMAutoKey (`code/MMAutoKey`), the Helium sync extension (`code/MMBrowserSync`) and Noctalia screenshots (`t/_screenshots`) use that path.
+
+### Changelog
+
+- 2026-11-11: Upstream downloads pinned to full release URLs (no GitHub API lookup); with nothing left to auto-update, the daily cron run of `apps`, `power-ok` and the root-owned repo copy in `/usr/local/lib/mysuse` are gone. `mydata` moved from `~/Github/mydata` to `~/Desktop`. Removed the MMAutoKey auto-install from `config.fish`.
+- 2026-11-11: `mysuse_design.md` merged into this README. `files/` cut down: dropped `mmterm`, `gitpullpush_mydata.sh`, the Mission Center wrappers, the `btop` wrapper, `snapper-tick`, `labwc-suse-session`, the kanshi and MMAutoKey user units, the mako D-Bus mask, the duplicate Helium extension lists, `fonts-local.conf`, the Dolby XML, and files whose defaults are fine (hostname, locale, console, autologin, SDDM state, Thunar state, foot theme). No more `@PLACEHOLDERS@`; files are copied with rsync. Steps `vm` and `boot` merged into `system`. Fixes: MMAutoKey's installer was looked for in the wrong folder; `update-notify` was never started; the Polish keyboard layout wasn't set in Labwc; the cursor theme didn't match SDDM; `mimeapps.list` pointed archives at the removed file-roller.
+- 2026-11-11: `config.sh`, `packages.txt` and the test merged into `refresh.sh`; no log file, errors on screen.
+- 2026-11-11: `refresh.sh` became configure-only; config heredocs moved to `files/root`; one `fetch` for upstream downloads; packaged `noctalia` and JetBrains Mono instead of building/downloading them.
+- 2026-11-11: `install.sh`, `setup.sh`, `resume.sh` and the old `refresh.sh` merged into one script with resume.
+- 2026-11-10: `idle-manager` (30 min on battery, 1 h on AC), fingerprint across SDDM, sudo and the Noctalia lock screen.
+- 2026-11-10: Floorp removed for good; SDDM Chili theme.
+- 2026-11-10: foot: Ctrl+V paste (MMAutoKey intercepted the old binding), `foot-open` opens files at a line in Kate, clickable URLs and paths.
+- 2026-11-10: `taskbar-app` for Meta+1..0 (Windows-style focus, minimise, cycle, new instance).
+- 2026-11-10: imv as image viewer: fullscreen, Esc quits, sibling images, EXIF overlay.
+- 2026-11-10: Noctalia screenshots go to `~/Github/mydata/t/_screenshots` as `YYYY-MM-DD HH-MM-SS.jpg`.

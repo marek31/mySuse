@@ -1,19 +1,8 @@
-# Labwc session environment variables
-XDG_CURRENT_DESKTOP=labwc:wlroots
-XDG_SESSION_TYPE=wayland
-MOZ_ENABLE_WAYLAND=1
+# labwc session environment
+XKB_DEFAULT_LAYOUT=pl
 QT_QPA_PLATFORM=wayland;xcb
 QT_WAYLAND_DISABLE_WINDOWDECORATION=1
-GDK_BACKEND=wayland,x11
 ELECTRON_OZONE_PLATFORM_HINT=auto
 _JAVA_AWT_WM_NONREPARENTING=1
-
-# NVIDIA hardware acceleration flags (uncomment if running on proprietary NVIDIA GPU stack):
-# GBM_BACKEND=nvidia-drm
-# __GLX_VENDOR_LIBRARY_NAME=nvidia
-# LIBVA_DRIVER_NAME=nvidia
-# __NV_PRIME_RENDER_OFFLOAD=1
-
-# Cursor theme and size (optimal for 4K display, 20px)
-XCURSOR_THEME=breeze_cursors
+XCURSOR_THEME=Bibata-Modern-Classic
 XCURSOR_SIZE=20

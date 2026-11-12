@@ -27,27 +27,8 @@ audio/mpeg=org.strawberrymusicplayer.strawberry.desktop
 audio/flac=org.strawberrymusicplayer.strawberry.desktop
 audio/ogg=org.strawberrymusicplayer.strawberry.desktop
 audio/x-wav=org.strawberrymusicplayer.strawberry.desktop
-application/zip=org.gnome.FileRoller.desktop
-application/x-7z-compressed=org.gnome.FileRoller.desktop
-application/x-tar=org.gnome.FileRoller.desktop
-application/x-xz-compressed-tar=org.gnome.FileRoller.desktop
-application/gzip=org.gnome.FileRoller.desktop
 text/vnd.typst=typst-compile.desktop
 text/x-typst=typst-compile.desktop
 x-scheme-handler/about=helium.desktop
 x-scheme-handler/unknown=helium.desktop
-
-[Added Associations]
-text/vnd.typst=typst-compile.desktop;
-text/x-typst=typst-compile.desktop;
-image/png=imv-dir.desktop;
-image/jpeg=imv-dir.desktop;
-image/webp=imv-dir.desktop;
-image/gif=imv-dir.desktop;
-image/avif=imv-dir.desktop;
-image/svg+xml=imv-dir.desktop;
-image/tiff=imv-dir.desktop;
-image/bmp=imv-dir.desktop;
-image/heif=imv-dir.desktop;
-image/jxl=imv-dir.desktop;
 

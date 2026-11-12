@@ -1,60 +1,12 @@
-# Kanshi display configuration for mySuse (ThinkPad X1 Carbon Gen 10)
-# Automatically configures outputs, positions, and fractional scaling upon hotplug
-
-# 1. Undocked: Laptop internal display alone
-profile undocked {
-    output eDP-1 enable mode 1920x1200 position 0,0 scale @SCALE@
-    exec noctalia msg config-reload 2>/dev/null || true
+# Monitor layouts, applied on hotplug. Save the current layout as a new profile with display-setup.
+profile laptop {
+    output eDP-1 enable mode 1920x1200 position 0,0 scale 1.25
+    exec noctalia msg config-reload
 }
 
-profile mobile {
-    output eDP-1 enable mode 1920x1200 position 0,0 scale @SCALE@
-    exec noctalia msg config-reload 2>/dev/null || true
-}
-
-# 2. Docked: Dell G3223Q 4K monitor (Exact EDID matching) + Laptop
-profile docked_dell_edid {
-    output eDP-1 enable mode 1920x1200 position 0,0 scale @SCALE@
-    output "Dell Inc. DELL G3223Q 5CM14P3" enable mode 3840x2160@60Hz position 1536,0 scale @SCALE_4K@
-    exec noctalia msg config-reload 2>/dev/null || true
-}
-
-profile docked_dell_generic {
-    output eDP-1 enable mode 1920x1200 position 0,0 scale @SCALE@
-    output "Dell Inc. DELL G3223Q Unknown" enable mode 3840x2160@60Hz position 1536,0 scale @SCALE_4K@
-    exec noctalia msg config-reload 2>/dev/null || true
-}
-
-# 3. Docked Clamshell: Dell G3223Q 4K monitor with laptop lid closed
-profile docked_dell_clamshell {
-    output eDP-1 disable
-    output "Dell Inc. DELL G3223Q 5CM14P3" enable mode 3840x2160@60Hz position 0,0 scale @SCALE_4K@
-    exec noctalia msg config-reload 2>/dev/null || true
-}
-
-# 4. Docked via HDMI (port-based fallback)
-profile docked_hdmi {
-    output eDP-1 enable mode 1920x1200 position 0,0 scale @SCALE@
-    output HDMI-A-1 enable mode 3840x2160@60Hz position 1536,0 scale @SCALE_4K@
-    exec noctalia msg config-reload 2>/dev/null || true
-}
-
-# 5. Docked via USB-C / Thunderbolt DisplayPort
-profile docked_dp1 {
-    output eDP-1 enable mode 1920x1200 position 0,0 scale @SCALE@
-    output DP-1 enable mode 3840x2160@60Hz position 1536,0 scale @SCALE_4K@
-    exec noctalia msg config-reload 2>/dev/null || true
-}
-
-profile docked_dp2 {
-    output eDP-1 enable mode 1920x1200 position 0,0 scale @SCALE@
-    output DP-2 enable mode 3840x2160@60Hz position 1536,0 scale @SCALE_4K@
-    exec noctalia msg config-reload 2>/dev/null || true
-}
-
-# 6. Generic Fallback: Laptop + any connected external screen
-profile docked_generic {
-    output eDP-1 enable mode 1920x1200 position 0,0 scale @SCALE@
-    output * enable position 1536,0 scale @SCALE_4K@
-    exec noctalia msg config-reload 2>/dev/null || true
+# laptop + any external screen (Dell G3223Q 4K) to the right; 1536 = 1920 / 1.25
+profile docked {
+    output eDP-1 enable mode 1920x1200 position 0,0 scale 1.25
+    output * enable position 1536,0 scale 1.5
+    exec noctalia msg config-reload
 }

@@ -25,14 +25,14 @@
       <action name="Execute" command="pavucontrol" />
     </item>
     <item label="System Monitor (btop)">
-      <action name="Execute" command="foot -e btop" />
+      <action name="Execute" command="btop-toggle" />
     </item>
     <item label="Key Cheat Sheet">
       <action name="Execute" command="imv -f -c 'bind &lt;Escape&gt; quit' $HOME/Pictures/Wallpapers/keys-labwc.png" />
     </item>
     <separator />
     <item label="Lock Screen">
-      <action name="Execute" command="swaylock -f -c 1e1e2e" />
+      <action name="Execute" command="noctalia msg lock" />
     </item>
     <item label="Exit Labwc">
       <action name="Exit" />

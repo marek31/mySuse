@@ -17,8 +17,6 @@
   </desktops>
 
   <focus>
-    <focusNew>yes</focusNew>
-    <followMouse>no</followMouse>
     <raiseOnFocus>yes</raiseOnFocus>
   </focus>
 
@@ -108,7 +106,7 @@
       <action name="Execute" command="noctalia msg settings-toggle" />
     </keybind>
     <keybind key="S-Escape">
-      <action name="Execute" command="foot -e btop" />
+      <action name="Execute" command="btop-toggle" />
     </keybind>
 
     <!-- Window Management -->
@@ -270,24 +268,13 @@
   </mouse>
 
   <libinput>
-    <device category="default">
-      <accelProfile>adaptive</accelProfile>
-    </device>
     <device category="non-touch">
-      <accelProfile>adaptive</accelProfile>
       <pointerSpeed>0.2</pointerSpeed>
       <scrollFactor>0.67</scrollFactor>
     </device>
     <device category="touchpad">
-      <accelProfile>adaptive</accelProfile>
       <tap>yes</tap>
-      <scrollMethod>twofinger</scrollMethod>
       <scrollFactor>0.75</scrollFactor>
-    </device>
-    <device category="Bluetooth Mouse M336/M337/M535 Mouse">
-      <accelProfile>adaptive</accelProfile>
-      <pointerSpeed>0.2</pointerSpeed>
-      <scrollFactor>0.67</scrollFactor>
     </device>
   </libinput>
 

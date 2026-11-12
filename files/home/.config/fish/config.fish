@@ -15,15 +15,5 @@ if status is-interactive
     abbr zr 'sudo zypper rm'
     abbr zq 'zypper se'
     abbr snaps 'snapper -c root list'
-    abbr suse-update '~/mySuse/refresh.sh apps'
-
-    # Auto-install MMAutoKey once mydata is downloaded from GitHub
-    if not test -f ~/.config/autostart/mmautokey.desktop
-        for d in ~/Github/mydata/code/MMAutoKey ~/GitHub/mydata/code/MMAutoKey ~/Github/mydata/code/MMAutoKey_linux ~/GitHub/mydata/code/MMAutoKey_linux
-            if test -f "$d/install.sh"
-                bash "$d/install.sh" >/dev/null 2>&1 &
-                break
-            end
-        end
-    end
+    abbr suse-update '~/mySuse/refresh.sh'
 end

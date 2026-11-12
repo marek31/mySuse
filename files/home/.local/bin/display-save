@@ -84,8 +84,8 @@ profile saved_{profile_id} {{
             new_content = profile_block + "\n" + existing
         kanshi_path.write_text(new_content)
 
-    # Restart kanshi to apply and listen
-    subprocess.run(["systemctl", "--user", "restart", "kanshi.service"], check=False)
+    # Make the running kanshi (started by labwc autostart) re-read its config
+    subprocess.run(["kanshictl", "reload"], check=False)
     subprocess.run([
         "notify-send",
         "-a", "Displays",

@@ -3,7 +3,8 @@
 #   cloud setup              one-time: log in to pCloud in the browser (region EU/US is detected)
 #   cloud open               pCloud as a folder (~/pCloud) in the file manager; files download when opened
 #   cloud mount | umount     the same without opening a window
-#   cloud sync [-n]          two-way sync of the folder pairs in ~/.config/cloud-sync.conf (-n = dry run)
+#   cloud sync [-n]          two-way sync of the folder pairs in ~/.config/cloud-sync.conf (-n = dry run);
+#                            one pair per line: <local folder> <pCloud folder>, e.g. ~/Documents/Work  Work
 #   cloud send FILE|DIR...   upload to pCloud:/Send, share link(s) copied to the clipboard
 #   cloud status             mount, storage used, last log
 set -euo pipefail

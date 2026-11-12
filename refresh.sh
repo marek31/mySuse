@@ -3,49 +3,31 @@
 #
 #   ./refresh.sh             git pull, then run every step. After a failure run it again: finished steps are
 #                            skipped (unless the repo changed since, then all run again). Every step is repeatable.
-#   ./refresh.sh apps vm     run only these steps
-#   ./refresh.sh selftest    check the resume and file-copy logic (no root needed)
+#   ./refresh.sh apps        run only the named steps:  files  packages  system  apps  user
+#   ./refresh.sh selftest    check the resume logic (no root needed)
 #
-# Steps:  files  packages  system  apps  user  vm  boot
-# Files:  files/root -> /   and   files/home -> ~   (@NAME@ is replaced by the setting NAME; old versions are backed up)
+# files/root is copied to /, files/home to ~ (a replaced file is kept in /root/.backup or ~/.backup).
 set -euo pipefail
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-FILES=$HERE/files
 STATE_DIR=/var/lib/mysuse
-ALL_STEPS=(files packages system apps user vm boot)
-
-# =============================================================== settings
-
+ALL_STEPS=(files packages system apps user)
 HOSTNAME=x1-suse
 USERNAME=marek                # login created in the openSUSE installer
 UHOME=/home/$USERNAME
-TIMEZONE=Europe/Warsaw
-LANG_UI=en_US.UTF-8           # program language
-LANG_FORMATS=pl_PL.UTF-8      # dates, money, paper (A4), units
-CONSOLE_KEYMAP=pl2
-CONSOLE_FONT=eurlatgr
-SCALE=1.25                    # laptop panel (eDP-1, 14" 1920x1200), used by kanshi
-SCALE_4K=1.5                  # external 4K monitors (Dell G3223Q)
-SWAP_GIB=32                   # swapfile size, >= RAM for hibernation
-SNAP_LIMIT=10                 # snapper: zypper pre/post snapshot pairs kept
-SNAP_LIMIT_IMPORTANT=4
-SUDO_TIMEOUT_MIN=1440         # sudo asks for the password once a day
-RESILIO_PORT=55555            # opened in the firewall
 
 PACKAGES=(
     # base, boot, filesystem
     kernel-default kernel-firmware-intel kernel-firmware-bluetooth kernel-firmware-network sof-firmware alsa-firmware
     grub2-x86_64-efi efibootmgr cryptsetup btrfs-progs compsize dracut
     snapper snapper-zypp-plugin grub2-snapper-plugin inotify-tools os-prober
-    chrony cronie
+    chrony cronie rsync
     # desktop: Labwc + Noctalia
-    labwc noctalia kanshi swaybg swaylock swayidle wlr-randr grim slurp fontawesome-fonts
+    labwc noctalia kanshi swaylock swayidle wlr-randr grim slurp fontawesome-fonts
     sddm sddm-greeter-qt5 libqt5-qtquickcontrols libqt5-qtgraphicaleffects
-    polkit polkit-default-privs polkit-gnome dbus-1 xwayland
+    polkit polkit-default-privs dbus-1 xwayland
     gnome-keyring seahorse dconf xdg-user-dirs xdg-utils wl-clipboard libnotify-tools earlyoom
     adwaita-icon-theme papirus-icon-theme kf6-breeze-icons breeze5-icons
     xdg-desktop-portal-wlr xdg-desktop-portal-gtk wdisplays
-    gtk3-devel gtk-layer-shell-devel libjson-c-devel libpulse-devel wayland-protocols-devel meson ninja
     # hardware: Iris Xe, AX211 wifi, SOF audio, Synaptics fingerprint, USB4
     Mesa-dri vulkan-intel intel-media-driver vulkan-tools libva-utils
     thermald fwupd fprintd fprintd-pam libfprint-2-2 bolt brightnessctl playerctl
@@ -79,7 +61,7 @@ PACKAGES=(
     # shell and CLI tools
     fish bash-completion starship eza bat ripgrep fd fzf zoxide tmux vim neovim mc nnn
     htop btop nmon iftop nmap speedtest-cli duf plocate lsof strace usbutils pciutils smartmontools
-    curl wget rsync jq unzip zip 7zip xz zstd man-pages tealdeer trash-cli acl bind-utils fastfetch
+    curl wget jq unzip zip 7zip xz zstd man-pages tealdeer trash-cli acl bind-utils fastfetch
     # development
     patterns-devel-base-devel_basis git git-lfs gh cmake python3 python3-pip go typst sbcl github-desktop libsecret-1-0 git-credential-libsecret
 )
@@ -101,45 +83,9 @@ as_user() {
         PATH="$UHOME/.local/bin:$UHOME/.cargo/bin:/usr/local/bin:/usr/bin:/usr/sbin:/bin" "$@")
 }
 
-# print a file from files/ with @NAME@ replaced by setting NAME (binary files pass through untouched)
-render() {
-    if ! grep -Iq '@[A-Z0-9_]*@' "$1"; then cat "$1"; return; fi
-    sed -e "s|@HOSTNAME@|$HOSTNAME|g"             -e "s|@USERNAME@|$USERNAME|g"      -e "s|@UHOME@|$UHOME|g" \
-        -e "s|@LANG_UI@|$LANG_UI|g"               -e "s|@LANG_FORMATS@|$LANG_FORMATS|g" \
-        -e "s|@CONSOLE_KEYMAP@|$CONSOLE_KEYMAP|g" -e "s|@CONSOLE_FONT@|$CONSOLE_FONT|g" \
-        -e "s|@SCALE@|$SCALE|g"                   -e "s|@SCALE_4K@|$SCALE_4K|g" \
-        -e "s|@SUDO_TIMEOUT_MIN@|$SUDO_TIMEOUT_MIN|g" -e "s|@RESILIO_PORT@|$RESILIO_PORT|g" "$1"
-}
-
-# deploy FROM TO BACKUP [as_user]: copy every file under FROM to the same path under TO.
-# Unchanged files are skipped; a changed file is backed up, then replaced atomically (temp file + rename).
-deploy() {
-    local from=$1 to=$2 backup=$3 as=${4:-} src dst tmp stamp
-    stamp=$(date '+%F %H-%M-%S')
-    while IFS= read -r -d '' src; do
-        dst=$to/${src#"$from/"}
-        cmp -s <(render "$src") "$dst" && continue
-        say "  $dst"
-        $as mkdir -p "$(dirname "$dst")" "$backup"
-        [[ -f $dst ]] && $as cp -a "$dst" "$backup/$(basename "$dst") $stamp"
-        tmp=$($as mktemp "$dst.XXXXXX")
-        render "$src" | $as tee "$tmp" >/dev/null
-        $as chmod "$(stat -c %a "$src")" "$tmp"
-        $as mv -f "$tmp" "$dst"
-    done < <(find "$from" -type f -print0)
-}
-
-# download URL of the newest GitHub release asset of REPO whose URL matches REGEX (empty if none)
-gh_url() {
-    curl -fsSL --max-time 30 "https://api.github.com/repos/$1/releases/latest" |
-        jq -r --arg re "$2" '[.assets[].browser_download_url | select(test($re))][0] // empty' ||
-        warn "no release of $1 matching $2"
-}
-
 # fetch URL DEST [STRIP]: unpack a .tar.* or .zip into DEST; skipped when DEST already came from URL
 fetch() {
     local url=$1 dest=$2 strip=${3:-0} tmp
-    [[ -n $url ]] || { warn "no download URL for $dest"; return 0; }
     [[ $(cat "$dest/.version" 2>/dev/null) != "$url" ]] || return 0
     if pgrep -f "^$dest/" >/dev/null; then warn "$dest is running - update postponed"; return 0; fi
     say "  $url -> $dest"
@@ -162,38 +108,29 @@ fetch() {
     rm -f "$tmp.pkg"
 }
 
-# set kernel options (key or key=value) in GRUB_CMDLINE_LINUX_DEFAULT: same keys are replaced, others kept
-kernel_options() {
-    local cur
-    cur=$(sed -n 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"$/\1/p' /etc/default/grub)
-    cur=$(awk -v cur="$cur" -v want="$*" 'BEGIN {
-        n = split(want, w, " "); for (i = 1; i <= n; i++) { k = w[i]; sub(/=.*/, "", k); drop[k] = 1 }
-        n = split(cur, c, " ");  for (i = 1; i <= n; i++) { k = c[i]; sub(/=.*/, "", k); if (!(k in drop)) keep = keep c[i] " " }
-        print keep want }')
-    sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"$cur\"|" /etc/default/grub
-}
-
 # =============================================================== step: files
 
 step_files() {
-    say "system files: files/root -> /"
-    deploy "$FILES/root" "" /root/.backup
+    say "files: files/root -> /  and  files/home -> ~"
+    zypper -n in --no-recommends rsync >/dev/null
+    # -c: compare contents, -E: keep the executable bit; replaced files go to a dated backup folder
+    local stamp sync=(rsync -rlcE --out-format='  %n')
+    stamp=$(date '+%F %H-%M-%S')
+    "${sync[@]}" --backup --backup-dir="/root/.backup/$stamp" "$HERE/files/root/" /
+    as_user "${sync[@]}" --backup --backup-dir="$UHOME/.backup/$stamp" "$HERE/files/home/" "$UHOME/"
     chmod 440 /etc/sudoers.d/10-mysuse
-    may chown -R sddm: /var/lib/sddm               # SDDM writes its last user/session there
+
+    # leftovers of files that were removed from this repo
+    rm -f "$UHOME"/.local/bin/{btop,mmterm,gitpullpush_mydata.sh,mission-center,missioncenter} \
+        "$UHOME"/.local/bin/{taskbar-app,foot-open,idle-manager,imv-dir,imv-info} \
+        "$UHOME"/.config/systemd/user/{kanshi.service,mmautokey.service,graphical-session.target.wants/kanshi.service} \
+        /usr/local/bin/{snapper-tick,labwc-suse-session,power-ok}
+    rm -rf /usr/local/lib/mysuse
+
     may sysctl --system
-    may modprobe uinput
     may udevadm control --reload-rules
     may chgrp input /dev/uinput
     may chmod 0660 /dev/uinput
-
-    say "dotfiles: files/home -> $UHOME"
-    deploy "$FILES/home" "$UHOME" "$UHOME/.backup" as_user
-    rm -f "$UHOME/.local/bin/"{taskbar-app,foot-open,idle-manager,imv-dir,imv-info}   # these live in /usr/local/bin now
-
-    # root-owned copy of the repo for the daily cron job (root never runs the user-writable ~/mySuse)
-    rm -rf /usr/local/lib/mysuse
-    cp -r "$HERE" /usr/local/lib/mysuse
-    rm -rf /usr/local/lib/mysuse/.git
 }
 
 # =============================================================== step: packages
@@ -216,11 +153,11 @@ step_packages() {
 # =============================================================== step: system
 
 step_system() {
-    say "system: identity, groups, services, security, snapshots, printer, login screen, swap, kernel options"
+    say "system: name, language, groups, services, firewall, snapshots, printer, login, VMs, hibernation"
 
-    # identity (hostname, locale and console files come from files/root/etc)
+    # name and language (time zone, keyboard and console come from the installer)
     may hostnamectl set-hostname "$HOSTNAME"
-    ln -sf "/usr/share/zoneinfo/$TIMEZONE" /etc/localtime
+    localectl set-locale LANG=en_US.UTF-8 LC_{TIME,PAPER,MEASUREMENT,MONETARY}=pl_PL.UTF-8
 
     # groups: sudo, audio/video, uinput (MMAutoKey), VMs; groups that do not exist are left out
     usermod -aG "$(getent group wheel audio video input disk storage network libvirt kvm | cut -d: -f1 | paste -sd,)" "$USERNAME"
@@ -231,22 +168,17 @@ step_system() {
         systemctl enable --now "$s" || warn "service $s could not be enabled"
     done
     for s in smartd cups-browsed ipp-usb snapper-timeline.timer; do may systemctl disable --now "$s"; done
-    may systemctl --user --global enable pipewire wireplumber pipewire-pulse
-    may systemctl --user --global mask mako.service
-    may as_user systemctl --user enable --now kanshi.service
 
     # security: fingerprint for sudo/SDDM/polkit/lock screen; firewall: mDNS, Resilio, Tailscale, KDE Connect
     may pam-config -a --fprintd
-    firewall-cmd -q --permanent --add-service=mdns --add-port="$RESILIO_PORT/tcp" --add-port=3838/udp \
+    firewall-cmd -q --permanent --add-service=mdns --add-port=55555/tcp --add-port=3838/udp \
         --add-port=41641/udp --add-port=1714-1764/tcp --add-port=1714-1764/udp || warn "firewall ports not set"
     may firewall-cmd -q --permanent --zone=trusted --add-interface=tailscale0
     may firewall-cmd -q --reload
 
-    # snapshots: root only, zypper pre/post pairs, no timeline
-    snapper -c root set-config TIMELINE_CREATE=no TIMELINE_CLEANUP=yes NUMBER_CLEANUP=yes NUMBER_MIN_AGE=1800 \
-        NUMBER_LIMIT="$SNAP_LIMIT" NUMBER_LIMIT_IMPORTANT="$SNAP_LIMIT_IMPORTANT" \
-        TIMELINE_LIMIT_HOURLY=0 TIMELINE_LIMIT_DAILY=0 TIMELINE_LIMIT_WEEKLY=0 TIMELINE_LIMIT_MONTHLY=0 TIMELINE_LIMIT_YEARLY=0 ||
-        warn "snapper root config not set"
+    # snapshots: root only, keep 10 zypper pre/post pairs (4 important), no timeline
+    snapper -c root set-config TIMELINE_CREATE=no NUMBER_CLEANUP=yes NUMBER_MIN_AGE=1800 \
+        NUMBER_LIMIT=10 NUMBER_LIMIT_IMPORTANT=4 || warn "snapper root config not set"
 
     # printer: Brother DCP-L2530DW over IPP Everywhere, simplex, normal quality
     local p=Brother_DCP-L2530DW_series opts=(-o Duplex=None -o sides=one-sided -o cupsPrintQuality=Normal -o Collate=True)
@@ -254,32 +186,42 @@ step_system() {
     may lpadmin -d "$p"
     may as_user lpoptions -d "$p" "${opts[@]}" -o copies=1
 
-    # login screen: SDDM + Chili theme (files/root), Labwc as the only session, password required
+    # login screen: SDDM + Chili theme (files/root), Labwc as the only session, no autologin
     find /usr/share/wayland-sessions /usr/share/xsessions -name '*.desktop' ! -name labwc.desktop -delete 2>/dev/null || true
-    systemctl enable sddm || warn "SDDM could not be enabled"
+    systemctl enable sddm || warn "SDDM could not be enabled"     # takes over at the next boot
     may update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/sddm
-    may sed -i -e 's/^DISPLAYMANAGER_AUTOLOGIN=.*/DISPLAYMANAGER_AUTOLOGIN=""/' \
-        -e 's/^DISPLAYMANAGER_PASSWORD_LESS_LOGIN=.*/DISPLAYMANAGER_PASSWORD_LESS_LOGIN="no"/' /etc/sysconfig/displaymanager
+    may sed -i 's/^DISPLAYMANAGER_AUTOLOGIN=.*/DISPLAYMANAGER_AUTOLOGIN=""/' /etc/sysconfig/displaymanager
 
-    # swap + hibernation: swapfile on btrfs, resume offset on the kernel command line
-    [[ -f /swap/swapfile ]] || bash /usr/local/bin/set-swap "$SWAP_GIB"
+    # virtual machines: libvirt default network, VM folders without btrfs copy-on-write
+    may virsh net-autostart default
+    may virsh net-start default
+    mkdir -p /var/lib/libvirt/images
+    as_user mkdir -p "$UHOME/VMs"
+    may chattr +C /var/lib/libvirt/images "$UHOME/VMs"
+
+    # hibernation: 32 GB swapfile, resume offset on the kernel command line, Windows in the grub menu
+    if [[ ! -f /swap/swapfile ]]; then
+        bash /usr/local/bin/set-swap 32
+        dracut --force                      # the initramfs learns where to resume from
+    fi
     may swapon /swap/swapfile
-    [[ -f /etc/default/grub ]] || { warn "no /etc/default/grub (not GRUB2?) - kernel options not set"; return 0; }
-    kernel_options quiet splash loglevel=3 zswap.enabled=0 apparmor=1 security=apparmor pcie_aspm=force \
-        i915.enable_psr=1 i915.enable_fbc=1 nvme.noacpi=1 workqueue.power_efficient=1 \
-        "resume=UUID=$(findmnt -no UUID -T /swap/swapfile)" \
-        "resume_offset=$(btrfs inspect-internal map-swapfile -r /swap/swapfile)"
-    sed -i '/^#\?\s*GRUB_DISABLE_OS_PROBER=/d' /etc/default/grub
-    echo 'GRUB_DISABLE_OS_PROBER="false"' >> /etc/default/grub   # dual boot: list Windows in grub
+    local cmdline="quiet splash loglevel=3 zswap.enabled=0 apparmor=1 security=apparmor pcie_aspm=force"
+    cmdline+=" i915.enable_psr=1 i915.enable_fbc=1 nvme.noacpi=1 workqueue.power_efficient=1"
+    cmdline+=" resume=UUID=$(findmnt -no UUID -T /swap/swapfile) resume_offset=$(btrfs inspect-internal map-swapfile -r /swap/swapfile)"
+    sed -i -e "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"$cmdline\"|" \
+        -e '/^#\?\s*GRUB_DISABLE_OS_PROBER=/d' /etc/default/grub
+    echo 'GRUB_DISABLE_OS_PROBER="false"' >> /etc/default/grub
+    update-bootloader --refresh || grub2-mkconfig -o /boot/grub2/grub.cfg
 }
 
-# =============================================================== step: apps (also run daily by cron)
+# =============================================================== step: apps
 
+# Upstream downloads, pinned: to update one, change its version in the URL and run ./refresh.sh apps
 step_apps() {
     say "upstream apps: Helium, Bibata cursor, Cascadia Code, Resilio Sync, ytfzf, Mission Center"
-    fetch "$(gh_url imputnet/helium-linux '-x86_64_linux\.tar\.xz$')" /opt/helium 1
-    fetch "$(gh_url ful1e5/Bibata_Cursor 'Bibata-Modern-Classic\.tar\.xz$')" /usr/local/share/icons/Bibata-Modern-Classic 1
-    fetch "$(gh_url microsoft/cascadia-code '\.zip$')" /usr/local/share/fonts/cascadia-code
+    fetch https://github.com/imputnet/helium-linux/releases/download/0.21.2.1/helium-0.21.2.1-x86_64_linux.tar.xz /opt/helium 1
+    fetch https://github.com/ful1e5/Bibata_Cursor/releases/download/v2.0.7/Bibata-Modern-Classic.tar.xz /usr/local/share/icons/Bibata-Modern-Classic 1
+    fetch https://github.com/microsoft/cascadia-code/releases/download/v2407.24/CascadiaCode-2407.24.zip /usr/local/share/fonts/cascadia-code
     fetch https://download-cdn.resilio.com/stable/linux/x64/0/resilio-sync_x64.tar.gz /opt/resilio-sync
     fetch https://github.com/pystardust/ytfzf/archive/refs/tags/v2.6.2.tar.gz /opt/ytfzf 1
 
@@ -311,7 +253,7 @@ step_user() {
     done
 
     # Git Credential Manager with the Secret Service store, like on Windows
-    fetch "$(gh_url git-ecosystem/git-credential-manager 'gcm-linux-x64-[0-9.]+\.tar\.gz$')" /opt/git-credential-manager
+    fetch https://github.com/git-ecosystem/git-credential-manager/releases/download/v3.0.2/gcm-linux-x64-3.0.2.tar.gz /opt/git-credential-manager
     ln -sf /opt/git-credential-manager/git-credential-manager /usr/local/bin/git-credential-manager
     as_user git config --global core.longpaths true
     as_user git config --global --unset-all credential.helper || true
@@ -319,48 +261,20 @@ step_user() {
     as_user git config --global --add credential.helper manager
     as_user git config --global credential.credentialStore secretservice
 
-    # MMAutoKey, once the mydata repo is cloned
-    local d
-    for d in "$UHOME"/{Github,GitHub}/mydata/code/MMAutoKey_linux; do
-        if [[ -f $d/install.sh ]]; then as_user bash "$d/install.sh" || warn "MMAutoKey install failed"; break; fi
-    done
+    # MMAutoKey, once mydata is cloned into ~/Desktop (its install.sh adds the autostart and menu entries)
+    local mm=$UHOME/Desktop/code/MMAutoKey/install.sh
+    if [[ -f $mm ]]; then as_user bash "$mm" || warn "MMAutoKey install failed"; fi
 
     # wallpapers: Great Wave (public domain) and the key cheat sheet rendered from files/wallpaper
     local wp=$UHOME/Pictures/Wallpapers
-    as_user mkdir -p "$wp" "$UHOME/Github/mydata/t/_screenshots"
+    as_user mkdir -p "$wp" "$UHOME/Desktop/t/_screenshots"
     if [[ ! -s $wp/great-wave.jpg ]]; then
         as_user curl -fsSL --max-time 120 -o "$wp/great-wave.jpg.part" \
             https://upload.wikimedia.org/wikipedia/commons/a/a5/Tsunami_by_hokusai_19th_century.jpg &&
             as_user mv "$wp/great-wave.jpg.part" "$wp/great-wave.jpg" || warn "wallpaper download failed"
     fi
-    as_user typst compile --root "$FILES/wallpaper" "$FILES/wallpaper/keys-labwc.typ" "$wp/keys-labwc.png" ||
+    as_user typst compile --root "$HERE/files/wallpaper" "$HERE/files/wallpaper/keys-labwc.typ" "$wp/keys-labwc.png" ||
         warn "cheat-sheet wallpaper not rendered"
-}
-
-# =============================================================== step: vm
-
-step_vm() {
-    say "virtualization: libvirt default network, VM folders without btrfs copy-on-write"
-    may virsh net-autostart default
-    may virsh net-start default
-    mkdir -p /var/lib/libvirt/images
-    as_user mkdir -p "$UHOME/VMs"
-    may chattr +C /var/lib/libvirt/images "$UHOME/VMs"
-}
-
-# =============================================================== step: boot
-
-# rebuild initramfs + grub.cfg only when their inputs changed (dracut is the slowest part of a refresh)
-step_boot() {
-    local sum
-    sum=$({ cat /etc/default/grub /etc/sysconfig/bootloader /etc/crypttab /etc/vconsole.conf \
-        /etc/dracut.conf.d/* 2>/dev/null || true; } | sha256sum)
-    if [[ $sum == "$(cat "$STATE_DIR/boot.sha" 2>/dev/null)" ]]; then say "boot: unchanged"; return 0; fi
-    say "boot: regenerating initramfs and grub.cfg"
-    dracut --force --hostonly
-    update-bootloader --refresh || grub2-mkconfig -o /boot/grub2/grub.cfg
-    mkdir -p "$STATE_DIR"
-    echo "$sum" > "$STATE_DIR/boot.sha"
 }
 
 # =============================================================== step runner
@@ -415,16 +329,6 @@ selftest() (
     (FAIL_B=1 run_steps) || true;   ran a   "second interruption"
     HASH=v2; run_steps;             ran abc "a repo change restarts all steps"
     run_steps c;                    ran c   "a named step runs alone"
-
-    mkdir -p "$T/src/etc"
-    echo 'host=@HOSTNAME@' > "$T/src/etc/h"
-    deploy "$T/src" "$T/dst" "$T/bak" >/dev/null
-    [[ $(cat "$T/dst/etc/h") == "host=$HOSTNAME" ]] || fail "deploy did not fill @HOSTNAME@"
-    echo drift > "$T/dst/etc/h"
-    deploy "$T/src" "$T/dst" "$T/bak" >/dev/null
-    [[ $(cat "$T/dst/etc/h") == "host=$HOSTNAME" ]] || fail "deploy did not restore a changed file"
-    [[ $(cat "$T/bak/"h*) == drift ]] || fail "deploy did not back up the changed file"
-    [[ -z $(deploy "$T/src" "$T/dst" "$T/bak") ]] || fail "deploy rewrote an unchanged file"
     echo "selftest ok"
 )
 

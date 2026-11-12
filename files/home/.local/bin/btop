@@ -1,9 +1,0 @@
-#!/bin/bash
-set -euo pipefail
-
-# Check if the actual btop binary is already running
-if pidof /usr/bin/btop >/dev/null 2>&1; then
-    exit 0
-fi
-
-exec /usr/bin/btop "$@"

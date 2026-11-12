@@ -1,61 +1,10 @@
 #!/bin/sh
-# Labwc autostart script for mySuse
-# Sequentially orchestrates core Wayland desktop daemons
-
-# 1. Import Wayland environment into systemd and DBus user sessions
-dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=labwc:wlroots XDG_SESSION_TYPE=wayland
-
-# 1b. Fast keyboard repeat rate (matching Windows set_fast_keyboard: delay 200ms, rate 100 repeats/s)
-if command -v xset >/dev/null 2>&1; then
-    xset r rate 200 100 &
-fi
-if command -v gsettings >/dev/null 2>&1; then
-    gsettings set org.gnome.desktop.peripherals.keyboard delay 200 2>/dev/null || true
-    gsettings set org.gnome.desktop.peripherals.keyboard repeat-interval 10 2>/dev/null || true
-fi
-
-# 2. Polkit authentication agent (GNOME or KDE fallback)
-for agent in \
-    /usr/libexec/polkit-gnome-authentication-agent-1 \
-    /usr/lib/polkit-gnome-authentication-agent-1 \
-    /usr/libexec/polkit-kde-authentication-agent-1 \
-    /usr/lib/polkit-kde-authentication-agent-1; do
-    if [ -x "$agent" ]; then
-        "$agent" &
-        break
-    fi
-done
-
-# 3. Dynamic display configuration & multi-monitor automation (Kanshi systemd service)
-systemctl --user start kanshi.service 2>/dev/null || kanshi &
-
-# 4. Clipboard history manager (handled natively by Noctalia's integrated clipboard daemon)
-
-# 5. Screen idle, screen blanking & locking (idle-manager: 30m on battery, 1h on charger)
-if command -v idle-manager >/dev/null 2>&1 || [[ -x "$HOME/.local/bin/idle-manager" ]]; then
-    idle-manager &
-elif command -v swayidle >/dev/null 2>&1; then
-    swayidle -w \
-        timeout 1800 'noctalia msg lock 2>/dev/null || swaylock -f -c 1a1b26' \
-        timeout 2100 'noctalia msg dpms-off 2>/dev/null || wlr-randr --output eDP-1 --off 2>/dev/null' \
-        resume 'noctalia msg dpms-on 2>/dev/null || wlr-randr --output eDP-1 --on 2>/dev/null' \
-        before-sleep 'noctalia msg lock 2>/dev/null || swaylock -f -c 1a1b26' &
-fi
-
-# 6. Audio enhancement daemon (Dolby Atmos quad-speaker profile)
-if command -v easyeffects >/dev/null 2>&1; then
-    easyeffects --gapplication-service &
-fi
-
-# 7. Hardware applets (Network & Bluetooth handled natively by Noctalia Control Center)
-
-# 8. Noctalia desktop shell (capsule bar, wallpaper, notifications, lockscreen, control center)
-noctalia -d &
-
-# 9. MMAutoKey background keyboard automation daemon
-for bin in "$HOME/GitHub/mydata/code/MMAutoKey/MMAutoKey_linux" "$HOME/Github/mydata/code/MMAutoKey/MMAutoKey_linux"; do
-    if [ -x "$bin" ]; then
-        pgrep -x MMAutoKey_linux >/dev/null 2>&1 || "$bin" &
-        break
-    fi
-done
+# Started by labwc at login.
+dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+kanshi &                                # monitor layouts: ~/.config/kanshi/config
+idle-manager &                          # lock after 30 min on battery, 1 h on charger
+easyeffects --gapplication-service &    # speaker profile (Dolby tuning of the X1 speakers)
+noctalia -d &                           # bar, launcher, notifications, lock screen, polkit agent
+update-notify &                         # notice when package updates are waiting
+mm=$HOME/Desktop/code/MMAutoKey/MMAutoKey_linux   # MMAutoKey, from the mydata repo
+[ -x "$mm" ] && ! pgrep -x MMAutoKey_linux >/dev/null && "$mm" &

@@ -1,7 +1,3 @@
-Defaults timestamp_timeout=@SUDO_TIMEOUT_MIN@, timestamp_type=global
-Defaults !targetpw
-Defaults:ALL !targetpw
-Defaults !rootpw
-Defaults:ALL !rootpw
+# sudo asks for your own password (not root's), once a day for all terminals
+Defaults !targetpw, !rootpw, timestamp_timeout=1440, timestamp_type=global
 %wheel ALL=(ALL:ALL) ALL
-@USERNAME@ ALL=(ALL:ALL) ALL

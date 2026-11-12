@@ -11,8 +11,8 @@ if [[ -d "$EXT_BASE" ]]; then
     done
 fi
 
-if [[ -d "$HOME/Github/mydata/code/MMBrowserSync/extension" ]]; then
-    LOAD_EXTS+=("$HOME/Github/mydata/code/MMBrowserSync/extension")
+if [[ -d "$HOME/Desktop/code/MMBrowserSync/extension" ]]; then
+    LOAD_EXTS+=("$HOME/Desktop/code/MMBrowserSync/extension")
 fi
 
 EXT_FLAG=""

@@ -1,12 +1,12 @@
 {
-  "device_name": "@HOSTNAME@",
-  "storage_path": "@UHOME@/.local/share/resilio-sync/",
-  "pid_file": "@UHOME@/.local/share/resilio-sync/rslsync.pid",
-  "listening_port": @RESILIO_PORT@,   // fixed so the firewall can allow it
+  "device_name": "x1-suse",
+  "storage_path": "/home/marek/.local/share/resilio-sync/",
+  "pid_file": "/home/marek/.local/share/resilio-sync/rslsync.pid",
+  "listening_port": 55555,            // fixed so the firewall can allow it (refresh.sh)
   "use_upnp": false,                  // do not open router ports
   "download_limit": 0,
   "upload_limit": 0,
-  "directory_root": "@UHOME@/",
+  "directory_root": "/home/marek/",
   "webui": {
     "listen": "127.0.0.1:8888"        // WebUI reachable from this laptop only
   }
