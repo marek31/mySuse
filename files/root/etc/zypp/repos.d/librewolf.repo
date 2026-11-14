@@ -1,0 +1,6 @@
+[librewolf]
+name=LibreWolf
+baseurl=https://rpm.librewolf.net
+enabled=1
+gpgcheck=1
+gpgkey=https://rpm.librewolf.net/pubkey.gpg

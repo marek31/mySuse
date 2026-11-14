@@ -46,7 +46,7 @@ PACKAGES=(
     # office
     libreoffice libreoffice-l10n-pl myspell-pl_PL myspell-en_US hyphen-pl mythes-pl
     # browsers & media runtime
-    MozillaFirefox opera
+    MozillaFirefox opera librewolf
     libXfixes3 libva2 fuse fuse3
     # fonts
     noto-sans-fonts noto-serif-fonts noto-coloremoji-fonts noto-sans-cjk-fonts
