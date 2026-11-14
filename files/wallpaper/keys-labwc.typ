@@ -14,7 +14,7 @@
   ("Meta+,", "Noctalia settings"),
   ("Meta+B / Shift+B", "Helium / Opera"),
   ("Meta+E", "files (Thunar)"),
-  ("Shift+Esc", "btop (system monitor)"),
+  ("Shift+Esc / Ctrl+Shift+Esc", "btop (system monitor)"),
 )
 
 #section(orange, "Screenshots",

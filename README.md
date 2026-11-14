@@ -79,7 +79,7 @@ Run it as yourself. It does `git pull`, then runs the pulled version again with 
 | `packages` | removes unwanted packages, installs `PACKAGES`, switches codecs to Packman |
 | `system` | host name, locale, groups, services, firewall, snapper, printer, SDDM, libvirt, swapfile and kernel command line |
 | `user` | Git Credential Manager, git config, rustup, Claude Code, Antigravity CLI, Deno, oh-my-pi, nanobot, MMAutoKey, wallpapers |
-| `apps` | Helium, Bibata cursor, Resilio Sync, ytfzf, Mission Center (Flathub), Helium extensions |
+| `apps` | Helium, Bibata cursor, Resilio Sync, ytfzf, Helium extensions |
 
 ---
 
@@ -118,7 +118,7 @@ Keys (Meta = Super; Meta+Shift+/ shows the cheat sheet):
 | Meta+1..0, Meta+Shift+1..0 | taskbar app 1..10: focus, minimise, cycle / new instance |
 | Meta+B / Meta+Shift+B | Helium / Opera |
 | Meta+E | Thunar |
-| Shift+Esc | btop |
+| Shift+Esc / Ctrl+Shift+Esc | btop |
 | Meta+Q, Alt+F4 | close window |
 | Meta+F / Meta+Shift+F | maximise / fullscreen |
 | Meta+Left/Right/Up/Down | snap left/right, maximise, restore or minimise |

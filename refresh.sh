@@ -63,7 +63,7 @@ PACKAGES=(
     qemu-kvm qemu-ovmf-x86_64 libvirt libvirt-daemon-qemu libvirt-daemon-config-network virt-manager virt-install virt-viewer swtpm iptables dnsmasq
     # shell and CLI tools
     fish bash-completion starship eza bat ripgrep fd fzf zoxide tmux vim neovim mc nnn
-    htop btop nmon iftop nmap speedtest-cli duf plocate lsof strace usbutils pciutils smartmontools
+    btop nmon iftop nmap speedtest-cli duf plocate lsof strace usbutils pciutils smartmontools
     curl wget jq unzip zip 7zip xz zstd man-pages tealdeer trash-cli acl bind-utils fastfetch
     # development
     patterns-devel-base-devel_basis git git-lfs gh cmake python3 python3-pip go typst sbcl github-desktop libsecret-1-0 git-credential-libsecret
@@ -71,7 +71,7 @@ PACKAGES=(
 
 UNWANTED=(power-profiles-daemon hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman
     NetworkManager-applet file-roller icewm icewm-default icewm-config-upstream icewm-lang
-    mako cliphist waybar sfwbar fuzzel gdm)
+    mako cliphist waybar sfwbar fuzzel gdm htop)
 
 # =============================================================== helpers
 
@@ -241,7 +241,7 @@ step_system() {
 
 # Upstream downloads, pinned: to update one, change its version in the URL and run ./refresh.sh apps
 step_apps() {
-    say "upstream apps: Helium, Bibata cursor, Resilio Sync, ytfzf, Mission Center"
+    say "upstream apps: Helium, Bibata cursor, Resilio Sync, ytfzf"
     fetch https://github.com/imputnet/helium-linux/releases/download/0.21.2.1/helium-0.21.2.1-x86_64_linux.tar.xz /opt/helium 1
     fetch https://github.com/ful1e5/Bibata_Cursor/releases/download/v2.0.7/Bibata-Modern-Classic.tar.xz /usr/local/share/icons/Bibata-Modern-Classic 1
     fetch https://download-cdn.resilio.com/stable/linux/x64/0/resilio-sync_x64.tar.gz /opt/resilio-sync
@@ -251,8 +251,8 @@ step_apps() {
     if [[ ! -x /usr/local/bin/ytfzf && -d /opt/ytfzf ]]; then
         make -C /opt/ytfzf install doc addons >/dev/null || warn "ytfzf build/install failed"
     fi
-    may flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-    flatpak install -y --noninteractive flathub io.missioncenter.MissionCenter >/dev/null || warn "Mission Center not installed"
+    may flatpak uninstall --system -y --noninteractive io.missioncenter.MissionCenter
+    may flatpak uninstall --system -y --noninteractive --unused
     as_user python3 /usr/local/bin/helium-install-extensions || warn "Helium extensions not installed"
 }
 

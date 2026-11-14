@@ -108,6 +108,9 @@
     <keybind key="S-Escape">
       <action name="Execute" command="btop-toggle" />
     </keybind>
+    <keybind key="C-S-Escape">
+      <action name="Execute" command="btop-toggle" />
+    </keybind>
 
     <!-- Window Management -->
     <keybind key="W-q">
