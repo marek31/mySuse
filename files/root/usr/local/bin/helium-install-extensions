@@ -164,7 +164,5 @@ def register_in_preferences():
 
 if __name__ == "__main__":
     download_and_unpack_extensions()
-    if is_helium_running():
-        print("Note: Helium is currently running. Extensions will be loaded when Helium is restarted.")
-    else:
-        register_in_preferences()
+    # Note: unpacked extensions are loaded at launch via --load-extension in /usr/local/bin/helium.
+    # Do not rewrite Default/Preferences directly, as Chromium's HMAC protection resets settings on tampering.

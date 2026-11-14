@@ -10,7 +10,7 @@
 set -euo pipefail
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 STATE_DIR=/var/lib/mysuse
-ALL_STEPS=(files packages system apps user)
+ALL_STEPS=(files packages system user apps)
 HOSTNAME=x1-suse
 USERNAME=marek                # login created in the openSUSE installer
 UHOME=/home/$USERNAME
@@ -48,7 +48,7 @@ PACKAGES=(
     # fonts
     noto-sans-fonts noto-serif-fonts noto-coloremoji-fonts noto-sans-cjk-fonts
     dejavu-fonts liberation-fonts croscore-fonts
-    google-roboto-fonts symbols-only-nerd-fonts jetbrains-mono-fonts
+    google-roboto-fonts symbols-only-nerd-fonts jetbrains-mono-fonts saja-cascadia-code-fonts
     # files, media, desktop apps
     foot wlrctl lswt thunar thunar-volman thunar-plugin-archive gvfs
     udisks2 ntfs-3g dosfstools
@@ -93,7 +93,7 @@ fetch() {
     tmp=$(mktemp -d "$dest.new.XXXXXX")
     if curl -fsSL --retry 3 --max-time 900 -o "$tmp.pkg" "$url" &&
         case $url in
-            *.zip) unzip -q "$tmp.pkg" -d "$tmp" ;;
+            *.zip) command -v unzip >/dev/null && unzip -q "$tmp.pkg" -d "$tmp" ;;
             *)     tar -xf "$tmp.pkg" -C "$tmp" --strip-components="$strip" --no-same-owner ;;
         esac
     then
@@ -102,7 +102,7 @@ fetch() {
         rm -rf "$dest"
         mv "$tmp" "$dest"
     else
-        warn "download failed: $url"
+        warn "download or unpack failed: $url"
         rm -rf "$tmp"
     fi
     rm -f "$tmp.pkg"
@@ -112,7 +112,7 @@ fetch() {
 
 step_files() {
     say "files: files/root -> /  and  files/home -> ~"
-    zypper -n in --no-recommends rsync >/dev/null
+    command -v rsync >/dev/null || zypper -n in --no-recommends rsync >/dev/null
     # -c: compare contents, -E: keep the executable bit; replaced files go to a dated backup folder
     local stamp sync=(rsync -rlcE --out-format='  %n')
     stamp=$(date '+%F %H-%M-%S')
@@ -138,7 +138,7 @@ step_files() {
 
 step_packages() {
     say "packages: drop unwanted ones, install PACKAGES, switch codecs to Packman"
-    zypper --gpg-auto-import-keys refresh
+    zypper --gpg-auto-import-keys refresh || warn "some repositories failed to refresh"
 
     local installed
     mapfile -t installed < <(rpm -q --qf '%{NAME}\n' "${UNWANTED[@]}" | grep -v ' ')
@@ -148,20 +148,34 @@ step_packages() {
 
     zypper -n --ignore-unknown in --no-recommends --auto-agree-with-licenses --force-resolution "${PACKAGES[@]}" ||
         warn "some packages could not be installed"
+    # GDM needs its recommended greeter packages (e.g. gnome-shell); --no-recommends leaves a blank screen with cursor
+    zypper -n in --auto-agree-with-licenses gdm || warn "GDM recommends could not be installed"
     zypper -n dup --from packman --allow-vendor-change || warn "switch to Packman codecs failed"
 }
 
 # =============================================================== step: system
 
 step_system() {
-    say "system: name, language, groups, services, firewall, snapshots, printer, login, VMs, hibernation"
+    say "system: login, groups, security, services, firewall, name, snapshots, printer, VMs, hibernation"
 
-    # name and language (time zone, keyboard and console come from the installer)
-    may hostnamectl set-hostname "$HOSTNAME"
-    localectl set-locale LANG=en_US.UTF-8 LC_{TIME,PAPER,MEASUREMENT,MONETARY}=pl_PL.UTF-8
+    # login screen: GDM (parallel fingerprint + password), Labwc as the only session, no autologin
+    find /usr/share/wayland-sessions /usr/share/xsessions -name '*.desktop' ! -name labwc.desktop -delete 2>/dev/null || true
+    may systemctl disable sddm
+    systemctl enable gdm || warn "GDM could not be enabled"       # takes over at the next boot
+    may update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/gdm
+    may sed -i 's/^DISPLAYMANAGER_AUTOLOGIN=.*/DISPLAYMANAGER_AUTOLOGIN=""/' /etc/sysconfig/displaymanager
 
     # groups: sudo, audio/video, uinput (MMAutoKey), VMs; groups that do not exist are left out
-    usermod -aG "$(getent group wheel audio video input disk storage network libvirt kvm | cut -d: -f1 | paste -sd,)" "$USERNAME"
+    local groups
+    groups=$(getent group wheel audio video input disk storage network libvirt kvm | cut -d: -f1 | paste -sd,)
+    [[ -z $groups ]] || usermod -aG "$groups" "$USERNAME" || warn "usermod failed for $USERNAME"
+
+    # security: fingerprint for sudo/GDM/polkit/lock screen; firewall: mDNS, Resilio, Tailscale, KDE Connect
+    may pam-config -a --fprintd
+    firewall-cmd -q --permanent --add-service=mdns --add-port=55555/tcp --add-port=3838/udp \
+        --add-port=41641/udp --add-port=1714-1764/tcp --add-port=1714-1764/udp || warn "firewall ports not set"
+    may firewall-cmd -q --permanent --zone=trusted --add-interface=tailscale0
+    may firewall-cmd -q --reload
 
     # services
     local s
@@ -170,12 +184,9 @@ step_system() {
     done
     for s in smartd cups-browsed ipp-usb snapper-timeline.timer; do may systemctl disable --now "$s"; done
 
-    # security: fingerprint for sudo/GDM/polkit/lock screen; firewall: mDNS, Resilio, Tailscale, KDE Connect
-    may pam-config -a --fprintd
-    firewall-cmd -q --permanent --add-service=mdns --add-port=55555/tcp --add-port=3838/udp \
-        --add-port=41641/udp --add-port=1714-1764/tcp --add-port=1714-1764/udp || warn "firewall ports not set"
-    may firewall-cmd -q --permanent --zone=trusted --add-interface=tailscale0
-    may firewall-cmd -q --reload
+    # name and language (time zone, keyboard and console come from the installer)
+    may hostnamectl set-hostname "$HOSTNAME"
+    may localectl set-locale LANG=en_US.UTF-8 LC_{TIME,PAPER,MEASUREMENT,MONETARY}=pl_PL.UTF-8
 
     # snapshots: root only, keep 10 zypper pre/post pairs (4 important), no timeline
     snapper -c root set-config TIMELINE_CREATE=no NUMBER_CLEANUP=yes NUMBER_MIN_AGE=1800 \
@@ -187,49 +198,52 @@ step_system() {
     may lpadmin -d "$p"
     may as_user lpoptions -d "$p" "${opts[@]}" -o copies=1
 
-    # login screen: GDM (parallel fingerprint + password), Labwc as the only session, no autologin
-    find /usr/share/wayland-sessions /usr/share/xsessions -name '*.desktop' ! -name labwc.desktop -delete 2>/dev/null || true
-    may systemctl disable sddm
-    systemctl enable gdm || warn "GDM could not be enabled"       # takes over at the next boot
-    may update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/gdm
-    may sed -i 's/^DISPLAYMANAGER_AUTOLOGIN=.*/DISPLAYMANAGER_AUTOLOGIN=""/' /etc/sysconfig/displaymanager
-
     # virtual machines: libvirt default network, VM folders without btrfs copy-on-write
     may virsh net-autostart default
     may virsh net-start default
     mkdir -p /var/lib/libvirt/images
-    as_user mkdir -p "$UHOME/VMs"
+    may as_user mkdir -p "$UHOME/VMs"
     may chattr +C /var/lib/libvirt/images "$UHOME/VMs"
 
     # hibernation: 32 GB swapfile, resume offset on the kernel command line, Windows in the grub menu
     if [[ ! -f /swap/swapfile ]]; then
-        bash /usr/local/bin/set-swap 32
-        dracut --force                      # the initramfs learns where to resume from
+        if bash /usr/local/bin/set-swap 32; then
+            dracut --force || warn "dracut failed"   # the initramfs learns where to resume from
+        else
+            warn "swapfile setup failed"
+        fi
     fi
     may swapon /swap/swapfile
     local cmdline="quiet splash loglevel=3 zswap.enabled=0 apparmor=1 security=apparmor pcie_aspm=force"
     cmdline+=" i915.enable_psr=1 i915.enable_fbc=1 nvme.noacpi=1 workqueue.power_efficient=1"
-    cmdline+=" resume=UUID=$(findmnt -no UUID -T /swap/swapfile) resume_offset=$(btrfs inspect-internal map-swapfile -r /swap/swapfile)"
+    if [[ -f /swap/swapfile ]]; then
+        local swap_uuid swap_offset
+        swap_uuid=$(findmnt -no UUID -T /swap/swapfile 2>/dev/null || true)
+        swap_offset=$(btrfs inspect-internal map-swapfile -r /swap/swapfile 2>/dev/null || true)
+        if [[ -n $swap_uuid && -n $swap_offset ]]; then
+            cmdline+=" resume=UUID=$swap_uuid resume_offset=$swap_offset"
+        fi
+    fi
     sed -i -e "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"$cmdline\"|" \
-        -e '/^#\?\s*GRUB_DISABLE_OS_PROBER=/d' /etc/default/grub
-    echo 'GRUB_DISABLE_OS_PROBER="false"' >> /etc/default/grub
-    update-bootloader --refresh || grub2-mkconfig -o /boot/grub2/grub.cfg
+        -e '/^#\?\s*GRUB_DISABLE_OS_PROBER=/d' /etc/default/grub || warn "grub config update failed"
+    echo 'GRUB_DISABLE_OS_PROBER="false"' >> /etc/default/grub || true
+    update-bootloader --refresh || grub2-mkconfig -o /boot/grub2/grub.cfg || warn "bootloader refresh failed"
 }
 
 # =============================================================== step: apps
 
 # Upstream downloads, pinned: to update one, change its version in the URL and run ./refresh.sh apps
 step_apps() {
-    say "upstream apps: Helium, Bibata cursor, Cascadia Code, Resilio Sync, ytfzf, Mission Center"
+    say "upstream apps: Helium, Bibata cursor, Resilio Sync, ytfzf, Mission Center"
     fetch https://github.com/imputnet/helium-linux/releases/download/0.21.2.1/helium-0.21.2.1-x86_64_linux.tar.xz /opt/helium 1
     fetch https://github.com/ful1e5/Bibata_Cursor/releases/download/v2.0.7/Bibata-Modern-Classic.tar.xz /usr/local/share/icons/Bibata-Modern-Classic 1
-    fetch https://github.com/microsoft/cascadia-code/releases/download/v2407.24/CascadiaCode-2407.24.zip /usr/local/share/fonts/cascadia-code
     fetch https://download-cdn.resilio.com/stable/linux/x64/0/resilio-sync_x64.tar.gz /opt/resilio-sync
     fetch https://github.com/pystardust/ytfzf/archive/refs/tags/v2.6.2.tar.gz /opt/ytfzf 1
 
-    ln -sf /opt/resilio-sync/rslsync /usr/local/bin/rslsync
-    [[ -x /usr/local/bin/ytfzf ]] || make -C /opt/ytfzf install doc addons >/dev/null
-    may fc-cache -f /usr/local/share/fonts
+    [[ ! -x /opt/resilio-sync/rslsync ]] || ln -sf /opt/resilio-sync/rslsync /usr/local/bin/rslsync
+    if [[ ! -x /usr/local/bin/ytfzf && -d /opt/ytfzf ]]; then
+        make -C /opt/ytfzf install doc addons >/dev/null || warn "ytfzf build/install failed"
+    fi
     may flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
     flatpak install -y --noninteractive flathub io.missioncenter.MissionCenter >/dev/null || warn "Mission Center not installed"
     as_user python3 /usr/local/bin/helium-install-extensions || warn "Helium extensions not installed"
@@ -238,7 +252,20 @@ step_apps() {
 # =============================================================== step: user
 
 step_user() {
-    say "user tools: dev CLIs, Git Credential Manager, git config, MMAutoKey, wallpapers"
+    say "user tools: Git Credential Manager, git config, dev CLIs, MMAutoKey, wallpapers"
+
+    # Git Credential Manager with the Secret Service store, like on Windows
+    fetch https://github.com/git-ecosystem/git-credential-manager/releases/download/v3.0.2/gcm-linux-x64-3.0.2.tar.gz /opt/git-credential-manager
+    if [[ -x /opt/git-credential-manager/git-credential-manager ]]; then
+        ln -sf /opt/git-credential-manager/git-credential-manager /usr/local/bin/git-credential-manager
+    else
+        warn "Git Credential Manager binary not found"
+    fi
+    may as_user git config --global core.longpaths true
+    may as_user git config --global --unset-all credential.helper
+    may as_user git config --global --add credential.helper ""        # "" drops helpers set in /etc/gitconfig
+    may as_user git config --global --add credential.helper manager
+    may as_user git config --global credential.credentialStore secretservice
 
     # installer scripts, skipped when the tool is already there (path relative to ~)
     local -A tools=(
@@ -253,15 +280,6 @@ step_user() {
     for bin in "${!tools[@]}"; do
         [[ -x $UHOME/$bin ]] || as_user bash -o pipefail -c "${tools[$bin]}" || warn "install failed: ~/$bin"
     done
-
-    # Git Credential Manager with the Secret Service store, like on Windows
-    fetch https://github.com/git-ecosystem/git-credential-manager/releases/download/v3.0.2/gcm-linux-x64-3.0.2.tar.gz /opt/git-credential-manager
-    ln -sf /opt/git-credential-manager/git-credential-manager /usr/local/bin/git-credential-manager
-    as_user git config --global core.longpaths true
-    as_user git config --global --unset-all credential.helper || true
-    as_user git config --global --add credential.helper ""        # "" drops helpers set in /etc/gitconfig
-    as_user git config --global --add credential.helper manager
-    as_user git config --global credential.credentialStore secretservice
 
     # MMAutoKey, once mydata is cloned into ~/Desktop (its install.sh adds the autostart and menu entries)
     local mm=$UHOME/Desktop/code/MMAutoKey/install.sh

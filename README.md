@@ -71,15 +71,15 @@ Run it as yourself. It does `git pull`, then runs the pulled version again with 
 
 - **Config files are files, not code.** `files/root` is copied to `/` and `files/home` to `~` (rsync, only files whose content differs). Whatever gets replaced is kept in `/root/.backup/<date>` or `~/.backup/<date>`.
 - **Errors** print on screen and stop the run with "fix the error above, then run ./refresh.sh again". `may` in the script marks commands that are allowed to fail (already done, not installed, not logged in). `WARNING:` lines are problems that don't stop the run.
-- **Upstream apps are pinned.** Helium, Bibata, Cascadia Code and Git Credential Manager are downloaded from fixed release URLs in `step_apps` / `step_user`. To update one (Helium especially - it's a browser), change the version in its URL and run `./refresh.sh apps`. Releases: [Helium](https://github.com/imputnet/helium-linux/releases), [GCM](https://github.com/git-ecosystem/git-credential-manager/releases).
+- **Upstream apps are pinned.** Helium, Bibata and Git Credential Manager are downloaded from fixed release URLs in `step_apps` / `step_user`. To update one (Helium especially - it's a browser), change the version in its URL and run `./refresh.sh apps`. Releases: [Helium](https://github.com/imputnet/helium-linux/releases), [GCM](https://github.com/git-ecosystem/git-credential-manager/releases).
 
 | Step | What it does |
 |---|---|
 | `files` | copies `files/root` and `files/home`, removes leftovers of files dropped from the repo |
 | `packages` | removes unwanted packages, installs `PACKAGES`, switches codecs to Packman |
 | `system` | host name, locale, groups, services, firewall, snapper, printer, GDM, libvirt, swapfile and kernel command line |
-| `apps` | Helium, Bibata cursor, Cascadia Code, Resilio Sync, ytfzf, Mission Center (Flathub), Helium extensions |
-| `user` | rustup, Claude Code, Antigravity CLI, Deno, oh-my-pi, nanobot, Git Credential Manager, MMAutoKey, wallpapers |
+| `user` | Git Credential Manager, git config, rustup, Claude Code, Antigravity CLI, Deno, oh-my-pi, nanobot, MMAutoKey, wallpapers |
+| `apps` | Helium, Bibata cursor, Resilio Sync, ytfzf, Mission Center (Flathub), Helium extensions |
 
 ---
 
@@ -171,7 +171,7 @@ KVM/QEMU with libvirt, `swtpm` for TPM 2.0, OVMF UEFI with Secure Boot, q35 with
 - **Files, not heredocs.** Anything that ends up as a file on the system is a real file under `files/`, laid out like its target. The script copies them with rsync and holds no file contents itself. Values (user name, scales, ports) are written straight into the files - one user, one laptop.
 - **Resume.** `/var/lib/mysuse/progress` holds the hash of the repo content, then one finished step per line. A step is skipped only if the hash still matches; the file is deleted after a complete run. Named steps ignore it.
 - **Defaults where they are good enough.** Keyboard, console font, time zone and autologin-off come from the installer. Labwc's own session file, imv's and foot's default keys, and libinput's default acceleration are kept. Theme colours for foot, GTK and Qt come from Noctalia.
-- **Upstream downloads only for what Tumbleweed doesn't package** (checked 2026-11-11): Helium, Git Credential Manager, Resilio, Bibata, Cascadia Code, ytfzf, Mission Center (Flathub). `noctalia` and `jetbrains-mono-fonts` come from OSS.
+- **Upstream downloads only for what Tumbleweed doesn't package** (checked 2026-11-11): Helium, Git Credential Manager, Resilio, Bibata, ytfzf, Mission Center (Flathub). `noctalia` and `jetbrains-mono-fonts` come from OSS.
 
 ### Gotchas
 

@@ -1,4 +1,6 @@
 # labwc session environment
+XDG_SESSION_TYPE=wayland
+XDG_CURRENT_DESKTOP=labwc:wlroots
 XKB_DEFAULT_LAYOUT=pl
 QT_QPA_PLATFORM=wayland;xcb
 QT_WAYLAND_DISABLE_WINDOWDECORATION=1
