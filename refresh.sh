@@ -150,7 +150,7 @@ step_packages() {
     zypper --gpg-auto-import-keys refresh || warn "some repositories failed to refresh"
 
     local installed
-    mapfile -t installed < <(rpm -q --qf '%{NAME}\n' "${UNWANTED[@]}" | grep -v ' ')
+    mapfile -t installed < <(rpm -q --qf '%{NAME}\n' "${UNWANTED[@]}" | grep -v ' ' || true)
     [[ ${#installed[@]} -eq 0 ]] || zypper -n rm -u "${installed[@]}" || warn "could not remove: ${installed[*]}"
     rm -rf /opt/floorp /usr/local/bin/floorp /usr/local/share/applications/floorp.desktop \
         "$UHOME/.local/share/applications/floorp.desktop" "$UHOME/.config/floorp" "$UHOME/.cache/floorp"
@@ -174,7 +174,7 @@ step_system() {
 
     # groups: sudo, audio/video, uinput (MMAutoKey), VMs; groups that do not exist are left out
     local groups
-    groups=$(getent group wheel audio video input disk storage network libvirt kvm | cut -d: -f1 | paste -sd,)
+    groups=$( { getent group wheel audio video input disk storage network libvirt kvm || true; } | cut -d: -f1 | paste -sd,)
     [[ -z $groups ]] || usermod -aG "$groups" "$USERNAME" || warn "usermod failed for $USERNAME"
 
     # security: fingerprint for sudo/SDDM/polkit/lock screen; firewall: mDNS, Resilio, Tailscale, KDE Connect
