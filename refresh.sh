@@ -26,7 +26,7 @@ PACKAGES=(
     chrony cronie rsync
     # desktop: Labwc + Noctalia
     labwc noctalia kanshi swaylock swayidle wlr-randr grim slurp fontawesome-fonts
-    sddm sddm-greeter-qt5 libqt5-qtquickcontrols libqt5-qtgraphicaleffects
+    greetd tuigreet
     polkit polkit-default-privs dbus-1 xwayland
     gnome-keyring seahorse dconf xdg-user-dirs xdg-utils wl-clipboard libnotify-tools earlyoom
     adwaita-icon-theme papirus-icon-theme kf6-breeze-icons breeze5-icons
@@ -71,7 +71,7 @@ PACKAGES=(
 
 UNWANTED=(power-profiles-daemon hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman
     NetworkManager-applet file-roller icewm icewm-default icewm-config-upstream icewm-lang
-    mako cliphist waybar sfwbar fuzzel gdm htop)
+    mako cliphist waybar sfwbar fuzzel gdm sddm sddm-greeter-qt5 htop)
 
 # =============================================================== helpers
 
@@ -165,11 +165,11 @@ step_packages() {
 step_system() {
     say "system: login, groups, security, services, firewall, name, snapshots, printer, VMs, hibernation"
 
-    # login screen: SDDM + Chili theme (files/root), Labwc as the only session, no autologin
+    # login screen: greetd + tuigreet (files/root), Labwc as the only session, no autologin
     find /usr/share/wayland-sessions /usr/share/xsessions -name '*.desktop' ! -name labwc.desktop -delete 2>/dev/null || true
     may systemctl disable gdm
-    systemctl enable sddm || warn "SDDM could not be enabled"     # takes over at the next boot
-    may update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/sddm
+    may systemctl disable sddm
+    systemctl enable greetd || warn "greetd could not be enabled"   # takes over at the next boot
     may sed -i 's/^DISPLAYMANAGER_AUTOLOGIN=.*/DISPLAYMANAGER_AUTOLOGIN=""/' /etc/sysconfig/displaymanager
 
     # groups: sudo, audio/video, uinput (MMAutoKey), VMs; groups that do not exist are left out
@@ -177,7 +177,7 @@ step_system() {
     groups=$( { getent group wheel audio video input disk storage network libvirt kvm || true; } | cut -d: -f1 | paste -sd,)
     [[ -z $groups ]] || usermod -aG "$groups" "$USERNAME" || warn "usermod failed for $USERNAME"
 
-    # security: fingerprint for sudo/SDDM/polkit/lock screen; firewall: mDNS, Resilio, Tailscale, KDE Connect
+    # security: fingerprint for sudo/greetd/polkit/lock screen; firewall: mDNS, Resilio, Tailscale, KDE Connect
     may pam-config -a --fprintd
     firewall-cmd -q --permanent --add-service=mdns --add-port=55555/tcp --add-port=3838/udp \
         --add-port=41641/udp --add-port=1714-1764/tcp --add-port=1714-1764/udp || warn "firewall ports not set"
