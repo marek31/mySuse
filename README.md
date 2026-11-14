@@ -77,7 +77,7 @@ Run it as yourself. It does `git pull`, then runs the pulled version again with 
 |---|---|
 | `files` | copies `files/root` and `files/home`, removes leftovers of files dropped from the repo |
 | `packages` | removes unwanted packages, installs `PACKAGES`, switches codecs to Packman |
-| `system` | host name, locale, groups, services, firewall, snapper, printer, SDDM, libvirt, swapfile and kernel command line |
+| `system` | host name, locale, groups, services, firewall, snapper, printer, GDM, libvirt, swapfile and kernel command line |
 | `apps` | Helium, Bibata cursor, Cascadia Code, Resilio Sync, ytfzf, Mission Center (Flathub), Helium extensions |
 | `user` | rustup, Claude Code, Antigravity CLI, Deno, oh-my-pi, nanobot, Git Credential Manager, MMAutoKey, wallpapers |
 
@@ -87,7 +87,7 @@ Run it as yourself. It does `git pull`, then runs the pulled version again with 
 
 | Task | How |
 |---|---|
-| Fingerprint | `fprintd-enroll` (then it works for sudo, SDDM and the lock screen) |
+| Fingerprint | `fprintd-enroll` (then it works for sudo, GDM and the lock screen) |
 | Firmware | `fwupdmgr refresh && fwupdmgr update` |
 | GitHub | `git credential-manager github login` (stored in GNOME Keyring), or GitHub Desktop |
 | mydata, MMAutoKey | `git clone https://github.com/marek31/mydata ~/Desktop` (the folder must be empty), then `./refresh.sh user` |
@@ -104,7 +104,7 @@ Run it as yourself. It does `git pull`, then runs the pulled version again with 
 - **Labwc** - Openbox-style stacking Wayland compositor, Tokyo-Night-Modern theme, configured in `~/.config/labwc/rc.xml`.
 - **Noctalia** - the shell: bar on the left with launcher, taskbar, tray, control center (audio, brightness, Wi-Fi, Bluetooth, night light, power profile), notifications, clipboard history, screenshots, lock screen with fingerprint, polkit agent.
 - **kanshi** - monitor layouts on hotplug: laptop panel at 1.25, external 4K (Dell G3223Q) at 1.5 to its right. `display-setup` opens wdisplays and saves what you arrange as a new kanshi profile.
-- **SDDM** with the Chili theme; Labwc is the only session.
+- **GDM** login screen (supports fingerprint and password); Labwc is the only session.
 - **idle-manager** - locks after 30 min on battery, 1 h on the charger, screen off 5 min later.
 - **Speakers** - the X1's quad speakers get Lenovo's Dolby tuning through EasyEffects. The presets (made with [speaker-tuning-to-easyeffects](https://github.com/antoinecellerier/speaker-tuning-to-easyeffects) from the Windows audio driver) are in `files/home/.local/share/easyeffects` and are just copied, so no Windows partition is needed. The internal speaker loads `Dolby-Dynamic-Balanced` automatically.
 
