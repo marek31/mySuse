@@ -77,7 +77,7 @@ Run it as yourself. It does `git pull`, then runs the pulled version again with 
 |---|---|
 | `files` | copies `files/root` and `files/home`, removes leftovers of files dropped from the repo |
 | `packages` | removes unwanted packages, installs `PACKAGES`, switches codecs to Packman |
-| `system` | host name, locale, groups, services, firewall, snapper, printer, GDM, libvirt, swapfile and kernel command line |
+| `system` | host name, locale, groups, services, firewall, snapper, printer, SDDM, libvirt, swapfile and kernel command line |
 | `user` | Git Credential Manager, git config, rustup, Claude Code, Antigravity CLI, Deno, oh-my-pi, nanobot, MMAutoKey, wallpapers |
 | `apps` | Helium, Bibata cursor, Resilio Sync, ytfzf, Mission Center (Flathub), Helium extensions |
 
@@ -87,7 +87,7 @@ Run it as yourself. It does `git pull`, then runs the pulled version again with 
 
 | Task | How |
 |---|---|
-| Fingerprint | `fprintd-enroll` (then it works for sudo, GDM and the lock screen) |
+| Fingerprint | `fprintd-enroll` (then it works for sudo, SDDM and the lock screen) |
 | Firmware | `fwupdmgr refresh && fwupdmgr update` |
 | GitHub | `git credential-manager github login` (stored in GNOME Keyring), or GitHub Desktop |
 | mydata, MMAutoKey | `git clone https://github.com/marek31/mydata ~/Desktop` (the folder must be empty), then `./refresh.sh user` |

@@ -23,7 +23,7 @@ PACKAGES=(
     chrony cronie rsync
     # desktop: Labwc + Noctalia
     labwc noctalia kanshi swaylock swayidle wlr-randr grim slurp fontawesome-fonts
-    gdm
+    sddm sddm-greeter-qt5 libqt5-qtquickcontrols libqt5-qtgraphicaleffects
     polkit polkit-default-privs dbus-1 xwayland
     gnome-keyring seahorse dconf xdg-user-dirs xdg-utils wl-clipboard libnotify-tools earlyoom
     adwaita-icon-theme papirus-icon-theme kf6-breeze-icons breeze5-icons
@@ -68,7 +68,7 @@ PACKAGES=(
 
 UNWANTED=(power-profiles-daemon hplip hplip-hp-plugin hplip-sane kweather p7zip udiskie blueman
     NetworkManager-applet file-roller icewm icewm-default icewm-config-upstream icewm-lang
-    mako cliphist waybar sfwbar fuzzel sddm sddm-greeter-qt5)
+    mako cliphist waybar sfwbar fuzzel gdm)
 
 # =============================================================== helpers
 
@@ -124,9 +124,8 @@ step_files() {
     rm -f "$UHOME"/.local/bin/{btop,mmterm,gitpullpush_mydata.sh,mission-center,missioncenter} \
         "$UHOME"/.local/bin/{taskbar-app,foot-open,idle-manager,imv-dir,imv-info} \
         "$UHOME"/.config/systemd/user/{kanshi.service,mmautokey.service,graphical-session.target.wants/kanshi.service} \
-        /usr/local/bin/{snapper-tick,labwc-suse-session,power-ok} \
-        /etc/sddm.conf.d/10-mysuse.conf
-    rm -rf /usr/local/lib/mysuse /usr/share/sddm/themes/chili
+        /usr/local/bin/{snapper-tick,labwc-suse-session,power-ok}
+    rm -rf /usr/local/lib/mysuse
 
     may sysctl --system
     may udevadm control --reload-rules
@@ -148,8 +147,6 @@ step_packages() {
 
     zypper -n --ignore-unknown in --no-recommends --auto-agree-with-licenses --force-resolution "${PACKAGES[@]}" ||
         warn "some packages could not be installed"
-    # GDM needs its recommended greeter packages (e.g. gnome-shell); --no-recommends leaves a blank screen with cursor
-    zypper -n in --auto-agree-with-licenses gdm || warn "GDM recommends could not be installed"
     zypper -n dup --from packman --allow-vendor-change || warn "switch to Packman codecs failed"
 }
 
@@ -158,11 +155,11 @@ step_packages() {
 step_system() {
     say "system: login, groups, security, services, firewall, name, snapshots, printer, VMs, hibernation"
 
-    # login screen: GDM (parallel fingerprint + password), Labwc as the only session, no autologin
+    # login screen: SDDM + Chili theme (files/root), Labwc as the only session, no autologin
     find /usr/share/wayland-sessions /usr/share/xsessions -name '*.desktop' ! -name labwc.desktop -delete 2>/dev/null || true
-    may systemctl disable sddm
-    systemctl enable gdm || warn "GDM could not be enabled"       # takes over at the next boot
-    may update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/gdm
+    may systemctl disable gdm
+    systemctl enable sddm || warn "SDDM could not be enabled"     # takes over at the next boot
+    may update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/sddm
     may sed -i 's/^DISPLAYMANAGER_AUTOLOGIN=.*/DISPLAYMANAGER_AUTOLOGIN=""/' /etc/sysconfig/displaymanager
 
     # groups: sudo, audio/video, uinput (MMAutoKey), VMs; groups that do not exist are left out
@@ -170,7 +167,7 @@ step_system() {
     groups=$(getent group wheel audio video input disk storage network libvirt kvm | cut -d: -f1 | paste -sd,)
     [[ -z $groups ]] || usermod -aG "$groups" "$USERNAME" || warn "usermod failed for $USERNAME"
 
-    # security: fingerprint for sudo/GDM/polkit/lock screen; firewall: mDNS, Resilio, Tailscale, KDE Connect
+    # security: fingerprint for sudo/SDDM/polkit/lock screen; firewall: mDNS, Resilio, Tailscale, KDE Connect
     may pam-config -a --fprintd
     firewall-cmd -q --permanent --add-service=mdns --add-port=55555/tcp --add-port=3838/udp \
         --add-port=41641/udp --add-port=1714-1764/tcp --add-port=1714-1764/udp || warn "firewall ports not set"
