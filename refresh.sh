@@ -7,9 +7,12 @@
 #   ./refresh.sh selftest    check the resume logic (no root needed)
 #
 # files/root is copied to /, files/home to ~ (a replaced file is kept in /root/.backup or ~/.backup).
-set -euo pipefail
+set -Eeuo pipefail
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 STATE_DIR=/var/lib/mysuse
+LOG_DIR=/var/log/mysuse
+LOG_FILE=""
+WARNINGS=()
 ALL_STEPS=(files packages system user apps)
 HOSTNAME=x1-suse
 USERNAME=marek                # login created in the openSUSE installer
@@ -72,8 +75,13 @@ UNWANTED=(power-profiles-daemon hplip hplip-hp-plugin hplip-sane kweather p7zip 
 
 # =============================================================== helpers
 
-say()  { echo "==> $*"; }
-warn() { echo "WARNING: $*" >&2; }
+ts()   { date '+%F %T'; }
+say()  { echo "[$(ts)] ==> $*"; }
+warn() {
+    echo "[$(ts)] WARNING: $*" >&2
+    WARNINGS+=("$*")
+}
+err()  { echo "[$(ts)] ERROR: $*" >&2; }
 may()  { "$@" >/dev/null 2>&1 || true; }   # allowed to fail: already done, not installed, not logged in
 
 # run a command as $USERNAME in a clean login-like environment
@@ -119,6 +127,8 @@ step_files() {
     "${sync[@]}" --backup --backup-dir="/root/.backup/$stamp" "$HERE/files/root/" /
     as_user "${sync[@]}" --backup --backup-dir="$UHOME/.backup/$stamp" "$HERE/files/home/" "$UHOME/"
     chmod 440 /etc/sudoers.d/10-mysuse
+    find /usr/local/bin /etc/NetworkManager/dispatcher.d -maxdepth 1 -type f -exec chmod +x {} +
+    rm -rf /usr/local/bin/__pycache__
 
     # leftovers of files that were removed from this repo
     rm -f "$UHOME"/.local/bin/{btop,mmterm,gitpullpush_mydata.sh,mission-center,missioncenter} \
@@ -308,15 +318,21 @@ run_steps() {
         for s; do
             declare -F "step_$s" >/dev/null || { echo "ERROR: unknown step '$s' (steps: ${ALL_STEPS[*]})" >&2; exit 1; }
         done
-        for s; do "step_$s"; done
+        for s; do
+            say "starting step: $s"
+            "step_$s"
+            say "finished step: $s"
+        done
         return 0
     fi
     mkdir -p "$STATE_DIR"
     [[ $(head -n1 "$state" 2>/dev/null) == "$(repo_hash)" ]] || repo_hash > "$state"
     for s in "${ALL_STEPS[@]}"; do
         if grep -qx "$s" "$state"; then say "$s: already done in the interrupted run"; continue; fi
+        say "starting step: $s"
         "step_$s"
         echo "$s" >> "$state"
+        say "finished step: $s"
     done
     rm -f "$state"
 }
@@ -358,10 +374,36 @@ if [[ $EUID -ne 0 ]]; then
     git -C "$HERE" pull --ff-only || warn "git pull failed - using the local copy"
     exec sudo bash "$HERE/refresh.sh" "$@"
 fi
-id "$USERNAME" >/dev/null 2>&1 || { echo "ERROR: user '$USERNAME' does not exist - create it in the openSUSE installer" >&2; exit 1; }
-trap '[[ $? -eq 0 ]] || echo "ERROR: stopped - fix the error above, then run ./refresh.sh again" >&2' EXIT
+id "$USERNAME" >/dev/null 2>&1 || { err "user '$USERNAME' does not exist - create it in the openSUSE installer"; exit 1; }
 
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/refresh-$(date '+%F_%H-%M-%S').log"
+ln -sfn "$LOG_FILE" "$LOG_DIR/latest.log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+on_err() {
+    local rc=$? line=${BASH_LINENO[0]:-?} func=${FUNCNAME[1]:-main} cmd=${BASH_COMMAND:-?}
+    err "in '$func' at line $line (exit $rc): $cmd"
+}
+on_exit() {
+    local rc=$?
+    if [[ $rc -ne 0 ]]; then
+        err "stopped (exit $rc) - see log: $LOG_FILE"
+        err "fix the error above, then run ./refresh.sh again"
+    fi
+}
+trap on_err ERR
+trap on_exit EXIT
+
+say "refresh.sh started (args: ${*:-all}; log: $LOG_FILE)"
 run_steps "$@"
 may pkill -HUP -x labwc                      # = labwc --reconfigure
 may as_user noctalia msg config-reload
-say "done"
+
+if [[ ${#WARNINGS[@]} -gt 0 ]]; then
+    echo "[$(ts)] WARNING: completed with ${#WARNINGS[@]} warning(s):" >&2
+    for w in "${WARNINGS[@]}"; do
+        echo "  - $w" >&2
+    done
+fi
+say "done (log: $LOG_FILE)"

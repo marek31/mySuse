@@ -15,9 +15,9 @@ if [[ -d "$HOME/Desktop/code/MMBrowserSync/extension" ]]; then
     LOAD_EXTS+=("$HOME/Desktop/code/MMBrowserSync/extension")
 fi
 
-EXT_FLAG=""
+ARGS=(--password-store=gnome-libsecret --enable-features=VaapiVideoDecodeLinuxGL)
 if [[ ${#LOAD_EXTS[@]} -gt 0 ]]; then
-    EXT_FLAG="--load-extension=$(IFS=,; echo "${LOAD_EXTS[*]}")"
+    ARGS+=("--load-extension=$(IFS=,; echo "${LOAD_EXTS[*]}")")
 fi
 
-exec /opt/helium/helium --password-store=gnome-libsecret --enable-features=VaapiVideoDecodeLinuxGL $EXT_FLAG "$@"
+exec /opt/helium/helium-wrapper "${ARGS[@]}" "$@"

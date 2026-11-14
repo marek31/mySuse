@@ -302,15 +302,19 @@ Rectangle {
 
         Connections {
             target: sddm
-            onLoginFailed: {
+            function onInformationMessage(message) {
+                notificationMessage = message
+                notificationResetTimer.restart()
+            }
+            function onLoginFailed() {
                 notificationMessage = textConstants.loginFailed
-                notificationResetTimer.start();
+                notificationResetTimer.restart()
             }
         }
 
         Timer {
             id: notificationResetTimer
-            interval: 3000
+            interval: 10000
             onTriggered: notificationMessage = ""
         }
 

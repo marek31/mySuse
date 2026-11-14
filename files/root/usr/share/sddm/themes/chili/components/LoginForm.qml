@@ -46,7 +46,7 @@ LoginFormLayout {
             id: passwordField
 
 
-        	placeholderText: textConstants.password
+        	placeholderText: textConstants.password + " (or Enter for fingerprint)"
             echoMode: TextInput.Password
             onAccepted: startLogin()
         	focus: true
